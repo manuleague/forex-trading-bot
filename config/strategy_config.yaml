@@ -1,0 +1,55 @@
+strategy:
+  trend_fast_ema: 20
+  trend_slow_ema: 50
+  trend_adx_threshold: 20.0
+  mean_rsi_period: 14
+  mean_bollinger_period: 20
+  mean_bollinger_std: 2.0
+  breakout_lookback: 20
+  breakout_atr_period: 14
+  breakout_atr_expansion: 1.1
+  score_threshold: 0.50
+  min_strategy_confidence: 0.20
+  recent_trade_window: 100
+  adaptive_warmup_floor: 15
+  daily_warmup_scale: 0.35
+  weekly_warmup_scale: 0.25
+  start_trading_hour: 8
+  end_trading_hour: 20
+
+risk:
+  initial_capital: 10000.0
+  risk_per_trade: 0.01
+  max_total_exposure: 0.05
+  drawdown_circuit_breaker: 0.05
+  circuit_breaker_cooldown_bars: 50
+  circuit_breaker_recovery_threshold: 0.97
+  atr_stop_multiplier: 1.5
+  take_profit_atr_multiplier: 5.0
+  break_even_atr_multiplier: 1.5
+  break_even_buffer_atr_multiplier: 0.2
+  trailing_activation_atr_multiplier: 3.0
+  trailing_stop_atr_multiplier: 2.0
+  trailing_stop_step_atr_multiplier: 0.5
+  minimum_atr_ratio: 0.80
+  liquidity_spike_range_multiplier: 2.5
+  max_positions_per_currency: 2
+  max_concurrent_positions: 1
+  commission_per_trade_usd: 0.0
+  max_notional_leverage: 1.0
+
+pair_specific:
+  USDJPY:
+    risk:
+      take_profit_atr_multiplier: 5.0
+      trailing_stop_activation: 3.5
+  EURUSD:
+    strategy:
+      score_threshold: 0.50
+  GBPUSD:
+    strategy:
+      score_threshold: 0.60
+      adx_threshold: 30.0
+    risk:
+      take_profit_atr_multiplier: 3.5
+      atr_stop_multiplier: 2.2

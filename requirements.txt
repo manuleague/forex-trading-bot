@@ -1,0 +1,5 @@
+﻿pandas>=2.2.0
+numpy>=1.26.0
+PyYAML>=6.0.0
+ib_insync>=0.9.86
+dukascopy-python>=4.0.1

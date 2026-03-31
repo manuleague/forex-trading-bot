@@ -1,0 +1,29 @@
+# Baseline pe termen lung
+python main.py --mode backtest --pair EURUSD --start 2018-01-01 --end 2024-12-31 --timeframe D
+python main.py --mode backtest --pair EURUSD --start 2018-01-01 --end 2024-12-31 --timeframe 4h
+
+# Test de Criză (COVID - Volatilitate mare)
+python main.py --mode backtest --pair EURUSD --start 2020-01-01 --end 2020-06-01 --timeframe 4h
+
+# Test de Sensibilitate la Slippage (2024)
+python main.py --mode backtest --pair EURUSD --start 2024-01-01 --end 2024-12-31 --timeframe 4h --slippage-bps 1.5
+
+# Baseline pe termen lung
+python main.py --mode backtest --pair USDJPY --start 2018-01-01 --end 2024-12-31 --timeframe D
+python main.py --mode backtest --pair USDJPY --start 2018-01-01 --end 2024-12-31 --timeframe 4h
+
+# Test de Criză (Explozia Yen-ului 2022)
+python main.py --mode backtest --pair USDJPY --start 2022-01-01 --end 2022-12-31 --timeframe 4h
+
+# Test de Sensibilitate la Slippage (2024)
+python main.py --mode backtest --pair USDJPY --start 2024-01-01 --end 2024-12-31 --timeframe 4h --slippage-bps 1.5
+
+# Baseline pe termen lung
+python main.py --mode backtest --pair GBPUSD --start 2018-01-01 --end 2024-12-31 --timeframe D
+python main.py --mode backtest --pair GBPUSD --start 2018-01-01 --end 2024-12-31 --timeframe 4h
+
+# Test de Criză (COVID - Reacții violente pe Liră)
+python main.py --mode backtest --pair GBPUSD --start 2020-01-01 --end 2020-06-01 --timeframe 4h
+
+# Test de Sensibilitate la Slippage (2024)
+python main.py --mode backtest --pair GBPUSD --start 2024-01-01 --end 2024-12-31 --timeframe 4h --slippage-bps 1.5
