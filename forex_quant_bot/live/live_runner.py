@@ -57,6 +57,8 @@ class LiveRunner:
     reconnect_reason: str = ""
     ib_error_handler_attached: bool = False
     connection_loss_active: bool = False
+    terminal_status_line: str = ""
+    terminal_status_by_pair: dict[str, str] = field(default_factory=dict)
 
     async def run(self) -> dict[str, Any]:
         self._initialize_runtime()
@@ -114,6 +116,9 @@ class LiveRunner:
             raise RuntimeError("Broker is not initialized.")
         self.reconnect_event.clear()
         self.reconnect_reason = ""
+        self._clear_terminal_status_line()
+        self.terminal_status_by_pair.clear()
+        self.terminal_status_line = ""
         self._emit_status(
             f"Connecting to IB paper at {self.config.ib.host}:{self.config.ib.port} "
             f"(client_id={self.config.ib.client_id})..."
@@ -176,10 +181,6 @@ class LiveRunner:
             return
         if now < self.next_heartbeat_deadline:
             return
-        loaded_pairs = [pair for pair in self.config.pairs if pair in self.states]
-        self._emit_status(
-            f"[HEARTBEAT] Bot is alive and connected. Memory OK. Pairs={', '.join(loaded_pairs) if loaded_pairs else 'none'}."
-        )
         self.next_heartbeat_deadline = now + self.heartbeat_interval_seconds
 
     @staticmethod
@@ -510,6 +511,7 @@ class LiveRunner:
                     self.trade_id = candidate_trade_id
                     entry_reason = self._dominant_reason(composite, composite.bias)
                     take_profit_price = self._take_profit_price(filled_entry_price, composite.bias, float(bar.get("atr", 0.0) or 0.0), risk_config)
+                    contributing_strategies = self._contributing_strategies(composite, composite.bias)
                     state.position = Position(
                         trade_id=self.trade_id,
                         pair=pair,
@@ -525,7 +527,7 @@ class LiveRunner:
                         equity_at_entry=equity,
                         risk_amount_usd=risk_decision.risk_amount_usd,
                         strategy_scores=composite.strategy_scores,
-                        contributing_strategies=self._contributing_strategies(composite, composite.bias),
+                        contributing_strategies=contributing_strategies,
                         signal_strength=composite.final_signal,
                         highest_price_seen=filled_entry_price,
                         lowest_price_seen=filled_entry_price,
@@ -546,12 +548,14 @@ class LiveRunner:
                         )
                     )
                     self._emit_status(
-                        f"Entry {side} {pair} {timestamp:%Y-%m-%d %H:%M UTC} @ {filled_entry_price:.5f} "
-                        f"size={risk_decision.size_units:,} stop={risk_decision.stop_price:.5f} tp={take_profit_price:.5f} reason={entry_reason}"
+                        f"TRADE OPEN | {pair} | {side} | exec={filled_entry_price:.5f} | "
+                        f"size={risk_decision.size_units:,} | stop={risk_decision.stop_price:.5f} | "
+                        f"tp={take_profit_price:.5f} | signal={composite.final_signal:+.3f} | "
+                        f"reason={entry_reason} | strategies={', '.join(contributing_strategies)}"
                     )
                 else:
                     self._emit_status(
-                        f"Entry order rejected for {pair} {timestamp:%Y-%m-%d %H:%M UTC}: {order_details}"
+                        f"ORDER REJECTED | {pair} | {action} | {timestamp:%Y-%m-%d %H:%M UTC} | details={order_details}"
                     )
 
         self._maybe_emit_bar_status(
@@ -787,7 +791,8 @@ class LiveRunner:
         )
         if not self._trade_succeeded(trade):
             self._emit_status(
-                f"Exit order rejected for {pair} {exit_time:%Y-%m-%d %H:%M UTC}: {order_details}. Position remains open."
+                f"ORDER REJECTED | {pair} | {action} | {exit_time:%Y-%m-%d %H:%M UTC} | "
+                f"details={order_details} | position remains open"
             )
             return self.realized_pnl, position
 
@@ -852,8 +857,10 @@ class LiveRunner:
         )
         self.realized_pnl = realized_pnl
         self._emit_status(
-            f"Exit {position.side} {pair} {exit_time:%Y-%m-%d %H:%M UTC} @ {filled_exit_price:.5f} "
-            f"reason={exit_reason} pnl={pnl_usd:+.2f} USD ({pnl_pct:+.2%})"
+            f"TRADE CLOSE | {pair} | {position.side} | exec={filled_exit_price:.5f} | "
+            f"exit={exit_reason} | entry_reason={position.entry_reason} | "
+            f"strategies={', '.join(position.contributing_strategies)} | "
+            f"pnl={pnl_usd:+.2f} USD ({pnl_pct:+.2%})"
         )
         return realized_pnl, None
 
@@ -872,17 +879,16 @@ class LiveRunner:
         return names or [max(composite.strategy_scores, key=composite.strategy_scores.get)]
 
     def _maybe_emit_bar_status(self, pair: str, timestamp, close_price: float, regime: str, composite, position: Position | None) -> None:
-        updates = self.bar_updates_seen.get(pair, 0) + 1
-        self.bar_updates_seen[pair] = updates
-        should_emit = updates <= 3 or composite.bias != 0 or position is not None
-        if not should_emit:
-            return
         bias_label = {1: "Long", -1: "Short", 0: "Flat"}[composite.bias]
         position_label = position.side if position is not None else "Flat"
-        self._emit_status(
-            f"Live bar {pair} {timestamp:%Y-%m-%d %H:%M UTC} close={close_price:.5f} "
-            f"regime={regime} signal={composite.final_signal:+.3f} bias={bias_label} position={position_label}"
+        updates = self.bar_updates_seen.get(pair, 0) + 1
+        self.bar_updates_seen[pair] = updates
+        pair_status = (
+            f"{pair} {close_price:.5f} | {timestamp:%H:%M} UTC | "
+            f"reg={regime} | sig={composite.final_signal:+.3f} | bias={bias_label} | pos={position_label}"
         )
+        self.terminal_status_by_pair[pair] = pair_status
+        self._refresh_terminal_status_line()
 
     @staticmethod
     def _trade_status(trade) -> str:
@@ -910,8 +916,29 @@ class LiveRunner:
         return avg_fill if avg_fill > 0 else fallback_price
 
     def _emit_status(self, message: str) -> None:
-        if self.config.summary_to_stdout:
-            print(message, flush=True)
+        if not self.config.summary_to_stdout:
+            return
+        self._clear_terminal_status_line()
+        print(message, flush=True)
+        self._refresh_terminal_status_line()
+
+    def _clear_terminal_status_line(self) -> None:
+        if not self.config.summary_to_stdout or not self.terminal_status_line:
+            return
+        clear_width = max(len(self.terminal_status_line), 200)
+        print("\r" + (" " * clear_width) + "\r", end="", flush=True)
+
+    def _refresh_terminal_status_line(self) -> None:
+        if not self.config.summary_to_stdout:
+            return
+        ordered_statuses = [self.terminal_status_by_pair[pair] for pair in self.config.pairs if pair in self.terminal_status_by_pair]
+        if not ordered_statuses:
+            self.terminal_status_line = ""
+            return
+        line = "LIVE | " + " || ".join(ordered_statuses)
+        display_width = max(len(line), len(self.terminal_status_line), 200)
+        print(f"\r{line:<{display_width}}", end="", flush=True)
+        self.terminal_status_line = line
 
     @staticmethod
     def _format_timestamp(value) -> str:
