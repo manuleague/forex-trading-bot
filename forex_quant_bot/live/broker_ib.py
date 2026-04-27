@@ -21,6 +21,8 @@ class IBPaperBroker:
     config: IBConfig
     ib: Any = field(init=False)
     active_historical_streams: list[Any] = field(init=False, default_factory=list)
+    active_market_contracts: dict[str, Any] = field(init=False, default_factory=dict)
+    active_market_tickers: dict[str, Any] = field(init=False, default_factory=dict)
 
     def __post_init__(self) -> None:
         self.ib = IB()
@@ -43,6 +45,7 @@ class IBPaperBroker:
 
     async def disconnect(self) -> None:
         await self._cancel_historical_streams()
+        await self._cancel_market_data_streams()
         if self.ib.isConnected():
             self.ib.disconnect()
 
@@ -56,6 +59,21 @@ class IBPaperBroker:
         for stream in streams:
             try:
                 self.ib.cancelHistoricalData(stream)
+            except Exception:
+                continue
+        await asyncio.sleep(0)
+
+    async def _cancel_market_data_streams(self) -> None:
+        if not self.active_market_contracts:
+            return
+        contracts = dict(self.active_market_contracts)
+        self.active_market_contracts.clear()
+        self.active_market_tickers.clear()
+        if not self.ib.isConnected():
+            return
+        for contract in contracts.values():
+            try:
+                self.ib.cancelMktData(contract)
             except Exception:
                 continue
         await asyncio.sleep(0)
@@ -97,6 +115,16 @@ class IBPaperBroker:
             self.active_historical_streams.append(bars)
         return bars
 
+    async def subscribe_market_data(self, pair: str):
+        normalized_pair = normalize_pair(pair)
+        if normalized_pair in self.active_market_tickers:
+            return self.active_market_tickers[normalized_pair]
+        contract = await self.qualify_forex(normalized_pair)
+        ticker = self.ib.reqMktData(contract, genericTickList="", snapshot=False, regulatorySnapshot=False)
+        self.active_market_contracts[normalized_pair] = contract
+        self.active_market_tickers[normalized_pair] = ticker
+        return ticker
+
     async def place_market_order(self, pair: str, action: str, size_units: int, timeout_seconds: float = 5.0):
         contract = await self.qualify_forex(pair)
         order = MarketOrder(action=action, totalQuantity=size_units)
@@ -129,3 +157,27 @@ class IBPaperBroker:
         if "volume" not in dataframe.columns:
             dataframe["volume"] = 0.0
         return dataframe[["timestamp", "open", "high", "low", "close", "volume"]].copy()
+
+    @staticmethod
+    def market_price(ticker: Any) -> float:
+        if ticker is None:
+            return 0.0
+        try:
+            market_price_fn = getattr(ticker, "marketPrice", None)
+            if callable(market_price_fn):
+                value = float(market_price_fn() or 0.0)
+                if value > 0:
+                    return value
+        except Exception:
+            pass
+
+        bid = float(getattr(ticker, "bid", 0.0) or 0.0)
+        ask = float(getattr(ticker, "ask", 0.0) or 0.0)
+        last = float(getattr(ticker, "last", 0.0) or 0.0)
+        close = float(getattr(ticker, "close", 0.0) or 0.0)
+        if bid > 0 and ask > 0:
+            return (bid + ask) / 2.0
+        for candidate in (last, bid, ask, close):
+            if candidate > 0:
+                return candidate
+        return 0.0

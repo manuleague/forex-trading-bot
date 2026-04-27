@@ -6,6 +6,8 @@ from typing import Any
 
 import pandas as pd
 
+from forex_quant_bot.logs.performance_dashboard import PerformanceDashboardWriter
+
 
 class CSVLogger:
     def __init__(self, base_dir: Path, mode: str, pair: str, timeframe: str, run_label: str | None = None) -> None:
@@ -47,4 +49,6 @@ class CSVLogger:
                 value.to_csv(path, index=include_index)
                 paths[key] = path
         paths["summary"] = self.write_text("summary.txt", summary_text)
+        dashboard_paths = PerformanceDashboardWriter(self.run_dir).persist(report)
+        paths.update(dashboard_paths)
         return paths
