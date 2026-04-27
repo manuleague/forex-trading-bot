@@ -1,5 +1,11 @@
 python main.py --mode live --pairs EURUSD --timeframe 4h --ib-port 7497 --client-id 10
 
-python main.py --mode live --pairs USDJPY --timeframe 4h --ib-port 7497 --client-id 11
+python main.py --mode live --pairs EURUSD --timeframe 15m --ib-port 7497 --client-id 11
+
 
 python main.py --mode live --pairs GBPUSD --timeframe 4h --ib-port 7497 --client-id 12
+
+python main.py --mode live --pairs GBPUSD --timeframe 15m --ib-port 7497 --client-id 13
+
+
+python main.py --mode live --pairs USDJPY --timeframe 4h --ib-port 7497 --client-id 14
