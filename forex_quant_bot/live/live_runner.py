@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -26,11 +27,14 @@ class PairState:
     pair: str
     market_data: pd.DataFrame
     last_bar_timestamp: pd.Timestamp | None = None
+    live_bar_timestamp: pd.Timestamp | None = None
+    live_price: float = 0.0
     position: Position | None = None
 
 
 @dataclass(slots=True)
 class LiveRunner:
+    ROMANIA_TZ = ZoneInfo("Europe/Bucharest")
     config: BotConfig
     broker: IBPaperBroker | None = None
     logger: CSVLogger | None = None
@@ -57,11 +61,17 @@ class LiveRunner:
     reconnect_event: asyncio.Event = field(default_factory=asyncio.Event)
     reconnect_cooldown_seconds: float = 10.0
     stream_poll_interval_seconds: float = 0.50
-    heartbeat_interval_seconds: float = 15 * 60.0
+    market_price_poll_interval_seconds: float = 1.0
+    heartbeat_interval_seconds: float = 5.0
     next_heartbeat_deadline: float = 0.0
+    heartbeat_timeout_seconds: float = 4.0
     reconnect_reason: str = ""
     ib_error_handler_attached: bool = False
+    ib_disconnect_handler_attached: bool = False
+    ib_timeout_handler_attached: bool = False
     connection_loss_active: bool = False
+    last_live_update_at: float = 0.0
+    live_data_stale_after_seconds: float = 20.0
     terminal_status_line: str = ""
     terminal_status_by_pair: dict[str, dict[str, Any]] = field(default_factory=dict)
 
@@ -139,6 +149,14 @@ class LiveRunner:
         if not self.ib_error_handler_attached:
             self.broker.ib.errorEvent += self._on_ib_error
             self.ib_error_handler_attached = True
+        if not self.ib_disconnect_handler_attached:
+            self.broker.ib.disconnectedEvent += self._on_ib_disconnected
+            self.ib_disconnect_handler_attached = True
+        if not self.ib_timeout_handler_attached:
+            self.broker.ib.timeoutEvent += self._on_ib_timeout
+            self.ib_timeout_handler_attached = True
+        if hasattr(self.broker.ib, "setTimeout"):
+            self.broker.ib.setTimeout(self.live_data_stale_after_seconds)
         self._emit_status("Connected. Bootstrapping live forex streams...")
         await self._bootstrap_streams()
         loaded_pairs = [pair for pair in self.config.pairs if pair in self.states]
@@ -149,6 +167,7 @@ class LiveRunner:
             f"Live paper mode active for {', '.join(loaded_pairs)} on {self.config.timeframe}. "
             f"Warm-up bars loaded: {latest_points}. Waiting for the next completed bar..."
         )
+        self.last_live_update_at = asyncio.get_running_loop().time()
         self._set_next_heartbeat()
         if self.connection_loss_active:
             self._emit_status("[SUCCESS] Live streams resumed after reconnect.")
@@ -162,7 +181,7 @@ class LiveRunner:
                 raise ConnectionError(reason)
             if self.broker is None or not self.broker.ib.isConnected():
                 raise ConnectionError("IB connection is inactive.")
-            self._maybe_emit_heartbeat()
+            await self._maybe_emit_heartbeat()
             await asyncio.sleep(1)
 
     def _request_reconnect(self, reason: str) -> None:
@@ -193,10 +212,24 @@ class LiveRunner:
         elif error_code == 1102 and self.connection_loss_active:
             self._emit_status(f"[SUCCESS] IB connectivity restored (1102): {error_string}")
 
+    def _on_ib_disconnected(self) -> None:
+        if not self.connection_loss_active:
+            self._emit_status("[WARNING] Interactive Brokers session disconnected. Scheduling reconnect.")
+        self.connection_loss_active = True
+        self._request_reconnect("Interactive Brokers disconnected.")
+
+    def _on_ib_timeout(self, idle_period: float) -> None:
+        if not self.connection_loss_active:
+            self._emit_status(
+                f"[WARNING] No incoming IB data for {idle_period:.1f}s. Scheduling reconnect."
+            )
+        self.connection_loss_active = True
+        self._request_reconnect(f"IB data timeout after {idle_period:.1f}s.")
+
     def _set_next_heartbeat(self) -> None:
         self.next_heartbeat_deadline = asyncio.get_running_loop().time() + self.heartbeat_interval_seconds
 
-    def _maybe_emit_heartbeat(self) -> None:
+    async def _maybe_emit_heartbeat(self) -> None:
         now = asyncio.get_running_loop().time()
         if self.next_heartbeat_deadline == 0.0:
             self._set_next_heartbeat()
@@ -204,6 +237,22 @@ class LiveRunner:
         if now < self.next_heartbeat_deadline:
             return
         self.next_heartbeat_deadline = now + self.heartbeat_interval_seconds
+        if self.broker is None:
+            raise ConnectionError("Broker is not initialized.")
+        try:
+            await self.broker.ping(timeout_seconds=self.heartbeat_timeout_seconds)
+        except Exception as exc:
+            self.connection_loss_active = True
+            self._request_reconnect(f"IB heartbeat failed: {exc}")
+            raise ConnectionError(f"IB heartbeat failed: {exc}") from exc
+        now = asyncio.get_running_loop().time()
+        if self.config.pairs and self.last_live_update_at and (now - self.last_live_update_at) > self.live_data_stale_after_seconds:
+            self.connection_loss_active = True
+            reason = (
+                f"No live market updates received for {now - self.last_live_update_at:.1f}s."
+            )
+            self._request_reconnect(reason)
+            raise ConnectionError(reason)
 
     @staticmethod
     def _looks_like_connection_issue(exc: Exception) -> bool:
@@ -254,11 +303,19 @@ class LiveRunner:
                 stream_errors[pair] = "Merged market data is empty."
                 continue
 
+            live_bar_timestamp = merged.iloc[-1]["timestamp"]
+            live_price = float(merged.iloc[-1]["close"])
+            last_closed_timestamp = live_bar_timestamp
+            if apply_strategy_features and len(merged) >= 2:
+                last_closed_timestamp = merged.iloc[-2]["timestamp"]
+
             existing_state = self.states.get(pair)
             updated_states[pair] = PairState(
                 pair=pair,
                 market_data=merged,
-                last_bar_timestamp=merged.iloc[-1]["timestamp"],
+                last_bar_timestamp=last_closed_timestamp,
+                live_bar_timestamp=live_bar_timestamp,
+                live_price=live_price,
                 position=existing_state.position if existing_state is not None else None,
             )
             if pair in self.config.pairs:
@@ -267,12 +324,16 @@ class LiveRunner:
                 self._emit_status(self._stream_status_message(pair, merged, previous_timestamps.get(pair)))
                 self._update_terminal_status_snapshot(
                     pair=pair,
-                    price=float(merged.iloc[-1]["close"]),
-                    market_timestamp=merged.iloc[-1]["timestamp"],
+                    price=live_price,
+                    market_timestamp=datetime.now(timezone.utc),
+                    bar_timestamp=live_bar_timestamp,
                 )
             else:
                 conversion_streams[pair] = bars
-                refreshed_conversion_rates[pair] = float(merged.iloc[-1]["close"])
+                refreshed_conversion_rates[pair] = live_price
+
+            if hasattr(bars, "updateEvent"):
+                bars.updateEvent += lambda bar_list, has_new_bar, p=pair: self._on_live_bar_tick_update(p, bar_list, has_new_bar)
 
         missing_primary = [pair for pair in self.config.pairs if pair not in successful_primary]
         if missing_primary:
@@ -285,10 +346,14 @@ class LiveRunner:
 
         for pair in self.config.pairs:
             try:
-                ticker = await self.broker.subscribe_market_data(pair)
+                ticker = await self.broker.subscribe_tick_by_tick_midpoint(pair)
             except Exception as exc:
-                self._emit_status(f"[WARNING] Real-time price stream unavailable for {pair}: {exc}")
-                continue
+                self._emit_status(f"[WARNING] Tick-by-tick midpoint stream unavailable for {pair}: {exc}")
+                try:
+                    ticker = await self.broker.subscribe_market_data(pair)
+                except Exception as fallback_exc:
+                    self._emit_status(f"[WARNING] Real-time price stream unavailable for {pair}: {fallback_exc}")
+                    continue
             market_tickers[pair] = ticker
             if hasattr(ticker, "updateEvent"):
                 ticker.updateEvent += lambda *args, p=pair, current=ticker: self._on_market_data_update(p, args[0] if args else current)
@@ -298,6 +363,7 @@ class LiveRunner:
                     pair=pair,
                     price=latest_price,
                     market_timestamp=datetime.now(timezone.utc),
+                    bar_timestamp=updated_states[pair].live_bar_timestamp,
                 )
 
         self.states = updated_states
@@ -351,6 +417,8 @@ class LiveRunner:
             self.stream_tasks.append(asyncio.create_task(self._poll_conversion_stream(pair, bar_list)))
         for pair, bar_list in self.primary_bar_streams.items():
             self.stream_tasks.append(asyncio.create_task(self._poll_primary_stream(pair, bar_list)))
+        if self.market_tickers:
+            self.stream_tasks.append(asyncio.create_task(self._poll_market_prices()))
 
     async def _poll_conversion_stream(self, pair: str, bar_list) -> None:
         while not self.reconnect_event.is_set():
@@ -362,14 +430,19 @@ class LiveRunner:
                 if not merged.empty:
                     existing_state = self.states.get(pair)
                     latest_ts = merged.iloc[-1]["timestamp"]
-                    if existing_state is None or existing_state.last_bar_timestamp is None or pd.Timestamp(latest_ts) > pd.Timestamp(existing_state.last_bar_timestamp):
+                    latest_price = float(merged.iloc[-1]["close"])
+                    last_processed = existing_state.last_bar_timestamp if existing_state is not None else None
+                    if existing_state is None or last_processed is None or pd.Timestamp(latest_ts) > pd.Timestamp(last_processed):
                         self.states[pair] = PairState(
                             pair=pair,
                             market_data=merged,
                             last_bar_timestamp=latest_ts,
+                            live_bar_timestamp=latest_ts,
+                            live_price=latest_price,
                             position=existing_state.position if existing_state is not None else None,
                         )
-                        self.last_conversion_rates[pair] = float(merged.iloc[-1]["close"])
+                        self.last_conversion_rates[pair] = latest_price
+                        self.last_live_update_at = asyncio.get_running_loop().time()
             except asyncio.CancelledError:
                 return
             except Exception as exc:
@@ -388,18 +461,38 @@ class LiveRunner:
                         return
                     incoming = self.broker.bars_to_dataframe(bar_list)
                     merged = self._merge_market_data(pair, incoming, apply_strategy_features=True)
-                    if merged.empty:
+                    if merged.empty or len(merged) < 2:
                         continue
                     state = self.states.get(pair)
-                    latest_ts = merged.iloc[-1]["timestamp"]
-                    if state is not None and state.last_bar_timestamp is not None and pd.Timestamp(latest_ts) <= pd.Timestamp(state.last_bar_timestamp):
-                        continue
+                    live_bar_timestamp = merged.iloc[-1]["timestamp"]
+                    latest_price = float(merged.iloc[-1]["close"])
+                    latest_closed_ts = merged.iloc[-2]["timestamp"]
+                    live_changed = (
+                        state is None
+                        or state.live_bar_timestamp is None
+                        or pd.Timestamp(live_bar_timestamp) != pd.Timestamp(state.live_bar_timestamp)
+                        or abs(float(state.live_price) - latest_price) > 1e-9
+                    )
                     self.states[pair] = PairState(
                         pair=pair,
                         market_data=merged,
-                        last_bar_timestamp=latest_ts,
+                        last_bar_timestamp=state.last_bar_timestamp if state is not None else None,
+                        live_bar_timestamp=live_bar_timestamp,
+                        live_price=latest_price,
                         position=state.position if state is not None else None,
                     )
+                    self._update_terminal_status_snapshot(
+                        pair=pair,
+                        price=latest_price,
+                        market_timestamp=datetime.now(timezone.utc),
+                        bar_timestamp=live_bar_timestamp,
+                        refresh_status_line=live_changed,
+                    )
+                    if live_changed:
+                        self.last_live_update_at = asyncio.get_running_loop().time()
+                    if state is not None and state.last_bar_timestamp is not None and pd.Timestamp(latest_closed_ts) <= pd.Timestamp(state.last_bar_timestamp):
+                        continue
+                    self.states[pair].last_bar_timestamp = latest_closed_ts
                     await self._process_pair(pair)
             except asyncio.CancelledError:
                 return
@@ -421,7 +514,74 @@ class LiveRunner:
             pair=pair,
             price=price,
             market_timestamp=datetime.now(timezone.utc),
+            bar_timestamp=self.states.get(pair).live_bar_timestamp if self.states.get(pair) is not None else None,
         )
+        self.last_live_update_at = asyncio.get_running_loop().time()
+
+    def _on_live_bar_tick_update(self, pair: str, bar_list, has_new_bar: bool) -> None:
+        if pair not in self.config.pairs:
+            return
+        try:
+            if not bar_list:
+                return
+            live_bar = bar_list[-1]
+            live_price = float(getattr(live_bar, "close", 0.0) or 0.0)
+            if live_price <= 0:
+                return
+            live_bar_timestamp = getattr(live_bar, "date", None)
+            state = self.states.get(pair)
+            if state is not None:
+                state.live_price = live_price
+                if live_bar_timestamp is not None:
+                    state.live_bar_timestamp = pd.Timestamp(live_bar_timestamp)
+            self._update_terminal_status_snapshot(
+                pair=pair,
+                price=live_price,
+                market_timestamp=datetime.now(timezone.utc),
+                bar_timestamp=live_bar_timestamp,
+                refresh_status_line=True,
+            )
+            self.last_live_update_at = asyncio.get_running_loop().time()
+        except Exception:
+            return
+
+    async def _poll_market_prices(self) -> None:
+        while not self.reconnect_event.is_set():
+            try:
+                if self.broker is None or not self.broker.ib.isConnected():
+                    return
+                updated_any = False
+                now = datetime.now(timezone.utc)
+                for pair in self.config.pairs:
+                    ticker = self.market_tickers.get(pair)
+                    price = self.broker.market_price(ticker) if ticker is not None else 0.0
+                    if price <= 0:
+                        state = self.states.get(pair)
+                        if state is not None and state.live_price > 0:
+                            price = state.live_price
+                        elif state is not None and not state.market_data.empty:
+                            price = float(state.market_data.iloc[-1]["close"])
+                    if price <= 0:
+                        continue
+                    self._update_terminal_status_snapshot(
+                        pair=pair,
+                        price=price,
+                        market_timestamp=now,
+                        bar_timestamp=self.states.get(pair).live_bar_timestamp if self.states.get(pair) is not None else None,
+                        refresh_status_line=False,
+                    )
+                    updated_any = True
+                if updated_any:
+                    self._refresh_terminal_status_line()
+            except asyncio.CancelledError:
+                return
+            except Exception as exc:
+                if self._looks_like_connection_issue(exc):
+                    self.connection_loss_active = True
+                    self._request_reconnect(f"Real-time price polling failed: {exc}")
+                    return
+                self._emit_status(f"[WARNING] Real-time price refresh failed: {exc}")
+            await asyncio.sleep(self.market_price_poll_interval_seconds)
 
     def _prepare_market_data(self, pair: str, dataframe: pd.DataFrame, apply_strategy_features: bool) -> pd.DataFrame:
         if dataframe.empty:
@@ -435,6 +595,7 @@ class LiveRunner:
     async def _process_pair(self, pair: str) -> None:
         state = self.states[pair]
         market_data = state.market_data
+        analysis_data = market_data.iloc[:-1].copy() if len(market_data) >= 2 else market_data.copy()
         strategy_config = self._strategy_config_for_pair(pair)
         risk_config = self._risk_config_for_pair(pair)
         strategies = build_default_strategies(strategy_config)
@@ -442,10 +603,10 @@ class LiveRunner:
             score_threshold=strategy_config.score_threshold,
             min_strategy_confidence=strategy_config.min_strategy_confidence,
         )
-        if len(market_data) < max(strategy.required_bars(market_data) for strategy in strategies):
+        if len(analysis_data) < max(strategy.required_bars(analysis_data) for strategy in strategies):
             return
 
-        bar = market_data.iloc[-1]
+        bar = analysis_data.iloc[-1]
         timestamp = pd.Timestamp(bar["timestamp"]).to_pydatetime()
         close_price = float(bar["close"])
         quote_to_usd = self._quote_to_usd(pair, close_price)
@@ -499,7 +660,7 @@ class LiveRunner:
             else:
                 self._update_trailing_stop(state.position, bar, risk_config)
 
-        decisions = {strategy.name: strategy.evaluate(market_data) for strategy in strategies}
+        decisions = {strategy.name: strategy.evaluate(analysis_data) for strategy in strategies}
         composite = allocator.allocate(decisions, str(bar["regime"]), self.performance_tracker)
 
         if state.position is not None:
@@ -531,8 +692,8 @@ class LiveRunner:
                 pair=pair,
                 open_positions=self._open_positions(),
                 current_bar_range=float(max(float(bar["high"]) - float(bar["low"]), 0.0)),
-                average_bar_range=float(market_data["high"].sub(market_data["low"]).clip(lower=0.0).iloc[:-1].tail(20).mean() or 0.0),
-                average_atr_value=float(market_data["atr"].tail(100).mean() or 0.0),
+                average_bar_range=float(analysis_data["high"].sub(analysis_data["low"]).clip(lower=0.0).tail(20).mean() or 0.0),
+                average_atr_value=float(analysis_data["atr"].tail(100).mean() or 0.0),
             )
             self.risk_rows.append(
                 {
@@ -970,17 +1131,21 @@ class LiveRunner:
         pair: str,
         price: float | None = None,
         market_timestamp=None,
+        bar_timestamp=None,
         signal_timestamp=None,
         regime: str | None = None,
         signal: float | None = None,
         bias: str | None = None,
         position: str | None = None,
+        refresh_status_line: bool = True,
     ) -> None:
         snapshot = dict(self.terminal_status_by_pair.get(pair, {}))
         if price is not None and price > 0:
             snapshot["price"] = float(price)
         if market_timestamp is not None:
             snapshot["market_timestamp"] = pd.Timestamp(market_timestamp)
+        if bar_timestamp is not None:
+            snapshot["bar_timestamp"] = pd.Timestamp(bar_timestamp)
         if signal_timestamp is not None:
             snapshot["signal_timestamp"] = pd.Timestamp(signal_timestamp)
         if regime is not None:
@@ -992,9 +1157,13 @@ class LiveRunner:
         if position is not None:
             snapshot["position"] = position
         self.terminal_status_by_pair[pair] = snapshot
-        self._refresh_terminal_status_line()
+        if refresh_status_line:
+            self._refresh_terminal_status_line()
 
     def _current_display_price(self, pair: str, fallback_price: float | None = None) -> float:
+        state = self.states.get(pair)
+        if state is not None and state.live_price > 0:
+            return state.live_price
         ticker = self.market_tickers.get(pair)
         if ticker is not None and self.broker is not None:
             live_price = self.broker.market_price(ticker)
@@ -1002,7 +1171,6 @@ class LiveRunner:
                 return live_price
         if fallback_price is not None and fallback_price > 0:
             return fallback_price
-        state = self.states.get(pair)
         if state is not None and not state.market_data.empty:
             return float(state.market_data.iloc[-1]["close"])
         return 0.0
@@ -1067,22 +1235,32 @@ class LiveRunner:
         price = float(snapshot.get("price", 0.0) or 0.0)
         market_timestamp = snapshot.get("market_timestamp")
         if market_timestamp is not None:
-            market_timestamp = pd.Timestamp(market_timestamp)
-            if market_timestamp.tzinfo is None:
-                market_timestamp = market_timestamp.tz_localize("UTC")
-            else:
-                market_timestamp = market_timestamp.tz_convert("UTC")
-            market_label = market_timestamp.strftime("%H:%M:%S")
+            market_label = self._format_romania_display_timestamp(market_timestamp, include_seconds=True)
         else:
-            market_label = "--:--:--"
+            market_label = "--"
+        bar_timestamp = snapshot.get("bar_timestamp")
+        if bar_timestamp is not None:
+            bar_label = self._format_romania_display_timestamp(bar_timestamp, include_seconds=False)
+        else:
+            bar_label = "--"
         regime = str(snapshot.get("regime", "waiting"))
         signal = float(snapshot.get("signal", 0.0) or 0.0)
         bias = str(snapshot.get("bias", "Flat"))
         position = str(snapshot.get("position", "Flat"))
         return (
-            f"{pair} {price:.5f} | {market_label} UTC | "
+            f"{pair} {price:.5f} | live={market_label} RO | bar={bar_label} RO | "
             f"reg={regime} | sig={signal:+.3f} | bias={bias} | pos={position}"
         )
+
+    @classmethod
+    def _format_romania_display_timestamp(cls, value, include_seconds: bool) -> str:
+        timestamp = pd.Timestamp(value)
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.tz_localize("UTC")
+        else:
+            timestamp = timestamp.tz_convert("UTC")
+        localized = timestamp.tz_convert(cls.ROMANIA_TZ)
+        return localized.strftime("%Y-%m-%d %H:%M:%S" if include_seconds else "%Y-%m-%d %H:%M")
 
     @staticmethod
     def _format_timestamp(value) -> str:

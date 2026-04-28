@@ -23,6 +23,7 @@ class IBPaperBroker:
     active_historical_streams: list[Any] = field(init=False, default_factory=list)
     active_market_contracts: dict[str, Any] = field(init=False, default_factory=dict)
     active_market_tickers: dict[str, Any] = field(init=False, default_factory=dict)
+    active_tick_by_tick_contracts: dict[str, Any] = field(init=False, default_factory=dict)
 
     def __post_init__(self) -> None:
         self.ib = IB()
@@ -46,6 +47,7 @@ class IBPaperBroker:
     async def disconnect(self) -> None:
         await self._cancel_historical_streams()
         await self._cancel_market_data_streams()
+        await self._cancel_tick_by_tick_streams()
         if self.ib.isConnected():
             self.ib.disconnect()
 
@@ -74,6 +76,20 @@ class IBPaperBroker:
         for contract in contracts.values():
             try:
                 self.ib.cancelMktData(contract)
+            except Exception:
+                continue
+        await asyncio.sleep(0)
+
+    async def _cancel_tick_by_tick_streams(self) -> None:
+        if not self.active_tick_by_tick_contracts:
+            return
+        contracts = dict(self.active_tick_by_tick_contracts)
+        self.active_tick_by_tick_contracts.clear()
+        if not self.ib.isConnected():
+            return
+        for contract in contracts.values():
+            try:
+                self.ib.cancelTickByTickData(contract, "MidPoint")
             except Exception:
                 continue
         await asyncio.sleep(0)
@@ -125,6 +141,16 @@ class IBPaperBroker:
         self.active_market_tickers[normalized_pair] = ticker
         return ticker
 
+    async def subscribe_tick_by_tick_midpoint(self, pair: str):
+        normalized_pair = normalize_pair(pair)
+        if normalized_pair in self.active_market_tickers:
+            return self.active_market_tickers[normalized_pair]
+        contract = await self.qualify_forex(normalized_pair)
+        ticker = self.ib.reqTickByTickData(contract, "MidPoint", numberOfTicks=0, ignoreSize=True)
+        self.active_tick_by_tick_contracts[normalized_pair] = contract
+        self.active_market_tickers[normalized_pair] = ticker
+        return ticker
+
     async def place_market_order(self, pair: str, action: str, size_units: int, timeout_seconds: float = 5.0):
         contract = await self.qualify_forex(pair)
         order = MarketOrder(action=action, totalQuantity=size_units)
@@ -137,6 +163,23 @@ class IBPaperBroker:
         while self.ib.isConnected() and str(getattr(trade.orderStatus, "status", "")) in pending_statuses and loop.time() < deadline:
             await self.ib.sleep(0.25)
         return trade
+
+    async def ping(self, timeout_seconds: float = 4.0):
+        if not self.ib.isConnected():
+            raise ConnectionError("IB connection is inactive.")
+
+        request = None
+        if hasattr(self.ib, "reqCurrentTimeAsync"):
+            request = self.ib.reqCurrentTimeAsync()
+        elif hasattr(self.ib, "accountSummaryAsync"):
+            request = self.ib.accountSummaryAsync()
+        else:
+            raise RuntimeError("No asynchronous IB heartbeat method is available.")
+
+        try:
+            return await asyncio.wait_for(request, timeout=timeout_seconds)
+        except asyncio.TimeoutError as exc:
+            raise ConnectionError("IB heartbeat timed out.") from exc
 
     @staticmethod
     def bars_to_dataframe(bars: Any) -> pd.DataFrame:
