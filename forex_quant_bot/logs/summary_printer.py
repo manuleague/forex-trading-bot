@@ -16,10 +16,12 @@ class SummaryPrinter:
         returns_table = report["returns_table"]
         transactions = report["transactions"]
         bars_summary = report["bars_summary"]
+        open_positions = report.get("open_positions", pd.DataFrame())
 
         sections = [
             SummaryPrinter._render_summary(summary),
             SummaryPrinter._render_transactions(transactions),
+            SummaryPrinter._render_open_positions(open_positions),
             SummaryPrinter._render_table("Returns", returns_table),
             SummaryPrinter._render_benchmark(benchmark),
             SummaryPrinter._render_trade_analysis(trade_analysis),
@@ -69,6 +71,21 @@ class SummaryPrinter:
         if total_rows > SummaryPrinter.MAX_TRANSACTION_ROWS:
             header += f"\nShowing latest {SummaryPrinter.MAX_TRANSACTION_ROWS} of {total_rows} transaction rows. Full history is stored in transactions.csv."
         return header + "\n" + formatted.to_string(index=False, line_width=2000)
+
+    @staticmethod
+    def _render_open_positions(open_positions: pd.DataFrame) -> str:
+        if open_positions.empty:
+            return ""
+        formatted = open_positions.copy()
+        if "entry_time" in formatted.columns:
+            formatted["entry_time"] = pd.to_datetime(formatted["entry_time"], utc=True).dt.strftime("%b %d, %Y %H:%M")
+        for column in ["entry_price", "current_price", "stop_price", "take_profit_price"]:
+            if column in formatted.columns:
+                formatted[column] = formatted[column].map(lambda value: f"{float(value):,.5f}")
+        for column in ["unrealized_pnl_usd", "risk_amount_usd"]:
+            if column in formatted.columns:
+                formatted[column] = formatted[column].map(lambda value: f"{float(value):+,.2f}")
+        return "Open Positions\n" + formatted.to_string(index=False, line_width=2000)
 
     @staticmethod
     def _render_table(title: str, dataframe: pd.DataFrame) -> str:

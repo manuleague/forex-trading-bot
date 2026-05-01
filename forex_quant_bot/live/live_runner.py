@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import os
+import re
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -19,7 +23,7 @@ from forex_quant_bot.logs.summary_printer import SummaryPrinter
 from forex_quant_bot.models import OrderEvent, Position, TradeEventRecord, TradeRecord
 from forex_quant_bot.settings import BotConfig, RiskConfig, StrategyConfig
 from forex_quant_bot.strategies import build_default_strategies
-from forex_quant_bot.utils.time_utils import TIMEFRAME_TO_MINUTES, split_pair
+from forex_quant_bot.utils.time_utils import TIMEFRAME_TO_MINUTES, normalize_pair, split_pair
 
 
 @dataclass(slots=True)
@@ -57,6 +61,7 @@ class LiveRunner:
     conversion_bar_streams: dict[str, Any] = field(default_factory=dict)
     market_tickers: dict[str, Any] = field(default_factory=dict)
     stream_tasks: list[asyncio.Task[Any]] = field(default_factory=list)
+    bar_event_tasks: list[asyncio.Task[Any]] = field(default_factory=list)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     reconnect_event: asyncio.Event = field(default_factory=asyncio.Event)
     reconnect_cooldown_seconds: float = 10.0
@@ -70,48 +75,59 @@ class LiveRunner:
     ib_disconnect_handler_attached: bool = False
     ib_timeout_handler_attached: bool = False
     connection_loss_active: bool = False
+    intentional_disconnect_active: bool = False
     last_live_update_at: float = 0.0
-    live_data_stale_after_seconds: float = 20.0
+    live_data_stale_after_seconds: float = 300.0
     terminal_status_line: str = ""
     terminal_status_by_pair: dict[str, dict[str, Any]] = field(default_factory=dict)
+    live_pair_lock_paths: list[Path] = field(default_factory=list)
 
     async def run(self) -> dict[str, Any]:
         self._initialize_runtime()
         report: dict[str, Any] = {}
         should_shutdown = False
+        if not self._acquire_live_pair_locks():
+            return report
 
-        while not should_shutdown:
-            try:
-                await self._connect_and_bootstrap()
-                await self._connected_loop()
-            except KeyboardInterrupt:
-                self._emit_status("Live run interrupted. Writing any collected artifacts before disconnecting...")
-                should_shutdown = True
-            except asyncio.CancelledError:
-                self._emit_status("Live run cancelled. Writing any collected artifacts before disconnecting...")
-                should_shutdown = True
-            except (ConnectionError, RuntimeError) as exc:
-                self._emit_status(
-                    f"[WARNING] {exc} Reconnecting in {int(self.reconnect_cooldown_seconds)} seconds..."
-                )
-            finally:
-                await self._cancel_stream_tasks()
-                if self.broker is not None:
-                    await self.broker.disconnect()
+        try:
+            while not should_shutdown:
+                try:
+                    await self._connect_and_bootstrap()
+                    await self._connected_loop()
+                except KeyboardInterrupt:
+                    self._emit_status("Live run interrupted. Writing any collected artifacts before disconnecting...")
+                    should_shutdown = True
+                except asyncio.CancelledError:
+                    self._emit_status("Live run cancelled. Writing any collected artifacts before disconnecting...")
+                    should_shutdown = True
+                except (ConnectionError, RuntimeError) as exc:
+                    self._emit_status(
+                        f"[WARNING] {exc} Reconnecting in {int(self.reconnect_cooldown_seconds)} seconds..."
+                    )
+                finally:
+                    await self._cancel_stream_tasks()
+                    if self.broker is not None:
+                        self.intentional_disconnect_active = True
+                        try:
+                            await self.broker.disconnect()
+                        finally:
+                            self.intentional_disconnect_active = False
 
-            if not should_shutdown:
-                await asyncio.sleep(self.reconnect_cooldown_seconds)
+                if not should_shutdown:
+                    await asyncio.sleep(self.reconnect_cooldown_seconds)
 
-        built = self._build_report()
-        if built:
-            report = built
-            if self.logger is not None:
-                summary_text = SummaryPrinter.render(report)
-                self.logger.persist_report(report, summary_text)
-                report["summary_text"] = summary_text
-                report["output_dir"] = self.logger.run_dir
-                self._emit_status(f"Live artifacts saved to: {self.logger.run_dir}")
-        return report
+            built = self._build_report()
+            if built:
+                report = built
+                if self.logger is not None:
+                    summary_text = SummaryPrinter.render(report)
+                    self.logger.persist_report(report, summary_text)
+                    report["summary_text"] = summary_text
+                    report["output_dir"] = self.logger.run_dir
+                    self._emit_status(f"Live artifacts saved to: {self.logger.run_dir}")
+            return report
+        finally:
+            self._release_live_pair_locks()
 
     def _initialize_runtime(self) -> None:
         if self.broker is None:
@@ -129,6 +145,105 @@ class LiveRunner:
             )
         if self.risk_overlay is None:
             self.risk_overlay = RiskOverlay(self.config.risk)
+
+    def _acquire_live_pair_locks(self) -> bool:
+        if self.config.allow_duplicate_live_pair:
+            return True
+        lock_dir = self.config.logging.output_dir / ".live_locks"
+        lock_dir.mkdir(parents=True, exist_ok=True)
+        acquired: list[Path] = []
+        for pair in self.config.pairs:
+            lock_path = lock_dir / f"{self._live_lock_key(pair)}.lock"
+            payload = {
+                "pid": os.getpid(),
+                "pair": pair,
+                "timeframe": self.config.timeframe,
+                "host": self.config.ib.host,
+                "port": self.config.ib.port,
+                "account": self.config.ib.account or "default",
+                "client_id": self.config.ib.client_id,
+                "started_at": datetime.now(timezone.utc).isoformat(),
+            }
+            if self._try_create_live_lock(lock_path, payload):
+                acquired.append(lock_path)
+                continue
+
+            existing = self._read_live_lock(lock_path)
+            existing_pid = int(existing.get("pid", 0) or 0) if existing else 0
+            if existing_pid and self._pid_exists(existing_pid):
+                self._emit_status(
+                    f"[ERROR] Another live bot is already managing {pair} on "
+                    f"{self.config.ib.host}:{self.config.ib.port} / account={self.config.ib.account or 'default'} "
+                    f"(pid={existing_pid}, timeframe={existing.get('timeframe', 'unknown')}). "
+                    "Stop that process first, or restart with --allow-duplicate-live-pair only if you intentionally want shared control."
+                )
+                self._release_live_pair_locks(acquired)
+                return False
+
+            try:
+                lock_path.unlink(missing_ok=True)
+            except OSError as exc:
+                self._emit_status(f"[ERROR] Could not remove stale live lock {lock_path}: {exc}")
+                self._release_live_pair_locks(acquired)
+                return False
+            if self._try_create_live_lock(lock_path, payload):
+                acquired.append(lock_path)
+                continue
+
+            self._emit_status(f"[ERROR] Could not acquire live lock for {pair}: {lock_path}")
+            self._release_live_pair_locks(acquired)
+            return False
+
+        self.live_pair_lock_paths.extend(acquired)
+        return True
+
+    def _release_live_pair_locks(self, paths: list[Path] | None = None) -> None:
+        target_paths = paths if paths is not None else self.live_pair_lock_paths
+        for lock_path in list(target_paths):
+            try:
+                existing = self._read_live_lock(lock_path)
+                if not existing or int(existing.get("pid", 0) or 0) == os.getpid():
+                    lock_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+        if paths is None:
+            self.live_pair_lock_paths.clear()
+
+    def _live_lock_key(self, pair: str) -> str:
+        raw = f"{self.config.ib.host}_{self.config.ib.port}_{self.config.ib.account or 'default'}_{normalize_pair(pair)}"
+        return re.sub(r"[^A-Za-z0-9_.-]+", "_", raw)
+
+    @staticmethod
+    def _try_create_live_lock(path: Path, payload: dict[str, Any]) -> bool:
+        flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+        if hasattr(os, "O_BINARY"):
+            flags |= os.O_BINARY
+        try:
+            fd = os.open(path, flags)
+        except FileExistsError:
+            return False
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, sort_keys=True)
+        return True
+
+    @staticmethod
+    def _read_live_lock(path: Path) -> dict[str, Any]:
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+
+    @staticmethod
+    def _pid_exists(pid: int) -> bool:
+        if pid <= 0:
+            return False
+        try:
+            os.kill(pid, 0)
+        except PermissionError:
+            return True
+        except OSError:
+            return False
+        return True
 
     async def _connect_and_bootstrap(self) -> None:
         if self.broker is None:
@@ -156,7 +271,7 @@ class LiveRunner:
             self.broker.ib.timeoutEvent += self._on_ib_timeout
             self.ib_timeout_handler_attached = True
         if hasattr(self.broker.ib, "setTimeout"):
-            self.broker.ib.setTimeout(self.live_data_stale_after_seconds)
+            self.broker.ib.setTimeout(self._stale_update_threshold_seconds())
         self._emit_status("Connected. Bootstrapping live forex streams...")
         await self._bootstrap_streams()
         loaded_pairs = [pair for pair in self.config.pairs if pair in self.states]
@@ -181,6 +296,7 @@ class LiveRunner:
                 raise ConnectionError(reason)
             if self.broker is None or not self.broker.ib.isConnected():
                 raise ConnectionError("IB connection is inactive.")
+            self._check_stream_tasks()
             await self._maybe_emit_heartbeat()
             await asyncio.sleep(1)
 
@@ -192,27 +308,40 @@ class LiveRunner:
             self.reconnect_reason = reason
 
     async def _cancel_stream_tasks(self) -> None:
-        if not self.stream_tasks:
+        if not self.stream_tasks and not self.bar_event_tasks:
             return
-        tasks = [task for task in self.stream_tasks if task is not None]
+        tasks = [task for task in self.stream_tasks + self.bar_event_tasks if task is not None]
         self.stream_tasks = []
+        self.bar_event_tasks = []
         for task in tasks:
             task.cancel()
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
 
     def _on_ib_error(self, req_id: int, error_code: int, error_string: str, contract: Any) -> None:
-        if error_code in {1100, 10182}:
+        if error_code in {1100, 1101, 1300, 10182, 2110}:
             if not self.connection_loss_active:
                 self._emit_status(
                     f"[WARNING] IB connection issue ({error_code}): {error_string}. Scheduling reconnect."
                 )
             self.connection_loss_active = True
             self._request_reconnect(f"IB connection issue {error_code}: {error_string}")
-        elif error_code == 1102 and self.connection_loss_active:
-            self._emit_status(f"[SUCCESS] IB connectivity restored (1102): {error_string}")
+        elif error_code == 1102:
+            if self.connection_loss_active:
+                self._emit_status(f"[SUCCESS] IB connectivity restored (1102): {error_string}")
+            recoverable_reason = self.reconnect_reason or ""
+            if self.reconnect_event.is_set() and any(
+                token in recoverable_reason for token in ("issue 1100", "issue 1101", "issue 2110", "issue 1300")
+            ):
+                self.reconnect_event.clear()
+                self.reconnect_reason = ""
+            self.connection_loss_active = False
+        elif error_code in {2103, 2105}:
+            self._emit_status(f"[WARNING] IB data farm issue ({error_code}): {error_string}")
 
     def _on_ib_disconnected(self) -> None:
+        if self.intentional_disconnect_active:
+            return
         if not self.connection_loss_active:
             self._emit_status("[WARNING] Interactive Brokers session disconnected. Scheduling reconnect.")
         self.connection_loss_active = True
@@ -246,11 +375,48 @@ class LiveRunner:
             self._request_reconnect(f"IB heartbeat failed: {exc}")
             raise ConnectionError(f"IB heartbeat failed: {exc}") from exc
         now = asyncio.get_running_loop().time()
-        if self.config.pairs and self.last_live_update_at and (now - self.last_live_update_at) > self.live_data_stale_after_seconds:
+        stale_threshold = self._stale_update_threshold_seconds()
+        if self.config.pairs and self.last_live_update_at and (now - self.last_live_update_at) > stale_threshold:
             self.connection_loss_active = True
             reason = (
-                f"No live market updates received for {now - self.last_live_update_at:.1f}s."
+                f"No live market updates received for {now - self.last_live_update_at:.1f}s "
+                f"(threshold {stale_threshold:.0f}s)."
             )
+            self._request_reconnect(reason)
+            raise ConnectionError(reason)
+
+    def _stale_update_threshold_seconds(self) -> float:
+        timeframe_seconds = TIMEFRAME_TO_MINUTES[self.config.timeframe] * 60.0
+        return max(self.live_data_stale_after_seconds, timeframe_seconds * 2.0 + 60.0)
+
+    def _check_stream_tasks(self) -> None:
+        if not self.stream_tasks:
+            return
+        active_tasks: list[asyncio.Task[Any]] = []
+        stopped_count = 0
+        failure_messages: list[str] = []
+        for task in self.stream_tasks:
+            if not task.done():
+                active_tasks.append(task)
+                continue
+            stopped_count += 1
+            try:
+                exc = task.exception()
+            except asyncio.CancelledError:
+                exc = None
+            if exc is not None:
+                failure_messages.append(str(exc))
+        self.stream_tasks = active_tasks
+        if self.reconnect_event.is_set():
+            return
+        if failure_messages:
+            reason = f"Live stream task failed: {'; '.join(failure_messages[:2])}"
+            self.connection_loss_active = True
+            self._request_reconnect(reason)
+            raise ConnectionError(reason)
+        if stopped_count:
+            reason = "A live stream task stopped unexpectedly."
+            self.connection_loss_active = True
             self._request_reconnect(reason)
             raise ConnectionError(reason)
 
@@ -260,6 +426,31 @@ class LiveRunner:
         return isinstance(exc, ConnectionError) or any(
             token in message for token in ("not connected", "disconnected", "disconnect", "socket", "connection")
         )
+
+    def _timeframe_delta(self) -> pd.Timedelta:
+        return pd.Timedelta(minutes=TIMEFRAME_TO_MINUTES[self.config.timeframe])
+
+    @staticmethod
+    def _as_utc_timestamp(value) -> pd.Timestamp:
+        timestamp = pd.Timestamp(value)
+        if timestamp.tzinfo is None:
+            return timestamp.tz_localize("UTC")
+        return timestamp.tz_convert("UTC")
+
+    def _completed_market_data(self, dataframe: pd.DataFrame, now=None) -> pd.DataFrame:
+        if dataframe.empty or "timestamp" not in dataframe.columns:
+            return dataframe.iloc[0:0].copy()
+        now_ts = self._as_utc_timestamp(now or datetime.now(timezone.utc))
+        timestamps = pd.to_datetime(dataframe["timestamp"], utc=True, errors="coerce")
+        cutoff = now_ts - self._timeframe_delta()
+        completed = dataframe.loc[timestamps <= cutoff].copy()
+        return completed.reset_index(drop=True)
+
+    def _latest_completed_timestamp(self, dataframe: pd.DataFrame, now=None) -> pd.Timestamp | None:
+        completed = self._completed_market_data(dataframe, now=now)
+        if completed.empty:
+            return None
+        return pd.Timestamp(completed.iloc[-1]["timestamp"])
 
     async def _bootstrap_streams(self) -> None:
         if self.broker is None:
@@ -305,9 +496,7 @@ class LiveRunner:
 
             live_bar_timestamp = merged.iloc[-1]["timestamp"]
             live_price = float(merged.iloc[-1]["close"])
-            last_closed_timestamp = live_bar_timestamp
-            if apply_strategy_features and len(merged) >= 2:
-                last_closed_timestamp = merged.iloc[-2]["timestamp"]
+            last_closed_timestamp = self._latest_completed_timestamp(merged, now=end)
 
             existing_state = self.states.get(pair)
             updated_states[pair] = PairState(
@@ -326,7 +515,7 @@ class LiveRunner:
                     pair=pair,
                     price=live_price,
                     market_timestamp=datetime.now(timezone.utc),
-                    bar_timestamp=live_bar_timestamp,
+                    refresh_status_line=False,
                 )
             else:
                 conversion_streams[pair] = bars
@@ -343,6 +532,12 @@ class LiveRunner:
                 f"Missing: {', '.join(missing_primary)}. Details: {details}. "
                 "Check that TWS/Gateway paper is running, API access is enabled, and forex data permissions are available."
             )
+
+        self.states = updated_states
+        self.last_conversion_rates = refreshed_conversion_rates
+        await self._sync_existing_broker_positions()
+        for pair in self.config.pairs:
+            self._refresh_pair_signal_snapshot(pair, emit_status=True)
 
         for pair in self.config.pairs:
             try:
@@ -363,11 +558,8 @@ class LiveRunner:
                     pair=pair,
                     price=latest_price,
                     market_timestamp=datetime.now(timezone.utc),
-                    bar_timestamp=updated_states[pair].live_bar_timestamp,
                 )
 
-        self.states = updated_states
-        self.last_conversion_rates = refreshed_conversion_rates
         self.primary_bar_streams = primary_streams
         self.conversion_bar_streams = conversion_streams
         self.market_tickers = market_tickers
@@ -429,7 +621,7 @@ class LiveRunner:
                 merged = self._merge_market_data(pair, incoming, apply_strategy_features=False)
                 if not merged.empty:
                     existing_state = self.states.get(pair)
-                    latest_ts = merged.iloc[-1]["timestamp"]
+                    latest_ts = self._latest_completed_timestamp(merged) or pd.Timestamp(merged.iloc[-1]["timestamp"])
                     latest_price = float(merged.iloc[-1]["close"])
                     last_processed = existing_state.last_bar_timestamp if existing_state is not None else None
                     if existing_state is None or last_processed is None or pd.Timestamp(latest_ts) > pd.Timestamp(last_processed):
@@ -457,43 +649,7 @@ class LiveRunner:
         while not self.reconnect_event.is_set():
             try:
                 async with self.lock:
-                    if self.broker is None or not self.broker.ib.isConnected():
-                        return
-                    incoming = self.broker.bars_to_dataframe(bar_list)
-                    merged = self._merge_market_data(pair, incoming, apply_strategy_features=True)
-                    if merged.empty or len(merged) < 2:
-                        continue
-                    state = self.states.get(pair)
-                    live_bar_timestamp = merged.iloc[-1]["timestamp"]
-                    latest_price = float(merged.iloc[-1]["close"])
-                    latest_closed_ts = merged.iloc[-2]["timestamp"]
-                    live_changed = (
-                        state is None
-                        or state.live_bar_timestamp is None
-                        or pd.Timestamp(live_bar_timestamp) != pd.Timestamp(state.live_bar_timestamp)
-                        or abs(float(state.live_price) - latest_price) > 1e-9
-                    )
-                    self.states[pair] = PairState(
-                        pair=pair,
-                        market_data=merged,
-                        last_bar_timestamp=state.last_bar_timestamp if state is not None else None,
-                        live_bar_timestamp=live_bar_timestamp,
-                        live_price=latest_price,
-                        position=state.position if state is not None else None,
-                    )
-                    self._update_terminal_status_snapshot(
-                        pair=pair,
-                        price=latest_price,
-                        market_timestamp=datetime.now(timezone.utc),
-                        bar_timestamp=live_bar_timestamp,
-                        refresh_status_line=live_changed,
-                    )
-                    if live_changed:
-                        self.last_live_update_at = asyncio.get_running_loop().time()
-                    if state is not None and state.last_bar_timestamp is not None and pd.Timestamp(latest_closed_ts) <= pd.Timestamp(state.last_bar_timestamp):
-                        continue
-                    self.states[pair].last_bar_timestamp = latest_closed_ts
-                    await self._process_pair(pair)
+                    await self._ingest_primary_bar_list(pair, bar_list)
             except asyncio.CancelledError:
                 return
             except Exception as exc:
@@ -503,6 +659,49 @@ class LiveRunner:
                     return
                 self._emit_status(f"[WARNING] Live bar update failed for {pair}: {exc}")
             await asyncio.sleep(self.stream_poll_interval_seconds)
+
+    async def _ingest_primary_bar_list(self, pair: str, bar_list) -> None:
+        if self.broker is None or not self.broker.ib.isConnected():
+            raise ConnectionError("IB connection is inactive while reading live bars.")
+        incoming = self.broker.bars_to_dataframe(bar_list)
+        merged = self._merge_market_data(pair, incoming, apply_strategy_features=True)
+        if merged.empty:
+            return
+
+        state = self.states.get(pair)
+        live_bar_timestamp = merged.iloc[-1]["timestamp"]
+        latest_price = float(merged.iloc[-1]["close"])
+        live_changed = (
+            state is None
+            or state.live_bar_timestamp is None
+            or pd.Timestamp(live_bar_timestamp) != pd.Timestamp(state.live_bar_timestamp)
+            or abs(float(state.live_price) - latest_price) > 1e-9
+        )
+        last_processed = state.last_bar_timestamp if state is not None else None
+        self.states[pair] = PairState(
+            pair=pair,
+            market_data=merged,
+            last_bar_timestamp=last_processed,
+            live_bar_timestamp=live_bar_timestamp,
+            live_price=latest_price,
+            position=state.position if state is not None else None,
+        )
+        self._update_terminal_status_snapshot(
+            pair=pair,
+            price=latest_price,
+            market_timestamp=datetime.now(timezone.utc),
+            refresh_status_line=live_changed,
+        )
+        if live_changed:
+            self.last_live_update_at = asyncio.get_running_loop().time()
+
+        latest_closed_ts = self._latest_completed_timestamp(merged)
+        if latest_closed_ts is None:
+            return
+        if last_processed is not None and pd.Timestamp(latest_closed_ts) <= pd.Timestamp(last_processed):
+            return
+        self.states[pair].last_bar_timestamp = latest_closed_ts
+        await self._process_pair(pair)
 
     def _on_market_data_update(self, pair: str, ticker: Any) -> None:
         if self.broker is None:
@@ -514,7 +713,6 @@ class LiveRunner:
             pair=pair,
             price=price,
             market_timestamp=datetime.now(timezone.utc),
-            bar_timestamp=self.states.get(pair).live_bar_timestamp if self.states.get(pair) is not None else None,
         )
         self.last_live_update_at = asyncio.get_running_loop().time()
 
@@ -533,17 +731,52 @@ class LiveRunner:
             if state is not None:
                 state.live_price = live_price
                 if live_bar_timestamp is not None:
-                    state.live_bar_timestamp = pd.Timestamp(live_bar_timestamp)
+                    state.live_bar_timestamp = self._as_utc_timestamp(live_bar_timestamp)
             self._update_terminal_status_snapshot(
                 pair=pair,
                 price=live_price,
                 market_timestamp=datetime.now(timezone.utc),
-                bar_timestamp=live_bar_timestamp,
                 refresh_status_line=True,
             )
             self.last_live_update_at = asyncio.get_running_loop().time()
+            if has_new_bar:
+                self._schedule_bar_event_processing(pair, bar_list)
         except Exception:
             return
+
+    def _schedule_bar_event_processing(self, pair: str, bar_list) -> None:
+        try:
+            task = asyncio.create_task(self._process_bar_event(pair, bar_list))
+        except RuntimeError:
+            return
+        self.bar_event_tasks.append(task)
+        task.add_done_callback(self._on_bar_event_task_done)
+
+    async def _process_bar_event(self, pair: str, bar_list) -> None:
+        try:
+            async with self.lock:
+                await self._ingest_primary_bar_list(pair, bar_list)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            if self._looks_like_connection_issue(exc):
+                self.connection_loss_active = True
+                self._request_reconnect(f"Live bar event failed for {pair}: {exc}")
+                return
+            self._emit_status(f"[WARNING] Live bar event failed for {pair}: {exc}")
+
+    def _on_bar_event_task_done(self, task: asyncio.Task[Any]) -> None:
+        try:
+            self.bar_event_tasks.remove(task)
+        except ValueError:
+            pass
+        try:
+            exc = task.exception()
+        except asyncio.CancelledError:
+            return
+        if exc is not None:
+            self.connection_loss_active = True
+            self._request_reconnect(f"Live bar event task failed: {exc}")
 
     async def _poll_market_prices(self) -> None:
         while not self.reconnect_event.is_set():
@@ -555,6 +788,7 @@ class LiveRunner:
                 for pair in self.config.pairs:
                     ticker = self.market_tickers.get(pair)
                     price = self.broker.market_price(ticker) if ticker is not None else 0.0
+                    price_from_ticker = price > 0
                     if price <= 0:
                         state = self.states.get(pair)
                         if state is not None and state.live_price > 0:
@@ -566,11 +800,10 @@ class LiveRunner:
                     self._update_terminal_status_snapshot(
                         pair=pair,
                         price=price,
-                        market_timestamp=now,
-                        bar_timestamp=self.states.get(pair).live_bar_timestamp if self.states.get(pair) is not None else None,
+                        market_timestamp=now if price_from_ticker else None,
                         refresh_status_line=False,
                     )
-                    updated_any = True
+                    updated_any = updated_any or price_from_ticker
                 if updated_any:
                     self._refresh_terminal_status_line()
             except asyncio.CancelledError:
@@ -592,10 +825,286 @@ class LiveRunner:
                 frame = strategy.prepare_data(frame)
         return frame
 
+    async def _sync_existing_broker_positions(self) -> None:
+        if self.broker is None:
+            return
+        try:
+            broker_positions = await self.broker.request_positions()
+        except Exception as exc:
+            self._emit_status(f"[WARNING] Could not sync existing IB positions: {exc}")
+            return
+
+        for broker_position in broker_positions or []:
+            pair = self._pair_from_broker_position(broker_position)
+            if pair not in self.config.pairs:
+                continue
+            self._import_or_update_broker_position(pair, broker_position, "Imported existing IB position", "Import")
+
+    async def _sync_pair_broker_position(self, pair: str) -> bool:
+        if self.broker is None:
+            return True
+        try:
+            broker_positions = await self.broker.request_positions(timeout_seconds=3.0)
+        except Exception as exc:
+            if self._looks_like_connection_issue(exc):
+                self.connection_loss_active = True
+                self._request_reconnect(f"Broker position sync failed for {pair}: {exc}")
+                raise ConnectionError(f"Broker position sync failed for {pair}: {exc}") from exc
+            self._emit_status(f"[WARNING] Broker position sync skipped for {pair}: {exc}")
+            return False
+
+        broker_position = None
+        for candidate in broker_positions or []:
+            if self._pair_from_broker_position(candidate) != pair:
+                continue
+            quantity = float(getattr(candidate, "position", 0.0) or 0.0)
+            if abs(quantity) >= 1:
+                broker_position = candidate
+                break
+
+        state = self.states.get(pair)
+        if state is None:
+            return True
+        if broker_position is None:
+            changed = self._clear_internal_position_without_order(pair, "Broker reports no open position")
+            return not changed
+
+        changed = self._import_or_update_broker_position(pair, broker_position, "Broker position sync", "BrokerSync")
+        return not changed
+
+    def _import_or_update_broker_position(
+        self,
+        pair: str,
+        broker_position,
+        signal_reason: str,
+        step_type: str,
+    ) -> bool:
+        quantity = float(getattr(broker_position, "position", 0.0) or 0.0)
+        if abs(quantity) < 1:
+            return False
+        state = self.states.get(pair)
+        if state is None or state.market_data.empty:
+            return False
+
+        analysis_data = self._completed_market_data(state.market_data)
+        if analysis_data.empty:
+            return False
+        bar = analysis_data.iloc[-1]
+        close_price = float(bar["close"])
+        entry_price = float(getattr(broker_position, "avgCost", 0.0) or 0.0)
+        if entry_price <= 0:
+            entry_price = close_price
+
+        side = "Long" if quantity > 0 else "Short"
+        size_units = int(abs(quantity))
+        existing = state.position
+        if existing is not None and existing.side == side and abs(existing.size_units - size_units) <= 1:
+            existing.entry_price = entry_price
+            existing.size_units = size_units
+            return False
+
+        if existing is not None:
+            self._clear_internal_position_without_order(pair, "Broker position changed outside this bot")
+
+        risk_config = self._risk_config_for_pair(pair)
+        atr_value = float(bar.get("atr", 0.0) or 0.0)
+        if atr_value <= 0:
+            atr_value = close_price * 0.002
+        bias = 1 if side == "Long" else -1
+        stop_distance = atr_value * risk_config.atr_stop_multiplier
+        stop_price = entry_price - bias * stop_distance
+        take_profit_price = self._take_profit_price(entry_price, bias, atr_value, risk_config)
+        quote_to_usd = self._quote_to_usd(pair, close_price)
+        risk_amount_usd = stop_distance * size_units * quote_to_usd if quote_to_usd > 0 else 0.0
+
+        self.trade_id += 1
+        event_time = datetime.now(timezone.utc)
+        state.position = Position(
+            trade_id=self.trade_id,
+            pair=pair,
+            side=side,
+            size_units=size_units,
+            entry_time=event_time,
+            entry_price=entry_price,
+            stop_price=stop_price,
+            take_profit_price=take_profit_price,
+            entry_reason=signal_reason,
+            entry_regime=str(bar["regime"]),
+            atr_at_entry=atr_value,
+            equity_at_entry=self.config.risk.initial_capital + self.realized_pnl,
+            risk_amount_usd=risk_amount_usd,
+            strategy_scores={},
+            contributing_strategies=["broker_sync"],
+            signal_strength=0.0,
+            highest_price_seen=entry_price,
+            lowest_price_seen=entry_price,
+        )
+        self.trade_events.append(
+            TradeEventRecord(
+                trade_id=self.trade_id,
+                position_type=side,
+                step_type=step_type,
+                timestamp=event_time,
+                signal_reason=signal_reason,
+                price=entry_price,
+                size=float(size_units),
+                net_pnl_usd=0.0,
+                net_pnl_pct=0.0,
+                cumulative_pnl_usd=self.realized_pnl,
+                cumulative_pnl_pct=self.realized_pnl / self.config.risk.initial_capital,
+            )
+        )
+        self._emit_status(
+            f"[WARNING] {signal_reason} | {pair} | {side} | "
+            f"size={size_units:,} | avg={entry_price:.5f} | stop={stop_price:.5f} | tp={take_profit_price:.5f}"
+        )
+        return True
+
+    def _clear_internal_position_without_order(self, pair: str, reason: str) -> bool:
+        state = self.states.get(pair)
+        if state is None or state.position is None:
+            return False
+        position = state.position
+        event_time = datetime.now(timezone.utc)
+        current_price = self._current_display_price(pair, position.entry_price)
+        self.trade_events.append(
+            TradeEventRecord(
+                trade_id=position.trade_id,
+                position_type=position.side,
+                step_type="BrokerSync",
+                timestamp=event_time,
+                signal_reason=reason,
+                price=current_price,
+                size=float(position.size_units),
+                net_pnl_usd=0.0,
+                net_pnl_pct=0.0,
+                cumulative_pnl_usd=self.realized_pnl,
+                cumulative_pnl_pct=self.realized_pnl / self.config.risk.initial_capital,
+            )
+        )
+        state.position = None
+        self._emit_status(
+            f"[WARNING] Broker sync | {pair} | {reason}. "
+            f"Bot had {position.side} size={position.size_units:,}; internal state cleared and no close order was sent."
+        )
+        return True
+
+    @staticmethod
+    def _pair_from_broker_position(broker_position) -> str | None:
+        contract = getattr(broker_position, "contract", None)
+        if contract is None:
+            return None
+        symbol = str(getattr(contract, "symbol", "") or "").strip().upper()
+        currency = str(getattr(contract, "currency", "") or "").strip().upper()
+        local_symbol = str(getattr(contract, "localSymbol", "") or "").strip().upper()
+        candidates = []
+        if symbol and currency and len(symbol) == 3 and len(currency) == 3:
+            candidates.append(f"{symbol}{currency}")
+        if local_symbol:
+            candidates.append(local_symbol)
+        for candidate in candidates:
+            try:
+                return normalize_pair(candidate)
+            except ValueError:
+                continue
+        return None
+
+    def _refresh_pair_signal_snapshot(self, pair: str, emit_status: bool = False) -> None:
+        state = self.states.get(pair)
+        if state is None or state.market_data.empty:
+            return
+        analysis_data = self._completed_market_data(state.market_data)
+        if analysis_data.empty:
+            return
+
+        strategy_config = self._strategy_config_for_pair(pair)
+        strategies = build_default_strategies(strategy_config)
+        required_bars = max(strategy.required_bars(analysis_data) for strategy in strategies)
+        bar = analysis_data.iloc[-1]
+        timestamp = pd.Timestamp(bar["timestamp"]).to_pydatetime()
+        close_price = float(bar["close"])
+        position_label = state.position.side if state.position is not None else "Flat"
+
+        if len(analysis_data) < required_bars:
+            self._update_terminal_status_snapshot(
+                pair=pair,
+                price=self._current_display_price(pair, close_price),
+                market_timestamp=datetime.now(timezone.utc),
+                bar_timestamp=timestamp,
+                signal_timestamp=timestamp,
+                regime="warmup",
+                signal=0.0,
+                bias="Flat",
+                position=position_label,
+            )
+            if emit_status:
+                self._emit_status(
+                    f"SNAPSHOT | {pair} | closed_bar={timestamp:%Y-%m-%d %H:%M UTC} | "
+                    f"warmup={len(analysis_data)}/{required_bars} bars"
+                )
+            return
+
+        decisions = {strategy.name: strategy.evaluate(analysis_data) for strategy in strategies}
+        allocator = StrategyAllocator(
+            score_threshold=strategy_config.score_threshold,
+            min_strategy_confidence=strategy_config.min_strategy_confidence,
+        )
+        composite = allocator.allocate(decisions, str(bar["regime"]), self.performance_tracker)
+        self._update_terminal_status_snapshot(
+            pair=pair,
+            price=self._current_display_price(pair, close_price),
+            market_timestamp=datetime.now(timezone.utc),
+            bar_timestamp=timestamp,
+            signal_timestamp=timestamp,
+            regime=str(bar["regime"]),
+            signal=composite.final_signal,
+            bias=self._bias_label(composite.bias),
+            position=position_label,
+        )
+        if emit_status:
+            self._emit_status(
+                f"SNAPSHOT | {pair} | closed_bar={timestamp:%Y-%m-%d %H:%M UTC} | "
+                f"reg={bar['regime']} | signal={composite.final_signal:+.3f} | "
+                f"bias={self._bias_label(composite.bias)} | pos={position_label} | "
+                f"reasons={self._strategy_reason_summary(composite)}"
+            )
+
+    @staticmethod
+    def _bias_label(bias: int) -> str:
+        return {1: "Long", -1: "Short", 0: "Flat"}[bias]
+
+    @staticmethod
+    def _strategy_reason_summary(composite) -> str:
+        parts = []
+        for name, decision in composite.strategy_decisions.items():
+            reason = str(decision.metadata.get("reason", "no_reason"))
+            parts.append(f"{name}:{reason}")
+        return ", ".join(parts)
+
+    def _emit_completed_bar_status(
+        self,
+        pair: str,
+        timestamp,
+        close_price: float,
+        regime: str,
+        composite,
+        position: Position | None,
+        risk_reason: str,
+    ) -> None:
+        position_label = position.side if position is not None else "Flat"
+        self._emit_status(
+            f"BAR | {pair} | closed={timestamp:%Y-%m-%d %H:%M UTC} | close={close_price:.5f} | "
+            f"reg={regime} | signal={composite.final_signal:+.3f} | "
+            f"bias={self._bias_label(composite.bias)} | pos={position_label} | "
+            f"risk={risk_reason} | reasons={self._strategy_reason_summary(composite)}"
+        )
+
     async def _process_pair(self, pair: str) -> None:
         state = self.states[pair]
         market_data = state.market_data
-        analysis_data = market_data.iloc[:-1].copy() if len(market_data) >= 2 else market_data.copy()
+        analysis_data = self._completed_market_data(market_data)
+        if analysis_data.empty:
+            return
         strategy_config = self._strategy_config_for_pair(pair)
         risk_config = self._risk_config_for_pair(pair)
         strategies = build_default_strategies(strategy_config)
@@ -603,15 +1112,34 @@ class LiveRunner:
             score_threshold=strategy_config.score_threshold,
             min_strategy_confidence=strategy_config.min_strategy_confidence,
         )
-        if len(analysis_data) < max(strategy.required_bars(analysis_data) for strategy in strategies):
-            return
+        required_bars = max(strategy.required_bars(analysis_data) for strategy in strategies)
 
         bar = analysis_data.iloc[-1]
         timestamp = pd.Timestamp(bar["timestamp"]).to_pydatetime()
         close_price = float(bar["close"])
+        if len(analysis_data) < required_bars:
+            self._update_terminal_status_snapshot(
+                pair=pair,
+                price=self._current_display_price(pair, close_price),
+                market_timestamp=datetime.now(timezone.utc),
+                bar_timestamp=timestamp,
+                signal_timestamp=timestamp,
+                regime="warmup",
+                signal=0.0,
+                bias="Flat",
+                position=state.position.side if state.position is not None else "Flat",
+            )
+            self._emit_status(
+                f"BAR | {pair} | closed={timestamp:%Y-%m-%d %H:%M UTC} | close={close_price:.5f} | "
+                f"warmup={len(analysis_data)}/{required_bars} bars"
+            )
+            return
         quote_to_usd = self._quote_to_usd(pair, close_price)
         if quote_to_usd <= 0:
             return
+        if not await self._sync_pair_broker_position(pair):
+            return
+        state = self.states[pair]
 
         if state.position is not None:
             state.position.bars_held += 1
@@ -662,6 +1190,7 @@ class LiveRunner:
 
         decisions = {strategy.name: strategy.evaluate(analysis_data) for strategy in strategies}
         composite = allocator.allocate(decisions, str(bar["regime"]), self.performance_tracker)
+        risk_reason = "position_open" if state.position is not None else "not_evaluated"
 
         if state.position is not None:
             if self._should_signal_exit(state.position, composite.final_signal, close_price, strategy_config):
@@ -713,80 +1242,105 @@ class LiveRunner:
                     "cooldown_bars_remaining": self.risk_overlay.cooldown_bars_remaining,
                 }
             )
+            risk_reason = risk_decision.reason
             if risk_decision.approved:
                 candidate_trade_id = self.trade_id + 1
                 modeled_entry_price = self._apply_slippage(close_price, composite.bias)
                 side = "Long" if composite.bias > 0 else "Short"
                 action = "BUY" if side == "Long" else "SELL"
-                trade = await self.broker.place_market_order(pair, action, risk_decision.size_units)
-                execution_time = datetime.now(timezone.utc)
-                order_status = self._trade_status(trade)
-                order_details = self._trade_message(trade) or "paper entry"
-                filled_entry_price = self._trade_fill_price(trade, modeled_entry_price)
-                self.order_events.append(
-                    OrderEvent(
-                        timestamp=execution_time,
-                        pair=pair,
-                        action=action,
-                        size_units=risk_decision.size_units,
-                        order_type="MKT",
-                        status=order_status,
-                        price=filled_entry_price,
-                        order_id=str(getattr(trade.order, "orderId", "")),
-                        details=order_details,
-                    )
-                )
-                if self._trade_succeeded(trade):
-                    self.trade_id = candidate_trade_id
-                    entry_reason = self._dominant_reason(composite, composite.bias)
-                    take_profit_price = self._take_profit_price(filled_entry_price, composite.bias, float(bar.get("atr", 0.0) or 0.0), risk_config)
-                    contributing_strategies = self._contributing_strategies(composite, composite.bias)
-                    state.position = Position(
-                        trade_id=self.trade_id,
-                        pair=pair,
-                        side=side,
-                        size_units=risk_decision.size_units,
-                        entry_time=execution_time,
-                        entry_price=filled_entry_price,
-                        stop_price=risk_decision.stop_price,
-                        take_profit_price=take_profit_price,
-                        entry_reason=entry_reason,
-                        entry_regime=str(bar["regime"]),
-                        atr_at_entry=float(bar.get("atr", 0.0) or 0.0),
-                        equity_at_entry=equity,
-                        risk_amount_usd=risk_decision.risk_amount_usd,
-                        strategy_scores=composite.strategy_scores,
-                        contributing_strategies=contributing_strategies,
-                        signal_strength=composite.final_signal,
-                        highest_price_seen=filled_entry_price,
-                        lowest_price_seen=filled_entry_price,
-                    )
-                    self.trade_events.append(
-                        TradeEventRecord(
-                            trade_id=self.trade_id,
-                            position_type=side,
-                            step_type="Entry",
+                try:
+                    trade = await self.broker.place_market_order(pair, action, risk_decision.size_units)
+                except Exception as exc:
+                    execution_time = datetime.now(timezone.utc)
+                    risk_reason = "order_submit_error"
+                    self.order_events.append(
+                        OrderEvent(
                             timestamp=execution_time,
-                            signal_reason=entry_reason,
-                            price=filled_entry_price,
-                            size=float(risk_decision.size_units),
-                            net_pnl_usd=0.0,
-                            net_pnl_pct=0.0,
-                            cumulative_pnl_usd=self.realized_pnl,
-                            cumulative_pnl_pct=self.realized_pnl / self.config.risk.initial_capital,
+                            pair=pair,
+                            action=action,
+                            size_units=risk_decision.size_units,
+                            order_type="MKT",
+                            status="SubmitError",
+                            price=modeled_entry_price,
+                            order_id=None,
+                            details=str(exc),
                         )
                     )
                     self._emit_status(
-                        f"TRADE OPEN | {pair} | {side} | {execution_time:%Y-%m-%d %H:%M:%S UTC} | "
-                        f"exec={filled_entry_price:.5f} | size={risk_decision.size_units:,} | "
-                        f"stop={risk_decision.stop_price:.5f} | tp={take_profit_price:.5f} | "
-                        f"signal={composite.final_signal:+.3f} | reason={entry_reason} | "
-                        f"strategies={', '.join(contributing_strategies)} | signal_bar={timestamp:%Y-%m-%d %H:%M UTC}"
+                        f"ORDER SUBMIT ERROR | {pair} | {action} | {execution_time:%Y-%m-%d %H:%M:%S UTC} | "
+                        f"details={exc} | check TWS before restarting"
                     )
                 else:
-                    self._emit_status(
-                        f"ORDER REJECTED | {pair} | {action} | {execution_time:%Y-%m-%d %H:%M:%S UTC} | details={order_details}"
+                    execution_time = datetime.now(timezone.utc)
+                    order_status = self._trade_status(trade)
+                    order_details = self._trade_message(trade) or "paper entry"
+                    filled_entry_price = self._trade_fill_price(trade, modeled_entry_price)
+                    self.order_events.append(
+                        OrderEvent(
+                            timestamp=execution_time,
+                            pair=pair,
+                            action=action,
+                            size_units=risk_decision.size_units,
+                            order_type="MKT",
+                            status=order_status,
+                            price=filled_entry_price,
+                            order_id=str(getattr(trade.order, "orderId", "")),
+                            details=order_details,
+                        )
                     )
+                    if self._trade_succeeded(trade):
+                        risk_reason = "entry_filled"
+                        self.trade_id = candidate_trade_id
+                        entry_reason = self._dominant_reason(composite, composite.bias)
+                        take_profit_price = self._take_profit_price(filled_entry_price, composite.bias, float(bar.get("atr", 0.0) or 0.0), risk_config)
+                        contributing_strategies = self._contributing_strategies(composite, composite.bias)
+                        state.position = Position(
+                            trade_id=self.trade_id,
+                            pair=pair,
+                            side=side,
+                            size_units=risk_decision.size_units,
+                            entry_time=execution_time,
+                            entry_price=filled_entry_price,
+                            stop_price=risk_decision.stop_price,
+                            take_profit_price=take_profit_price,
+                            entry_reason=entry_reason,
+                            entry_regime=str(bar["regime"]),
+                            atr_at_entry=float(bar.get("atr", 0.0) or 0.0),
+                            equity_at_entry=equity,
+                            risk_amount_usd=risk_decision.risk_amount_usd,
+                            strategy_scores=composite.strategy_scores,
+                            contributing_strategies=contributing_strategies,
+                            signal_strength=composite.final_signal,
+                            highest_price_seen=filled_entry_price,
+                            lowest_price_seen=filled_entry_price,
+                        )
+                        self.trade_events.append(
+                            TradeEventRecord(
+                                trade_id=self.trade_id,
+                                position_type=side,
+                                step_type="Entry",
+                                timestamp=execution_time,
+                                signal_reason=entry_reason,
+                                price=filled_entry_price,
+                                size=float(risk_decision.size_units),
+                                net_pnl_usd=0.0,
+                                net_pnl_pct=0.0,
+                                cumulative_pnl_usd=self.realized_pnl,
+                                cumulative_pnl_pct=self.realized_pnl / self.config.risk.initial_capital,
+                            )
+                        )
+                        self._emit_status(
+                            f"TRADE OPEN | {pair} | {side} | {execution_time:%Y-%m-%d %H:%M:%S UTC} | "
+                            f"exec={filled_entry_price:.5f} | size={risk_decision.size_units:,} | "
+                            f"stop={risk_decision.stop_price:.5f} | tp={take_profit_price:.5f} | "
+                            f"signal={composite.final_signal:+.3f} | reason={entry_reason} | "
+                            f"strategies={', '.join(contributing_strategies)} | signal_bar={timestamp:%Y-%m-%d %H:%M UTC}"
+                        )
+                    else:
+                        risk_reason = "order_rejected"
+                        self._emit_status(
+                            f"ORDER REJECTED | {pair} | {action} | {execution_time:%Y-%m-%d %H:%M:%S UTC} | details={order_details}"
+                        )
 
         self._maybe_emit_bar_status(
             pair=pair,
@@ -795,6 +1349,15 @@ class LiveRunner:
             regime=str(bar["regime"]),
             composite=composite,
             position=state.position,
+        )
+        self._emit_completed_bar_status(
+            pair=pair,
+            timestamp=timestamp,
+            close_price=close_price,
+            regime=str(bar["regime"]),
+            composite=composite,
+            position=state.position,
+            risk_reason=risk_reason,
         )
 
         current_unrealized = self._unrealized_pnl(state.position, close_price, quote_to_usd)
@@ -1002,8 +1565,28 @@ class LiveRunner:
         action: str,
     ) -> tuple[float, Position | None]:
         modeled_exit_price = self._apply_slippage(exit_price, -1 if position.side == "Long" else 1)
-        trade = await self.broker.place_market_order(pair, action, position.size_units)
         execution_time = datetime.now(timezone.utc)
+        try:
+            trade = await self.broker.place_market_order(pair, action, position.size_units)
+        except Exception as exc:
+            self.order_events.append(
+                OrderEvent(
+                    timestamp=execution_time,
+                    pair=pair,
+                    action=action,
+                    size_units=position.size_units,
+                    order_type="MKT",
+                    status="SubmitError",
+                    price=modeled_exit_price,
+                    order_id=None,
+                    details=str(exc),
+                )
+            )
+            self._emit_status(
+                f"ORDER SUBMIT ERROR | {pair} | {action} | {execution_time:%Y-%m-%d %H:%M:%S UTC} | "
+                f"details={exc} | position remains open in bot; check TWS"
+            )
+            return self.realized_pnl, position
         order_status = self._trade_status(trade)
         order_details = self._trade_message(trade) or "paper exit"
         filled_exit_price = self._trade_fill_price(trade, modeled_exit_price)
@@ -1110,7 +1693,7 @@ class LiveRunner:
         return names or [max(composite.strategy_scores, key=composite.strategy_scores.get)]
 
     def _maybe_emit_bar_status(self, pair: str, timestamp, close_price: float, regime: str, composite, position: Position | None) -> None:
-        bias_label = {1: "Long", -1: "Short", 0: "Flat"}[composite.bias]
+        bias_label = self._bias_label(composite.bias)
         position_label = position.side if position is not None else "Flat"
         updates = self.bar_updates_seen.get(pair, 0) + 1
         self.bar_updates_seen[pair] = updates
@@ -1119,6 +1702,7 @@ class LiveRunner:
             pair=pair,
             price=current_price,
             market_timestamp=self._status_market_timestamp(pair, timestamp),
+            bar_timestamp=timestamp,
             signal_timestamp=timestamp,
             regime=regime,
             signal=composite.final_signal,
@@ -1297,9 +1881,60 @@ class LiveRunner:
             strategy_metrics=strategy_metrics,
             risk_metrics=pd.DataFrame(self.risk_rows),
         )
-        report["order_events"] = pd.DataFrame([event.to_dict() for event in self.order_events])
+        open_positions = self._open_positions_frame()
+        report["open_positions"] = open_positions
+        if not open_positions.empty:
+            details = report["details_table"].copy()
+            details.at["Total open trades", "All"] = int(len(open_positions))
+            details.at["Total open trades", "Long"] = int((open_positions["side"] == "Long").sum())
+            details.at["Total open trades", "Short"] = int((open_positions["side"] == "Short").sum())
+            report["details_table"] = details
+        report["order_events"] = pd.DataFrame(
+            [event.to_dict() for event in self.order_events],
+            columns=["timestamp", "pair", "action", "size_units", "order_type", "status", "price", "order_id", "details"],
+        )
         report["output_dir"] = self.logger.run_dir
         return report
+
+    def _open_positions_frame(self) -> pd.DataFrame:
+        columns = [
+            "pair",
+            "side",
+            "size_units",
+            "entry_time",
+            "entry_price",
+            "current_price",
+            "stop_price",
+            "take_profit_price",
+            "unrealized_pnl_usd",
+            "risk_amount_usd",
+            "bars_held",
+            "entry_reason",
+        ]
+        rows: list[dict[str, Any]] = []
+        for pair, state in self.states.items():
+            position = state.position
+            if position is None:
+                continue
+            current_price = self._current_display_price(pair)
+            quote_to_usd = self._quote_to_usd(pair, current_price)
+            rows.append(
+                {
+                    "pair": pair,
+                    "side": position.side,
+                    "size_units": position.size_units,
+                    "entry_time": position.entry_time.isoformat(),
+                    "entry_price": position.entry_price,
+                    "current_price": current_price,
+                    "stop_price": position.stop_price,
+                    "take_profit_price": position.take_profit_price,
+                    "unrealized_pnl_usd": self._unrealized_pnl(position, current_price, quote_to_usd),
+                    "risk_amount_usd": position.risk_amount_usd,
+                    "bars_held": position.bars_held,
+                    "entry_reason": position.entry_reason,
+                }
+            )
+        return pd.DataFrame(rows, columns=columns)
 
 
 

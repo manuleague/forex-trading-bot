@@ -118,6 +118,7 @@ class BotConfig:
     use_sample_data: bool = False
     slippage_bps: float = 0.0
     summary_to_stdout: bool = True
+    allow_duplicate_live_pair: bool = False
 
     @property
     def primary_pair(self) -> str:
@@ -276,4 +277,5 @@ def build_config_from_args(args: Any) -> BotConfig:
         use_sample_data=getattr(args, "use_sample_data", False),
         slippage_bps=getattr(args, "slippage_bps", 0.0),
         summary_to_stdout=not getattr(args, "quiet", False),
+        allow_duplicate_live_pair=getattr(args, "allow_duplicate_live_pair", False),
     )

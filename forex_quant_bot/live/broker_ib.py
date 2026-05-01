@@ -161,12 +161,23 @@ class IBPaperBroker:
         loop = asyncio.get_running_loop()
         deadline = loop.time() + timeout_seconds
         while self.ib.isConnected() and str(getattr(trade.orderStatus, "status", "")) in pending_statuses and loop.time() < deadline:
-            await self.ib.sleep(0.25)
+            await asyncio.sleep(0.25)
         return trade
+
+    async def request_positions(self, timeout_seconds: float = 5.0):
+        if not self.ib.isConnected():
+            raise ConnectionError("IB connection is inactive.")
+        if hasattr(self.ib, "reqPositionsAsync"):
+            return await asyncio.wait_for(self.ib.reqPositionsAsync(), timeout=timeout_seconds)
+        return self.ib.positions(self.config.account or "")
 
     async def ping(self, timeout_seconds: float = 4.0):
         if not self.ib.isConnected():
             raise ConnectionError("IB connection is inactive.")
+        client = getattr(self.ib, "client", None)
+        client_is_connected = getattr(client, "isConnected", None)
+        if callable(client_is_connected) and not client_is_connected():
+            raise ConnectionError("IB client socket is disconnected.")
 
         request = None
         if hasattr(self.ib, "reqCurrentTimeAsync"):

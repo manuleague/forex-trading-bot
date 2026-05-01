@@ -36,6 +36,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ib-port", type=int, default=7497)
     parser.add_argument("--client-id", type=int, default=7)
     parser.add_argument("--account")
+    parser.add_argument(
+        "--allow-duplicate-live-pair",
+        action="store_true",
+        help="Allow another live process to manage the same IB account/pair. Unsafe unless you know exactly why.",
+    )
     parser.add_argument("--quiet", action="store_true")
     return parser
 
@@ -49,6 +54,9 @@ def configure_logging() -> None:
         logger.propagate = False
         logger.setLevel(logging.WARNING)
         logger.addHandler(logging.NullHandler())
+    for logger_name in ["ib_insync.wrapper", "ib_async.wrapper"]:
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.CRITICAL)
 
 
 

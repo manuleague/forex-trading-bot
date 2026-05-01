@@ -42,6 +42,7 @@ class CSVLogger:
             ("returns_table", "returns.csv", True),
             ("details_table", "details.csv", True),
             ("order_events", "order_events.csv", False),
+            ("open_positions", "open_positions.csv", False),
         ]:
             value = report.get(key)
             if isinstance(value, pd.DataFrame):
