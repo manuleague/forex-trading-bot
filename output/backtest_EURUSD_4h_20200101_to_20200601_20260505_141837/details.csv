@@ -1,0 +1,13 @@
+,All,Long,Short
+Total trades,14,8,6
+Total open trades,0,0,0
+Winning trades,11,7,4
+Losing trades,3,1,2
+Percent profitable,78.57%,87.50%,66.67%
+Avg P&L,31.90 USD (0.32%),35.33 USD (0.35%),27.32 USD (0.27%)
+Avg winning trade,56.04 USD (0.55%),53.06 USD (0.52%),61.24 USD (0.60%)
+Avg losing trade,-56.61 USD (-0.54%),-88.78 USD (-0.84%),-40.52 USD (-0.39%)
+Ratio avg win / avg loss,0.990,0.598,1.511
+Largest winning trade,172.62 USD (1.69%),172.62 USD (1.69%),168.35 USD (1.62%)
+Largest losing trade,-88.78 USD (-0.84%),-88.78 USD (-0.84%),-41.50 USD (-0.40%)
+Average number of bars in trades,9.57,7.25,12.67

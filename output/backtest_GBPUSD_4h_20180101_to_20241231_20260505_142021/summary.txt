@@ -1,0 +1,120 @@
+A. Metrics Results
+Total P&L: +1,165.98 USD (+11.66%)
+Max equity drawdown: 431.06 USD (4.25%)
+Total trades: 124
+Profitable trades: 65.32% (81/124)
+Profit factor: 1.396
+
+B. List of Transactions
+Showing latest 60 of 248 transaction rows. Full history is stored in transactions.csv.
+ trade_id position_type step_type          timestamp          signal_reason   price     size net_pnl_usd net_pnl_pct cumulative_pnl_usd cumulative_pnl_pct favorite_excursion_pct adverse_excursion_pct
+      124         Short      Exit Dec 20, 2024 12:00        Break-Even Stop 1.25419 8,891.00        7.40      +0.07%           1,165.98            +11.66%                 +0.60%                -0.10%
+      124         Short     Entry Dec 19, 2024 12:00 Channel Breakout Short 1.25502 8,891.00        0.00      +0.00%           1,158.58            +11.59%                 +0.00%                +0.00%
+      123         Short      Exit Dec 19, 2024 08:00               ATR Exit 1.26487 8,937.00      -73.28      -0.65%           1,158.58            +11.59%                 +0.00%                -0.79%
+      123         Short     Entry Dec 18, 2024 20:00 Channel Breakout Short 1.25667 8,937.00        0.00      +0.00%           1,231.86            +12.32%                 +0.00%                +0.00%
+      122         Short      Exit Oct 18, 2024 04:00     Trailing Stop Exit 1.30518 8,525.00       51.97      +0.46%           1,231.86            +12.32%                 +1.06%                -0.47%
+      122         Short     Entry Oct 03, 2024 08:00 Channel Breakout Short 1.31128 8,525.00        0.00      +0.00%           1,179.89            +11.80%                 +0.00%                +0.00%
+      121          Long      Exit Oct 03, 2024 04:00               ATR Exit 1.31956 8,472.00      -66.44      -0.59%           1,179.89            +11.80%                 +0.23%                -0.95%
+      121          Long     Entry Oct 01, 2024 20:00   Range Reversion Long 1.32740 8,472.00        0.00      +0.00%           1,246.33            +12.46%                 +0.00%                +0.00%
+      120         Short      Exit Aug 14, 2024 12:00        Break-Even Stop 1.28593 8,737.00        5.15      +0.05%           1,246.33            +12.46%                 +0.38%                -0.02%
+      120         Short     Entry Aug 13, 2024 20:00  Range Reversion Short 1.28652 8,737.00        0.00      +0.00%           1,241.18            +12.41%                 +0.00%                +0.00%
+      119         Short      Exit Aug 12, 2024 12:00               ATR Exit 1.27847 8,921.00      -82.20      -0.73%           1,241.18            +12.41%                 +0.22%                -0.80%
+      119         Short     Entry Aug 06, 2024 08:00 Channel Breakout Short 1.26926 8,921.00        0.00      +0.00%           1,323.38            +13.23%                 +0.00%                +0.00%
+      118         Short      Exit Aug 02, 2024 12:00               ATR Exit 1.28116 8,935.00      -62.25      -0.55%           1,323.38            +13.23%                 +0.27%                -0.77%
+      118         Short     Entry Aug 01, 2024 16:00 Channel Breakout Short 1.27419 8,935.00        0.00      +0.00%           1,385.63            +13.86%                 +0.00%                +0.00%
+      117         Short      Exit Jul 29, 2024 12:00        Break-Even Stop 1.28478 8,855.00        4.28      +0.04%           1,385.63            +13.86%                 +0.36%                -0.27%
+      117         Short     Entry Jul 25, 2024 16:00 Channel Breakout Short 1.28526 8,855.00        0.00      +0.00%           1,381.36            +13.81%                 +0.00%                +0.00%
+      116          Long      Exit Jul 18, 2024 04:00     Trailing Stop Exit 1.29962 8,757.00       19.49      +0.17%           1,381.36            +13.81%                 +0.54%                -0.28%
+      116          Long     Entry Jul 15, 2024 00:00          Trend Bullish 1.29739 8,757.00        0.00      +0.00%           1,361.86            +13.62%                 +0.00%                +0.00%
+      115          Long      Exit Jun 07, 2024 12:00               ATR Exit 1.27408 8,917.00      -52.66      -0.46%           1,361.86            +13.62%                 +0.13%                -0.66%
+      115          Long     Entry Jun 03, 2024 16:00  Channel Breakout Long 1.27999 8,917.00        0.00      +0.00%           1,414.52            +14.15%                 +0.00%                +0.00%
+      114         Short      Exit May 17, 2024 12:00        Break-Even Stop 1.26866 8,990.00        4.50      +0.04%           1,414.52            +14.15%                 +0.38%                -0.13%
+      114         Short     Entry May 16, 2024 00:00   RSI Overbought Short 1.26916 8,990.00        0.00      +0.00%           1,410.02            +14.10%                 +0.00%                +0.00%
+      113         Short      Exit May 15, 2024 12:00               ATR Exit 1.26440 9,102.00      -49.30      -0.43%           1,410.02            +14.10%                 +0.05%                -0.66%
+      113         Short     Entry May 14, 2024 16:00  Range Reversion Short 1.25898 9,102.00        0.00      +0.00%           1,459.32            +14.59%                 +0.00%                +0.00%
+      112         Short      Exit Apr 16, 2024 12:00        Break-Even Stop 1.24642 9,184.00        6.06      +0.05%           1,459.32            +14.59%                 +0.50%                -0.22%
+      112         Short     Entry Apr 12, 2024 08:00 Channel Breakout Short 1.24708 9,184.00        0.00      +0.00%           1,453.26            +14.53%                 +0.00%                +0.00%
+      111          Long      Exit Apr 05, 2024 00:00     Trailing Stop Exit 1.26336 9,065.00       78.35      +0.69%           1,453.26            +14.53%                 +1.08%                -0.06%
+      111          Long     Entry Apr 01, 2024 16:00   Range Reversion Long 1.25472 9,065.00        0.00      +0.00%           1,374.92            +13.75%                 +0.00%                +0.00%
+      110         Short      Exit Mar 25, 2024 12:00        Break-Even Stop 1.26448 8,987.00        5.34      +0.05%           1,374.92            +13.75%                 +0.60%                -0.19%
+      110         Short     Entry Mar 21, 2024 16:00 Channel Breakout Short 1.26507 8,987.00        0.00      +0.00%           1,369.57            +13.70%                 +0.00%                +0.00%
+      109         Short      Exit Mar 20, 2024 16:00               ATR Exit 1.27380 8,990.00      -41.33      -0.36%           1,369.57            +13.70%                 +0.06%                -0.74%
+      109         Short     Entry Mar 19, 2024 08:00          Trend Bearish 1.26920 8,990.00        0.00      +0.00%           1,410.90            +14.11%                 +0.00%                +0.00%
+      108          Long      Exit Dec 15, 2023 12:00     Trailing Stop Exit 1.27033 8,982.00       35.84      +0.32%           1,410.90            +14.11%                 +1.03%                -0.02%
+      108          Long     Entry Dec 14, 2023 08:00  Channel Breakout Long 1.26634 8,982.00        0.00      +0.00%           1,375.06            +13.75%                 +0.00%                +0.00%
+      107         Short      Exit Nov 13, 2023 16:00     Trailing Stop Exit 1.22591 9,107.00      105.31      +0.93%           1,375.06            +13.75%                 +1.52%                -0.43%
+      107         Short     Entry Nov 06, 2023 00:00   RSI Overbought Short 1.23747 9,107.00        0.00      +0.00%           1,269.75            +12.70%                 +0.00%                +0.00%
+      106         Short      Exit Oct 26, 2023 16:00     Trailing Stop Exit 1.21392 9,119.00       99.85      +0.89%           1,269.75            +12.70%                 +1.47%                -0.32%
+      106         Short     Entry Oct 23, 2023 20:00  Range Reversion Short 1.22487 9,119.00        0.00      +0.00%           1,169.90            +11.70%                 +0.00%                +0.00%
+      105          Long      Exit Sep 20, 2023 20:00               ATR Exit 1.23320 9,057.00      -61.97      -0.55%           1,169.90            +11.70%                 +0.36%                -0.62%
+      105          Long     Entry Sep 14, 2023 20:00   Range Reversion Long 1.24004 9,057.00        0.00      +0.00%           1,231.86            +12.32%                 +0.00%                +0.00%
+      104         Short      Exit Aug 03, 2023 12:00     Trailing Stop Exit 1.27158 8,739.00       59.43      +0.53%           1,231.86            +12.32%                 +1.28%                -0.81%
+      104         Short     Entry Jul 27, 2023 16:00 Channel Breakout Short 1.27838 8,739.00        0.00      +0.00%           1,172.43            +11.72%                 +0.00%                +0.00%
+      103         Short      Exit Jul 26, 2023 12:00               ATR Exit 1.29351 8,756.00      -77.07      -0.69%           1,172.43            +11.72%                 +0.39%                -0.69%
+      103         Short     Entry Jul 20, 2023 12:00 Channel Breakout Short 1.28471 8,756.00        0.00      +0.00%           1,249.50            +12.50%                 +0.00%                +0.00%
+      102          Long      Exit Jul 06, 2023 12:00     Trailing Stop Exit 1.27130 8,848.00       63.86      +0.57%           1,249.50            +12.50%                 +1.11%                -0.40%
+      102          Long     Entry Jun 28, 2023 16:00   Range Reversion Long 1.26408 8,848.00        0.00      +0.00%           1,185.64            +11.86%                 +0.00%                +0.00%
+      101          Long      Exit Jun 19, 2023 12:00        Break-Even Stop 1.27913 8,744.00        6.65      +0.06%           1,185.64            +11.86%                 +0.50%                -0.12%
+      101          Long     Entry Jun 15, 2023 16:00  Channel Breakout Long 1.27837 8,744.00        0.00      +0.00%           1,178.99            +11.79%                 +0.00%                +0.00%
+      100          Long      Exit Jun 02, 2023 16:00               ATR Exit 1.24424 8,984.00      -81.21      -0.72%           1,178.99            +11.79%                 +0.09%                -0.73%
+      100          Long     Entry Jun 01, 2023 12:00  Channel Breakout Long 1.25328 8,984.00        0.00      +0.00%           1,260.21            +12.60%                 +0.00%                +0.00%
+       99          Long      Exit May 17, 2023 04:00               ATR Exit 1.24294 9,059.00      -70.35      -0.62%           1,260.21            +12.60%                 +0.31%                -0.69%
+       99          Long     Entry May 11, 2023 20:00   Range Reversion Long 1.25071 9,059.00        0.00      +0.00%           1,330.56            +13.31%                 +0.00%                +0.00%
+       98          Long      Exit Mar 15, 2023 08:00        Break-Even Stop 1.21336 9,338.00        9.93      +0.09%           1,330.56            +13.31%                 +0.66%                -0.64%
+       98          Long     Entry Mar 13, 2023 00:00  Channel Breakout Long 1.21230 9,338.00        0.00      +0.00%           1,320.62            +13.21%                 +0.00%                +0.00%
+       97          Long      Exit Mar 10, 2023 12:00        ATR Take Profit 1.20761 9,374.00      234.07      +2.11%           1,320.62            +13.21%                 +2.42%                -0.20%
+       97          Long     Entry Mar 07, 2023 20:00   Range Reversion Long 1.18264 9,374.00        0.00      +0.00%           1,086.56            +10.87%                 +0.00%                +0.00%
+       96         Short      Exit Feb 07, 2023 16:00     Trailing Stop Exit 1.20730 8,947.00      141.85      +1.30%           1,086.56            +10.87%                 +2.21%                -0.27%
+       96         Short     Entry Feb 02, 2023 16:00 Channel Breakout Short 1.22315 8,947.00        0.00      +0.00%             944.71             +9.45%                 +0.00%                +0.00%
+       95          Long      Exit Jan 11, 2023 12:00        Break-Even Stop 1.21095 7,553.00        9.94      +0.09%             944.71             +9.45%                 +0.94%                -0.14%
+       95          Long     Entry Jan 06, 2023 16:00  Channel Breakout Long 1.20963 7,553.00        0.00      +0.00%             934.77             +9.35%                 +0.00%                +0.00%
+
+Returns
+column                             All                   Long                  Short
+Initial capital          10,000.00 USD                                              
+Open P&L              0.00 USD (0.00%)                                              
+Net P&L          1,165.98 USD (11.66%)      47.20 USD (0.47%)  1,118.78 USD (11.19%)
+Gross profit     4,109.75 USD (41.10%)  1,460.57 USD (14.61%)  2,649.19 USD (26.49%)
+Gross loss       2,943.78 USD (29.44%)  1,413.37 USD (14.13%)  1,530.41 USD (15.30%)
+Profit factor                    1.396                  1.033                  1.731
+Commission paid               0.00 USD               0.00 USD               0.00 USD
+Expected payoff               9.40 USD               0.84 USD              16.45 USD
+
+Benchmark & Risk-adjusted Performance
+Buy & hold return: -709.35 USD (-7.09%)
+Buy & hold % gain: -7.09%
+Strategy outperformance: +1,875.32 USD
+Sharpe ratio: 0.592
+Sortino ratio: 0.359
+
+Trades Analysis
+Average loss: -0.65%
+Average profit: 0.48%
+Total trades: 124
+Wins: 81 trades (65.32%)
+Losses: 43 trades (34.68%)
+Break even: 0 trades (0.00%)
+
+Win/Loss Ratio
+Losses: 43 trades (34.68%)
+Wins: 81 trades (65.32%)
+Total trades: 124
+
+Details
+                                                   All                  Long                 Short
+Total trades                                       124                    56                    68
+Total open trades                                    0                     0                     0
+Winning trades                                      81                    34                    47
+Losing trades                                       43                    22                    21
+Percent profitable                              65.32%                60.71%                69.12%
+Avg P&L                               9.40 USD (0.09%)      0.84 USD (0.01%)     16.45 USD (0.16%)
+Avg winning trade                    50.74 USD (0.48%)     42.96 USD (0.41%)     56.37 USD (0.54%)
+Avg losing trade                   -68.46 USD (-0.65%)   -64.24 USD (-0.61%)   -72.88 USD (-0.69%)
+Ratio avg win / avg loss                         0.741                 0.669                 0.773
+Largest winning trade               268.74 USD (2.50%)    234.07 USD (2.19%)    268.74 USD (2.50%)
+Largest losing trade              -110.18 USD (-1.00%)  -110.10 USD (-1.00%)  -110.18 USD (-1.00%)
+Average number of bars in trades                 13.37                 13.21                 13.50
+
+Average Bars in Trade
+Avg # bars in winning trades: 15.23 (All), 14.76 (Long), 15.57 (Short)
+Avg # bars in losing trades: 9.86 (All), 10.82 (Long), 8.86 (Short)

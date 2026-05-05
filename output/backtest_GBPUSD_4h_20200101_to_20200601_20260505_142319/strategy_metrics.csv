@@ -1,0 +1,4 @@
+strategy,trade_count,win_rate,avg_pnl_usd,avg_pnl_pct,profit_factor,max_drawdown_pct,regime_fit
+breakout,4,0.75,50.065726851050044,0.005064582193551097,4.080207615243234,0.0,0.75
+mean_reversion,1,0.0,-52.81607329402345,-0.005316170968853523,0.0,0.0,0.0
+trend,2,1.0,130.02693445489658,0.012825276244757829,inf,0.0,1.0

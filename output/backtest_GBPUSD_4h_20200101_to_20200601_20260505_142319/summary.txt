@@ -1,0 +1,73 @@
+A. Metrics Results
+Total P&L: +407.50 USD (+4.08%)
+Max equity drawdown: 131.19 USD (1.31%)
+Total trades: 7
+Profitable trades: 71.43% (5/7)
+Profit factor: 4.458
+
+B. List of Transactions
+ trade_id position_type step_type          timestamp          signal_reason   price     size net_pnl_usd net_pnl_pct cumulative_pnl_usd cumulative_pnl_pct favorite_excursion_pct adverse_excursion_pct
+        7         Short      Exit May 18, 2020 12:00        Break-Even Stop 1.22137 8,506.00        8.87      +0.09%             407.50             +4.08%                 +1.22%                -0.15%
+        7         Short     Entry May 13, 2020 12:00 Channel Breakout Short 1.22241 8,506.00        0.00      +0.00%             398.63             +3.99%                 +0.00%                +0.00%
+        6         Short      Exit Mar 18, 2020 16:00        ATR Take Profit 1.17205 4,708.00      253.59      +2.50%             398.63             +3.99%                 +6.60%                -0.12%
+        6         Short     Entry Mar 16, 2020 16:00          Trend Bearish 1.22591 4,708.00        0.00      +0.00%             145.03             +1.45%                 +0.00%                +0.00%
+        5         Short      Exit Mar 15, 2020 20:00        Break-Even Stop 1.23892 5,558.00        9.21      +0.09%             145.03             +1.45%                 +1.18%                -0.13%
+        5         Short     Entry Mar 13, 2020 12:00 Channel Breakout Short 1.24058 5,558.00        0.00      +0.00%             135.82             +1.36%                 +0.00%                +0.00%
+        4         Short      Exit Mar 13, 2020 12:00        ATR Take Profit 1.24417 6,805.00      247.19      +2.50%             135.82             +1.36%                 +3.17%                -0.34%
+        4         Short     Entry Mar 11, 2020 16:00 Channel Breakout Short 1.28049 6,805.00        0.00      +0.00%            -111.37             -1.11%                 +0.00%                +0.00%
+        3          Long      Exit Mar 09, 2020 08:00        Break-Even Stop 1.31046 7,545.00        6.46      +0.07%            -111.37             -1.11%                 +0.80%                -0.47%
+        3          Long     Entry Mar 08, 2020 20:00          Trend Bullish 1.30960 7,545.00        0.00      +0.00%            -117.83             -1.18%                 +0.00%                +0.00%
+        2          Long      Exit Feb 20, 2020 08:00               ATR Exit 1.28568 7,686.00      -52.82      -0.53%            -117.83             -1.18%                 +0.02%                -0.59%
+        2          Long     Entry Feb 19, 2020 20:00   Range Reversion Long 1.29255 7,686.00        0.00      +0.00%             -65.02             -0.65%                 +0.00%                +0.00%
+        1         Short      Exit Feb 04, 2020 12:00               ATR Exit 1.30293 7,724.00      -65.02      -0.65%             -65.02             -0.65%                 +0.00%                -0.78%
+        1         Short     Entry Feb 04, 2020 04:00 Channel Breakout Short 1.29451 7,724.00        0.00      +0.00%               0.00             +0.00%                 +0.00%                +0.00%
+
+Returns
+column                          All                 Long               Short
+Initial capital       10,000.00 USD                                         
+Open P&L           0.00 USD (0.00%)                                         
+Net P&L          407.50 USD (4.08%)  -46.36 USD (-0.46%)  453.86 USD (4.54%)
+Gross profit     525.33 USD (5.25%)     6.46 USD (0.06%)  518.87 USD (5.19%)
+Gross loss       117.83 USD (1.18%)    52.82 USD (0.53%)   65.02 USD (0.65%)
+Profit factor                 4.458                0.122               7.981
+Commission paid            0.00 USD             0.00 USD            0.00 USD
+Expected payoff           58.21 USD           -23.18 USD           90.77 USD
+
+Benchmark & Risk-adjusted Performance
+Buy & hold return: -651.94 USD (-6.52%)
+Buy & hold % gain: -6.52%
+Strategy outperformance: +1,059.44 USD
+Sharpe ratio: 2.847
+Sortino ratio: 1.669
+
+Trades Analysis
+Average loss: -0.59%
+Average profit: 1.05%
+Total trades: 7
+Wins: 5 trades (71.43%)
+Losses: 2 trades (28.57%)
+Break even: 0 trades (0.00%)
+
+Win/Loss Ratio
+Losses: 2 trades (28.57%)
+Wins: 5 trades (71.43%)
+Total trades: 7
+
+Details
+                                                  All                 Long                Short
+Total trades                                        7                    2                    5
+Total open trades                                   0                    0                    0
+Winning trades                                      5                    1                    4
+Losing trades                                       2                    1                    1
+Percent profitable                             71.43%               50.00%               80.00%
+Avg P&L                             58.21 USD (0.58%)  -23.18 USD (-0.23%)    90.77 USD (0.91%)
+Avg winning trade                  105.07 USD (1.05%)     6.46 USD (0.07%)   129.72 USD (1.29%)
+Avg losing trade                  -58.92 USD (-0.59%)  -52.82 USD (-0.53%)  -65.02 USD (-0.65%)
+Ratio avg win / avg loss                        1.783                0.122                1.995
+Largest winning trade              253.59 USD (2.50%)     6.46 USD (0.07%)   253.59 USD (2.50%)
+Largest losing trade              -65.02 USD (-0.65%)  -52.82 USD (-0.53%)  -65.02 USD (-0.65%)
+Average number of bars in trades                 7.57                 3.00                 9.40
+
+Average Bars in Trade
+Avg # bars in winning trades: 9.60 (All), 3.00 (Long), 11.25 (Short)
+Avg # bars in losing trades: 2.50 (All), 3.00 (Long), 2.00 (Short)
