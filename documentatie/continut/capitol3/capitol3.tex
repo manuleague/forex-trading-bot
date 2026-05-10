@@ -36,6 +36,41 @@ Structura principală a proiectului este:
     \item \texttt{cli.py}: parsarea parametrilor din linia de comandă și selectarea modului de rulare.
 \end{itemize}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{continut/capitol3/figuri/pipeline_strategii.png}
+    \caption{Pipeline-ul decizional al strategiilor}
+    \label{fig:pipeline_strategii}
+\end{figure}
+
+\section{Trasabilitatea cerințelor}
+\label{cap:cap3:trasabilitate}
+
+Pentru o lucrare de diplomă, este important ca cerințele formulate să poată fi urmărite până la componentele implementate. Tabelul \ref{tabel:trasabilitate_cerinte} sintetizează această legătură și arată unde se regăsesc elementele tehnice esențiale în proiect.
+
+\begin{table}[H]
+    \centering
+    \caption{Trasabilitatea cerințelor către modulele implementate}
+    \label{tabel:trasabilitate_cerinte}
+    \begin{tabular}{|p{4.2cm}|p{5.2cm}|p{4.6cm}|}
+        \hline
+        \textbf{Cerință} & \textbf{Componentă responsabilă} & \textbf{Dovadă în proiect} \\
+        \hline
+        Backtesting reproductibil & \texttt{BacktestEngine}, \texttt{BarReplay}, \texttt{DataCache} & Rulări deterministe pe CSV și directoare timestamped în \texttt{output}. \\
+        \hline
+        Strategii extensibile & \texttt{BaseStrategy} și modulele din \texttt{strategies} & Fiecare strategie implementează \texttt{prepare\_data} și \texttt{evaluate}. \\
+        \hline
+        Decizie explicabilă & \texttt{StrategyAllocator}, \texttt{StrategyDecision} & Scoruri pe strategie, metadate și motivul semnalului în CSV-uri. \\
+        \hline
+        Controlul riscului & \texttt{RiskOverlay}, \texttt{RiskConfig} & Stop-uri ATR, sizing, expunere maximă și circuit breaker. \\
+        \hline
+        Integrare broker sigură & \texttt{IBPaperBroker}, \texttt{LiveRunner} & Validare porturi paper 7497/4002 și lock-uri pe pereche. \\
+        \hline
+        Raportare completă & \texttt{CSVLogger}, \texttt{SummaryPrinter}, \texttt{performance\_dashboard} & Fișiere CSV, sumar text, HTML și SVG după rulare. \\
+        \hline
+    \end{tabular}
+\end{table}
+
 \section{Fluxul de backtesting}
 \label{cap:cap3:backtest}
 
@@ -53,6 +88,13 @@ python main.py --mode backtest --pair EURUSD --start 2018-01-01 \
 Motorul verifică existența datelor în directorul \texttt{data\_cache}. Dacă acoperirea temporală este suficientă, fișierul CSV local este reutilizat. În caz contrar, datele sunt descărcate prin Dukascopy, dacă descărcarea automată este activă. Datele sunt apoi adnotate cu indicatori de regim și cu indicatorii specifici fiecărei strategii.
 
 Procesarea se face bară cu bară. Pentru fiecare moment, motorul actualizează poziția curentă, verifică stop-loss-ul și take-profit-ul, evaluează strategiile și transmite semnalul compus către componenta de risc. Dacă riscul este aprobat, este creată o poziție nouă. Dacă există deja o poziție, aceasta poate fi închisă prin stop, take-profit, trailing stop, break-even sau semnal opus.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{continut/capitol3/figuri/flux_backtesting.png}
+    \caption{Fluxul de backtesting determinist}
+    \label{fig:flux_backtesting}
+\end{figure}
 
 \section{Strategiile implementate}
 \label{cap:cap3:strategii}
@@ -98,6 +140,13 @@ Formula \eqref{eq:position_size} este limitată suplimentar de expunerea maximă
 Modul live folosește Interactive Brokers prin biblioteca \textit{ib\_insync}. La pornire, sistemul se conectează la broker, încarcă date istorice pentru încălzirea indicatorilor și pornește fluxurile de bare și prețuri. Pentru fiecare bară completă, fluxul decizional este similar cu cel din backtest. Diferența principală este că intrările și ieșirile sunt trimise brokerului ca ordine de piață, iar prețul de execuție este preluat din răspunsul brokerului.
 
 Sistemul include mecanisme operaționale importante: lock-uri locale pentru a preveni rularea mai multor procese pe aceeași pereche și același cont, heartbeat pentru conexiunea Interactive Brokers, detectarea lipsei de actualizări și reconectare automată. Aceste mecanisme nu garantează absența riscului operațional, dar cresc robustețea în mediu paper.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{continut/capitol3/figuri/flux_live_paper.png}
+    \caption{Fluxul de rulare live paper prin Interactive Brokers}
+    \label{fig:flux_live_paper}
+\end{figure}
 
 \section{Artefacte generate}
 \label{cap:cap3:artefacte}
