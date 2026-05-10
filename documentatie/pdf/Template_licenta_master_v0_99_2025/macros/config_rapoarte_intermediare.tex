@@ -1,0 +1,44 @@
+%% definitii culori
+\definecolor{albastru-ac}{HTML}{004586}
+
+\titleformat
+    {\chapter}
+    [hang]
+    {\color{albastru-ac}\bfseries\large}
+    {}
+    {0pt}
+    {}
+    []
+    
+\titlespacing
+    {\chapter}%
+    {1.27cm}
+    {0.42cm}
+    {0.21cm}
+    [0pt]
+
+\titleformat
+    {\section}
+    [hang]
+    {\color{albastru-ac}\bfseries\large}
+    {}
+    {0pt}
+    {}
+    []
+    
+\titlespacing
+    {\section}%
+    {1.27cm}
+    {0.42cm}
+    {0.21cm}
+    [0pt]
+    
+%% afisare DOI ca link in bibliografie
+% - articolele de jurnal/conferinta pot avea un identificator de tip DOI (Digital Object Identifier)
+% - in functie de indexarea articolului, aceasta informatie poate fi:
+%       - doi.org - in mod uzual pentru jurnale/conferinte indexate ISI
+%       - acm.org - pentru jurnale/conferinte indexate ACM
+% - in bibliografie, DOI-ul se trece optional in campul "note", 
+%   folosind una dintre cele doua comenzi definite mai jos
+\newcommand*{\doi}[1]{DOI: \href{https://doi.org/\detokenize{#1}}{\detokenize{#1}}}
+\newcommand*{\doiacm}[1]{DOI: \href{https://dl.acm.org/doi/\detokenize{#1}}{\detokenize{#1}}} 

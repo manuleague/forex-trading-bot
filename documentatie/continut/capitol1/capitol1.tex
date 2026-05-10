@@ -1,0 +1,36 @@
+\chapter{Introducere}
+\label{cap:cap1}
+
+Piețele financiare moderne funcționează într-un ritm în care volumul datelor, viteza de actualizare a prețurilor și diversitatea instrumentelor tranzacționabile fac dificilă evaluarea manuală consecventă a oportunităților. În cazul pieței Forex, tranzacțiile se desfășoară aproape continuu în timpul săptămânii, iar diferențele de preț pot fi influențate de evenimente macroeconomice, lichiditate, volatilitate și comportamentul participanților instituționali. În acest context, tranzacționarea algoritmică oferă o alternativă disciplinată: regulile de intrare și ieșire sunt definite explicit, sunt testate pe date istorice și pot fi executate fără intervenții emoționale.
+
+Tema acestei lucrări este dezvoltarea unui sistem de tranzacționare algoritmică pentru automatizarea și evaluarea strategiilor financiare, cu accent pe piața Forex. Proiectul software analizat este disponibil într-un depozit GitHub \cite{misc:web:forex_quant_bot_repo} și implementează un bot Python denumit \textit{Forex Quant Bot}. Aplicația este construită pentru două scenarii principale: backtesting determinist pe date istorice locale și rulare live în regim paper trading prin Interactive Brokers. Separarea celor două moduri de lucru este importantă deoarece permite validarea logicii strategiei înainte ca aceasta să fie conectată la un broker, reducând riscul utilizării unei soluții netestate.
+
+Motivația alegerii temei rezultă din necesitatea unor instrumente transparente și reproductibile pentru evaluarea strategiilor de tranzacționare. O strategie care pare profitabilă într-un set restrâns de observații poate deveni ineficientă în alt regim de piață sau poate fi afectată de supraoptimizare. De aceea, proiectul urmărește nu doar generarea de semnale, ci și raportarea completă a tranzacțiilor, a performanței și a riscului. În plus, sistemul include mecanisme de protecție, precum dimensionarea pozițiilor în funcție de volatilitate, limitarea expunerii totale și oprirea temporară a tranzacționării atunci când drawdown-ul depășește pragul configurat.
+
+\section{Obiectivele lucrării}
+\label{cap:cap1:obiective}
+
+Obiectivul general al lucrării este proiectarea, implementarea și documentarea unui sistem modular de tranzacționare algoritmică pentru perechi valutare. Sistemul trebuie să poată rula strategii pe date istorice, să producă rapoarte interpretabilie și să ofere o bază controlată pentru testarea în mediu paper trading.
+
+Obiectivele specifice sunt:
+\begin{itemize}
+    \item definirea unei arhitecturi software cu module separate pentru date, strategii, alocare, risc, backtesting, rulare live și raportare;
+    \item implementarea unui flux determinist de backtesting, în care datele istorice sunt citite cronologic și nu există acces la informație viitoare;
+    \item implementarea mai multor strategii complementare, adaptate pentru trend, range și volatilitate ridicată;
+    \item agregarea semnalelor printr-un mecanism de scoring care ține cont de performanță, încredere, regim de piață și diversificare;
+    \item controlul riscului prin stop-uri bazate pe ATR, limitarea expunerii și mecanism de circuit breaker;
+    \item generarea de artefacte de analiză în format CSV, text, HTML și SVG;
+    \item integrarea cu Interactive Brokers numai în regim paper, pentru testarea conexiunii live fără expunere financiară reală.
+\end{itemize}
+
+\section{Metodologia utilizată}
+\label{cap:cap1:metodologie}
+
+Metodologia de dezvoltare a fost una incrementală. În prima etapă au fost stabilite conceptele financiare necesare: prețuri OHLCV, indicatori tehnici, regimuri de piață, backtesting și indicatori de performanță. În etapa următoare a fost proiectată arhitectura software, astfel încât componentele să poată fi testate și extinse independent. Implementarea a fost realizată în Python, folosind biblioteci consacrate pentru prelucrarea datelor, cum ar fi \textit{pandas} \cite{misc:web:pandas_docs} și \textit{NumPy} \cite{misc:web:numpy_docs}.
+
+Datele istorice sunt furnizate prin Dukascopy \cite{misc:web:dukascopy_python}, apoi sunt păstrate într-un cache local pentru a evita descărcările repetate și pentru a asigura reproductibilitatea testelor. În modul de backtesting, motorul de simulare parcurge datele în ordine cronologică, calculează indicatorii, detectează regimul de piață, evaluează strategiile, aplică regulile de risc și înregistrează tranzacțiile. În modul live, sistemul folosește Interactive Brokers și biblioteca \textit{ib\_insync} \cite{misc:web:ib_insync}, cu restricții explicite pentru porturi paper trading.
+
+\section{Structura lucrării}
+\label{cap:cap1:structura}
+
+Capitolul \ref{cap:cap2} prezintă fundamentarea teoretică: concepte de tranzacționare algoritmică, specificul pieței Forex, indicatori tehnici, backtesting și managementul riscului. Capitolul \ref{cap:cap3} descrie soluția propusă, arhitectura aplicației, modulele implementate, strategiile, allocatorul și componenta de risc. Capitolul \ref{cap:cap4} prezintă modul de instalare și testare, scenariile experimentale și rezultatele obținute pe perechi valutare majore. Capitolul \ref{cap:cap5} sintetizează concluziile și direcțiile viitoare de dezvoltare.

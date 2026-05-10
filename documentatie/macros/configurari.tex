@@ -1,0 +1,205 @@
+%% creez o comanda nou pentru capitolele ne-numerotate pentru a le putea prelua in header si a le putea adauga la cuprins;
+%% in loc de \chapter*{....} va fi \silentchapter{....}
+%% sursa de inspiratie pentru \silentchapter{....}: 
+%% https://tex.stackexchange.com/questions/89914/chapter-name-in-the-header-with-chapter
+\newcommand{\silentchapter}[1]{
+    \chapter*{#1}
+    \markboth{#1}{#1}
+    \addcontentsline{toc}{chapter}{#1}
+}
+
+%% notele de subsol vor fi numerotate in continuu pe parcursul tezei
+%% fara a mai fi resetate la fieare capitol
+\counterwithout{footnote}{chapter}
+
+%% setarile corespunzatoare antetului/subsolului unei pagini de continut
+\pagestyle{fancy}
+\fancyhf{}
+%% pagina impara
+%%      antet: titlul capitolului, aliniat in dreapta
+%%      subsol: numarul paginii, aliniat in dreapta
+\fancyhead[RO]{\nouppercase \leftmark}
+\fancyfoot[RO]{\thepage}
+%% pagina para
+%%      antet: numele autorului, aliniat in stanga
+%%      subsol: numarul paginii, aliniat in stanga
+\fancyhead[LE]{\authornamefl}
+\fancyfoot[LE]{\thepage}
+
+%% setarile corespunzatoare antetului/subsolului unei pagini de inceput de capitol
+%% se defineste prin \fancypagestyle{plain}{...}
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyhead[RO]{\nouppercase \leftmark}
+    \fancyfoot[RO]{\thepage}
+}
+
+%% definitii culori
+\definecolor{albastru-ac}{HTML}{004586}
+
+%% Titlu capitol
+%% setari format
+\titleformat
+    {\chapter}%
+    [hang]% titlul pe acelasi rand cu eticheta de capitol
+    % bold, dimensiune 14pt (pentru normal 12pt), culoare
+    {\color{albastru-ac}\bfseries\large}
+    {Capitolul \thechapter.\ }% eticheta capitol
+    {0pt}% separator
+    {}% before-code -- nu setez nimic
+    []% after-code -- nu setez nimic
+%% setari spatiere
+\titlespacing
+    {\chapter}%
+    {1.27cm}% aliniere la stanga
+    {0.42cm}% spatiu inainte de titlul capitolului
+    {0.42cm}% spatiu dupa titlul capitolului
+    [0pt]% spatiu fata e marginea din dreapta
+
+%% Subcapitol #.# (\section)
+%% modul de lucru este acelasi, nu sunt reluate comentariile
+\titleformat
+    {\section}
+    [hang]
+    {\color{albastru-ac}\bfseries\itshape}
+    {\thesection.\ }
+    {0pt}
+    {}
+    []
+\titlespacing
+    {\section}%
+    {1.27cm}
+    {0.42cm}
+    {0.21cm}
+    [0pt]
+
+%% Subsubcapitol #.#.# (\subsection)
+%% modul de lucru este acelasi, nu sunt reluate comentariile
+\titleformat
+    {\subsection}
+    [hang]
+    {\color{albastru-ac}\itshape}
+    {\thesubsection.\ }
+    {0pt}
+    {}
+    []
+\titlespacing
+    {\subsection}%
+    {1.27cm}
+    {0.42cm}
+    {0.21cm}
+    [0pt]
+
+%% Subsubsubcapitol #.#.#.# (\subsubsection)
+%% modul de lucru este acelasi, nu sunt reluate comentariile
+\titleformat
+    {\subsubsection}
+    [hang]
+    {\color{albastru-ac}}
+    {\thesubsubsection.\ }
+    {0pt}
+    {}
+    []
+\titlespacing
+    {\subsubsection}%
+    {1.27cm}
+    {0.42cm}
+    {0.21cm}
+    [0pt]
+
+%% configurari caption figura
+%% - separator .
+%% - dimensiune font 11pt (\small)
+%% - culoare albastru (similar capitol)
+%% - titlul apare centrat sub figura
+\captionsetup[figure]{
+    labelsep=period,
+    font={small, color=albastru-ac},
+    justification=centering,
+    position=below
+}
+%% - numerotarea figurilor se face relativ la capitol (George Vieriu style)
+\renewcommand{\thefigure}{\arabic{chapter}.\arabic{figure}}
+
+%% configurari caption tabel
+%% - separator .
+%% - dimensiune font 11pt (\small)
+%% - culoare albastru (similar capitol)
+%% - titlul apare centrat deasupra figura
+%% - namele intrarii de tabel
+\captionsetup[table]{
+    labelsep=period,
+    font={small, color=albastru-ac},
+    justification=centering,
+    position=above,
+    name=Tabelul
+}
+%% - numerotarea figurilor se face relativ la capitol (George Vieriu style)
+\renewcommand{\thetable}{\arabic{chapter}.\arabic{table}}
+
+%% - numerotarea ecuatiilor se face relativ la capitol (non George Vieriu style)
+%% (este modul implicit de lucru)
+%% - referirea unei ecuatii se face cu comanda \eqref{label:ecuatie}
+%% - numerotarea definitiilor si teoremelor nu este precizata in template-ul lui George Vieriu
+%% (din nou, am lasat modul implicit de lucru, si anume, relativ la capitol)
+\theoremstyle{definition}
+\newtheorem{definition}{Definiția}[chapter]
+%% - teoreme
+\theoremstyle{plain}
+\newtheorem{theorem}{Teorema}[chapter]
+
+%% configurari algoritmi
+%% - denumire in romana
+\floatname{algorithm}{Algoritmul}
+%% - este definita o pseudo-instructiunie pentru "eticheta" de pas in proceduri
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+%% configurari listing-uri de cod
+%% - pachet minted
+%% in loc de \begin{listing} {...} \end{listing} va fi folosit noul environment code: \begin{code} {...} \end{code}
+%% ceea ce permite ca \begin{minted} {...} \end{minted} sa fie in interiorul \begin{code} {...} \end{code}
+\newenvironment{code}{
+    \captionsetup{
+        type=listing,
+        font={small, color=albastru-ac},
+        labelsep=period,
+        skip=-0.5em, % mut caption-ul putin mai aproape de cod
+    }
+}{\vspace{1.5em}}
+
+%% - font pentru numarul liniei din cod
+\renewcommand{\theFancyVerbLine}{
+    \fontfamily{pcr}\small \arabic{FancyVerbLine}
+}
+
+%% setarea globala a optiunilor pentru minted, pentru a nu fi scrise de fiecare data dupa \begin{minted}
+\setminted{
+    frame=none,
+    framesep=1mm,
+    linenos=true,
+    xleftmargin=1em,
+    tabsize=2,
+    fontfamily=courier,
+    autogobble,
+    breaklines,
+    fontsize=\small,
+    escapeinside=|| %pentru a putea ava cod latex inside minted (referi linii de cod)
+}
+
+%% afisare DOI ca link in bibliografie
+% - articolele de jurnal/conferinta pot avea un identificator de tip DOI (Digital Object Identifier)
+% - in functie de indexarea articolului, aceasta informatie poate fi:
+%       - doi.org - in mod uzual pentru jurnale/conferinte indexate ISI
+%       - acm.org - pentru jurnale/conferinte indexate ACM
+% - in bibliografie, DOI-ul se trece optional in campul "note", 
+%   folosind una dintre cele doua comenzi definite mai jos
+\newcommand*{\doi}[1]{DOI: \href{https://doi.org/\detokenize{#1}}{\detokenize{#1}}}
+\newcommand*{\doiacm}[1]{DOI: \href{https://dl.acm.org/doi/\detokenize{#1}}{\detokenize{#1}}} 
+
+%% break long URL in footnotes
+% sursa - Catalin from https://groups.google.com/g/pandoc-discuss/c/Ttvfpz7zTCY?pli=1
+\def\UrlBreaks{\do\.\do\@\do\\\do\/\do\!\do\_\do\|\do\%\do\;\do\>\do\]%
+\do\)\do\,\do\?\do\'\do\+\do\=\do\#\do\-}%
+\Urlmuskip=0mu plus 1mu %

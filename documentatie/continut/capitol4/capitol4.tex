@@ -1,0 +1,115 @@
+\chapter{Testarea aplicației și rezultate experimentale}
+\label{cap:cap4}
+
+Testarea aplicației a urmărit verificarea funcționării fluxului complet: instalare, încărcare date, calcul indicatori, generare semnale, aplicare risc, înregistrare tranzacții și raportare. Deoarece proiectul tratează un domeniu financiar, accentul nu este pus doar pe funcționarea tehnică a codului, ci și pe interpretarea rezultatelor și pe limitele acestora.
+
+\section{Mediul de testare}
+\label{cap:cap4:mediu}
+
+Aplicația este dezvoltată în Python 3 și folosește dependențe listate în fișierul \texttt{requirements.txt}: \texttt{pandas}, \texttt{numpy}, \texttt{PyYAML}, \texttt{ib\_insync} și \texttt{dukascopy-python}. Instalarea se realizează prin:
+
+\begin{code}
+\begin{minted}{bash}
+pip install -r requirements.txt
+\end{minted}
+\caption{Instalarea dependențelor proiectului}
+\label{code:install}
+\end{code}
+
+Pentru rulările experimentale au fost folosite date istorice Forex păstrate local în \texttt{data\_cache}. Perechile analizate sunt EURUSD, GBPUSD și USDJPY, pe timeframe zilnic, în intervalul 2018-01-01 -- 2024-12-31. Capitalul inițial implicit este 10.000 USD, iar riscul per tranzacție este 1\%.
+
+\section{Scenarii de test}
+\label{cap:cap4:scenarii}
+
+Au fost analizate trei scenarii principale:
+\begin{itemize}
+    \item EURUSD pe timeframe zilnic, pentru o pereche majoră cu volatilitate moderată;
+    \item GBPUSD pe timeframe zilnic, pentru o pereche cu mișcări mai ample și sensibilitate ridicată la evenimente macroeconomice;
+    \item USDJPY pe timeframe zilnic, pentru o pereche cu comportament direcțional puternic în anumite perioade ale intervalului analizat.
+\end{itemize}
+
+Comenzile de rulare urmează aceeași structură:
+
+\begin{code}
+\begin{minted}{bash}
+python main.py --mode backtest --pair USDJPY --start 2018-01-01 \
+  --end 2024-12-31 --timeframe D
+\end{minted}
+\caption{Exemplu de rulare experimentală}
+\label{code:test_run}
+\end{code}
+
+\section{Metrici urmărite}
+\label{cap:cap4:metrici}
+
+Pentru evaluarea rezultatelor au fost urmărite următoarele metrici:
+\begin{itemize}
+    \item \textit{Total P\&L}: profitul sau pierderea netă în USD și procentual față de capitalul inițial;
+    \item \textit{max equity drawdown}: scăderea maximă a capitalului față de un maxim anterior;
+    \item \textit{profit factor}: raportul dintre profitul brut și pierderea brută;
+    \item \textit{procentul tranzacțiilor profitabile}: ponderea tranzacțiilor cu P\&L pozitiv;
+    \item \textit{Sharpe} și \textit{Sortino}: indicatori de performanță ajustată la risc;
+    \item comparația cu strategia buy-and-hold pe aceeași pereche.
+\end{itemize}
+
+\section{Rezultate obținute}
+\label{cap:cap4:rezultate}
+
+Tabelul \ref{tabel:rezultate_backtest} sintetizează rezultatele generate de rapoartele \texttt{summary.txt} din directorul \texttt{output}.
+
+\begin{table}[H]
+    \centering
+    \caption{Rezultate backtesting pe timeframe zilnic, 2018--2024}
+    \label{tabel:rezultate_backtest}
+    \begin{tabular}{|l|r|r|r|r|r|}
+        \hline
+        \textbf{Pereche} & \textbf{P\&L} & \textbf{Drawdown} & \textbf{Tranzacții} & \textbf{Win rate} & \textbf{Profit factor} \\
+        \hline
+        EURUSD & +389,81 USD & 3,81\% & 21 & 52,38\% & 1,522 \\
+        GBPUSD & -325,11 USD & 5,16\% & 17 & 58,82\% & 0,533 \\
+        USDJPY & +3.106,55 USD & 3,19\% & 36 & 69,44\% & 3,743 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Rezultatele arată diferențe importante între perechi. Pentru EURUSD, sistemul a obținut un profit moderat de 3,90\%, cu un drawdown de 3,81\% și profit factor peste 1. Strategia a depășit semnificativ buy-and-hold pe intervalul analizat, deoarece buy-and-hold a avut rezultat negativ.
+
+Pentru GBPUSD, deși rata tranzacțiilor profitabile a fost de 58,82\%, profit factor-ul a fost subunitar, iar rezultatul final a fost negativ. Această situație arată că numărul tranzacțiilor câștigătoare nu este suficient; raportul dintre câștigul mediu și pierderea medie este critic. În acest caz, pierderile medii au fost mai mari decât profiturile medii.
+
+Pentru USDJPY, sistemul a obținut cel mai bun rezultat: +31,07\%, profit factor 3,743 și drawdown maxim de 3,19\%. Strategia a depășit ușor buy-and-hold, ceea ce sugerează că mecanismele de intrare și ieșire au adăugat valoare într-un context direcțional favorabil.
+
+\section{Analiza riscului}
+\label{cap:cap4:analiza_risc}
+
+Componenta de risc a limitat pierderile individuale în jurul pragului de 1\% din capitalul disponibil, așa cum se observă în tranzacțiile închise prin \textit{ATR Exit}. În același timp, mecanismele de break-even și trailing stop au permis protejarea profiturilor atunci când prețul s-a deplasat favorabil. Această combinație este vizibilă mai ales în rezultatele USDJPY, unde mai multe tranzacții au fost închise prin trailing stop sau take-profit ATR.
+
+Drawdown-ul maxim a rămas sub 6\% în toate cele trei scenarii analizate. Acest rezultat indică faptul că dimensionarea pozițiilor și limitarea expunerii au funcționat conform obiectivelor. Totuși, rezultatul negativ pe GBPUSD arată că protecția riscului nu transformă automat o strategie nepotrivită într-una profitabilă; ea controlează pierderea, dar selecția semnalelor rămâne decisivă.
+
+\section{Testarea modului live}
+\label{cap:cap4:live}
+
+Modul live a fost proiectat pentru paper trading prin Interactive Brokers. Pentru utilizare, sunt necesari următorii pași:
+\begin{itemize}
+    \item pornirea TWS sau IB Gateway în cont paper;
+    \item activarea accesului API;
+    \item folosirea portului 7497 pentru TWS paper sau 4002 pentru Gateway paper;
+    \item rularea aplicației cu \texttt{--mode live}.
+\end{itemize}
+
+O comandă tipică este:
+
+\begin{code}
+\begin{minted}{bash}
+python main.py --mode live --pairs EURUSD,GBPUSD --timeframe 5m \
+  --ib-port 7497 --client-id 17
+\end{minted}
+\caption{Exemplu de rulare în mod live paper}
+\label{code:live_run}
+\end{code}
+
+Testarea live trebuie realizată exclusiv pe cont paper. Sistemul include protecții software, însă acestea nu elimină riscul operațional generat de configurări greșite, întreruperi de conexiune sau comportamente neprevăzute ale brokerului.
+
+\section{Limitări}
+\label{cap:cap4:limitari}
+
+Rezultatele experimentale sunt dependente de intervalul istoric, timeframe și parametrii configurați. Nu au fost incluse comisioane reale, spread variabil și latență de execuție complet realistă. De asemenea, backtesting-ul pe o singură perioadă nu este suficient pentru validare finală; sunt necesare teste out-of-sample, walk-forward și verificări suplimentare pe condiții de piață diferite.

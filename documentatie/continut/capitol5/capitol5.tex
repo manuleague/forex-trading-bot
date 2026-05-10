@@ -1,0 +1,40 @@
+\chapter{Concluzii}
+\label{cap:cap5}
+
+Lucrarea a prezentat dezvoltarea și documentarea unui sistem de tranzacționare algoritmică pentru piața Forex, cu accent pe evaluarea strategiilor prin backtesting și pe rularea controlată în regim paper trading. Obiectivul principal a fost realizarea unei soluții modulare, în care colectarea datelor, generarea semnalelor, agregarea deciziilor, managementul riscului și raportarea rezultatelor sunt separate clar.
+
+Sistemul implementat îndeplinește obiectivele stabilite în introducere. Aplicația poate rula backtest-uri deterministe pe date istorice, suportă mai multe perechi valutare și timeframe-uri, implementează strategii diferite pentru regimuri de piață diferite și generează rapoarte complete. Integrarea cu Interactive Brokers este limitată explicit la paper trading, ceea ce permite testarea operațională fără expunere financiară reală.
+
+Contribuția principală constă în combinarea mai multor strategii printr-un allocator explicabil și în aplicarea unui strat de risc independent de semnalul strategiei. Această separare este importantă deoarece o strategie poate produce un semnal corect din punct de vedere tehnic, dar tranzacția poate fi respinsă din cauza expunerii, volatilității sau drawdown-ului. În plus, artefactele generate după fiecare rulare permit auditarea deciziilor și analiza ulterioară a performanței.
+
+Rezultatele experimentale au arătat că performanța diferă semnificativ între perechi valutare. USDJPY a produs cel mai bun rezultat în intervalul analizat, în timp ce GBPUSD a avut rezultat negativ, deși rata tranzacțiilor câștigătoare a fost peste 50\%. Această observație confirmă că o strategie trebuie evaluată nu doar prin procentul de tranzacții profitabile, ci și prin raportul dintre câștiguri și pierderi, drawdown și performanța ajustată la risc.
+
+\section{Comparație cu soluții similare}
+\label{cap:cap5:comparatie}
+
+Comparativ cu platformele comerciale sau framework-urile complexe, soluția propusă este mai restrânsă ca funcționalitate, dar mai transparentă. Codul este organizat astfel încât fluxul decizional să poată fi urmărit ușor, iar rezultatele să fie exportate în formate simple. Această abordare este potrivită pentru scop educațional și pentru prototipare, unde înțelegerea mecanismelor este mai importantă decât numărul mare de funcții.
+
+Limitarea principală este că sistemul nu include încă validare statistică avansată, optimizare walk-forward, modelarea completă a costurilor de tranzacționare sau execuție live pe conturi reale. Aceste limitări sunt acceptabile pentru etapa curentă, deoarece proiectul urmărește evaluarea controlată și documentată a strategiilor.
+
+\section{Direcții viitoare de dezvoltare}
+\label{cap:cap5:directii-viitoare}
+
+Direcțiile viitoare includ:
+\begin{itemize}
+    \item adăugarea unor teste automate unitare și de integrare pentru componentele critice;
+    \item implementarea unei metodologii walk-forward pentru reducerea riscului de supraoptimizare;
+    \item includerea spread-ului variabil, a comisioanelor și a slippage-ului estimat din date reale;
+    \item extinderea dashboard-ului cu grafice interactive și comparații între rulări;
+    \item optimizarea parametrilor per pereche valutară, cu separare clară între date de antrenare și date de validare;
+    \item adăugarea unor strategii suplimentare sau a unor modele statistice mai avansate;
+    \item monitorizarea live prin alerte, jurnale persistente și raportare periodică.
+\end{itemize}
+
+\section{Lecții învățate}
+\label{cap:cap5:lectii}
+
+Pe parcursul dezvoltării proiectului, o lecție importantă a fost că arhitectura modulară simplifică atât implementarea, cât și documentarea. Separarea strategiilor de componenta de risc permite testarea independentă a ideilor de tranzacționare și reduce șansa ca logica de execuție să devină greu de urmărit.
+
+O altă lecție este că rezultatele financiare trebuie interpretate cu prudență. Un backtest profitabil nu reprezintă o garanție pentru viitor, iar o strategie poate performa bine pe o pereche și slab pe alta. Din acest motiv, raportarea detaliată și reproducerea experimentelor sunt la fel de importante ca profitul net obținut într-o rulare.
+
+În concluzie, proiectul oferă o bază funcțională pentru studierea tranzacționării algoritmice Forex și pentru extinderea ulterioară către metode mai robuste de evaluare, monitorizare și control al riscului.

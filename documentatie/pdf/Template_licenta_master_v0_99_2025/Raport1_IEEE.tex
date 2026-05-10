@@ -1,0 +1,146 @@
+\documentclass[conference, 10pt]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[romanian]{babel}
+\selectlanguage{romanian}
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+\usepackage[unicode, hidelinks, colorlinks, linkcolor=black, urlcolor=blue, citecolor=black]{hyperref}
+
+\usepackage{flushend}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+%% date caracteristice universitatii/facultatii.
+\input{macros/constante}
+%% datele specifice: nume, prenume student; titlu lucrare; nume, prenume, grad didactic coordonator
+%% PENTRU MODIFICARE SE EDITEAZA FISIERUL macros/student.tex
+\input{macros/student}
+
+%% suplimentar fata de lista de pachete incluse, pot fi adaugate si altele, in functie de specificul tezei de licenta
+
+\begin{document}
+
+% poate fi eventual interschimbat: Raport nr. 1 \\ \thesistitle
+\title{\thesistitle \\
+    {\Large \textbf{Raport nr. 1}}
+}
+
+\author{
+    \IEEEauthorblockN{\authornamefl}
+    \IEEEauthorblockA{
+        \faculty \\
+        \university \\ 
+        \studyfieldlbl \studyfield \\ 
+        \studyproglbl \studyprog \\
+        \url{email@student.tuiasi.ro}
+    }
+    \and
+    \IEEEauthorblockN{Coordonator: \coordinator}
+    \IEEEauthorblockA{
+        \faculty \\
+        \university \\ 
+        \url{email@academic.tuiasi.ro}
+    }
+}
+
+\maketitle
+
+\begin{abstract}
+    Rezumatul poate să includă o descriere sumară a domeniului în care se încadrează teza. Recomandarea ar fi să încercați să acoperiți capitolul \textit{Introducere} și, respectiv, \textit{Capitolul 1} al tezei finale.
+\end{abstract}
+
+Primul raport trebuie să aibă maxim 6 pagini și să conțină:
+
+\section{Introducere}
+\begin{itemize}
+    \item Contextul general.
+    \item Motivarea alegerii temei și relevanța în domeniu.
+\end{itemize}
+
+\section{Stadiul Actual}
+\begin{itemize}
+    \item Analiza situației curente din domeniu:
+    \begin{itemize}
+        \item Rezumat al literaturii de specialitate relevante.
+        \item Soluții existente (sisteme, metode, tehnologii) și limitările acestora.
+    \end{itemize}
+    \item Identificarea golurilor de cercetare: Ce lipsește în soluțiile actuale sau ce ar putea fi îmbunătățit.
+    \item Context local versus internațional (dacă este aplicabil).
+\end{itemize}
+
+\section{Obiective (Se preiau din raportul îndrumătorului)}
+\begin{itemize}
+    \item Scopul general al proiectului.
+    \item Obiective specifice: Ce anume își propune proiectul să adreseze în contextul descris la \textit{Stadiul Actual}.
+\end{itemize}
+
+\section{Metodologie}
+\begin{itemize}
+    \item Resurse utilizate: Hardware și software, medii de dezvoltare.
+    \item Metode și algoritmi: Descriere succintă și justificare pentru alegerea lor.
+\end{itemize}
+
+\section{Activități Desfășurate până în prezent}
+\begin{itemize}
+    \item Activitățile realizate până la momentul redactării raportului:
+    \begin{itemize}
+        \item Documentare, analize și experimentări.
+        \item Progrese sau prototipuri (dacă există).
+    \end{itemize}
+    \item Probleme întâmpinate și cum au fost abordate.
+\end{itemize}
+
+\section{Rezultate corelate cu obiectivele semestrului I}
+\begin{itemize}
+    \item Corelarea rezultatelor obținute/preconizate cu obiectivele stabilite de îndrumător.
+    \item Ce se preconizează să fie obținut în etapa următoare:
+    \begin{itemize}
+        \item Contribuția proiectului în domeniu.
+        \item Rezultate tangibile (ex. prototipuri, analize).
+    \end{itemize}
+\end{itemize}
+
+\section{Concluzii Preliminare}
+\begin{itemize}
+    \item Sinteza progresului actual.
+    \item Pași următori pentru îndeplinirea obiectivelor proiectului.
+\end{itemize}
+
+\section{Bibliografie}
+\begin{itemize}
+    \item Lista de referințe utilizate pentru stadiul actual și alte secțiuni. Referințe vor fi introduse în \texttt{bibliografie/bibliografie.bib} și referite prin comanda \texttt{\\cite\{label\}} \cite{misc:web:rfc7231}. Referințele care includ în câmpul \texttt{note} comanda \texttt{\\doi\{\}} vor fi trecute în dublu exemplar:
+    \begin{enumerate}
+        \item o intrare simplă, fără \texttt{note} -- va fi utilizată în cadrul raportului și în cadrul articolului pentru SCSS;
+        \item o intrare cu \texttt{note} (modelul exemplificat în template) -- va fi utilizată în cadrul lucrării finale de licență.
+    \end{enumerate}
+\end{itemize}
+
+\section{Specificații finale}
+
+Acest raport trebuie să aibă maxim 6 pagini și să fie structurat folosind stilul IEEE, care include:
+\begin{itemize}
+    \item Două coloane pe pagină.
+    \item Formatare standard (font Times New Roman, dimensiune 10pt, spațiere standard IEEE).
+\end{itemize}
+Formatul IEEE este folosit la Sesiunea de Comunicări Științifice Studențești și la conferința ICSTCC.
+
+Template-uri în Word și LaTeX se găsesc la adresa:  
+\url{https://www.ieee.org/conferences/publishing/templates.html}
+
+Formularul de încărcare a documentului va fi transmis la începutul lunii ianuarie.  
+\textbf{Termenul de încărcare} este \textbf{\textit{\textcolor{red}{\textit{27 ianuarie 2025, ora 23:59}}}}.
+
+% *************** referinte bibliografice ***************
+\nopagebreak
+\bibliographystyle{IEEEtran}
+\bibliography{bibliografie/bibliografie}
+
+\end{document}

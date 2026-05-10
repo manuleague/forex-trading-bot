@@ -1,0 +1,69 @@
+\chapter{Fundamentarea teoretică și documentarea bibliografică}
+\label{cap:cap2}
+
+Tranzacționarea algoritmică reprezintă procesul prin care deciziile de cumpărare, vânzare sau menținere a unei poziții sunt generate automat pe baza unor reguli formale. În loc ca operatorul să interpreteze manual fiecare schimbare de preț, sistemul aplică aceeași logică asupra fiecărei bare de piață și produce decizii reproductibile. Literatura de specialitate subliniază importanța testării istorice și a controlului riscului, deoarece performanța unei strategii nu poate fi evaluată doar prin câteva exemple izolate \cite{book:chan:algo_trading}.
+
+\section{Piața Forex și datele OHLCV}
+\label{cap:cap2:forex}
+
+Forex este piața de schimb valutar, în care instrumentele sunt exprimate sub forma unor perechi, de exemplu EURUSD, GBPUSD sau USDJPY. Prima monedă este moneda de bază, iar a doua este moneda cotată. Prețul unei perechi arată câte unități din moneda cotată sunt necesare pentru o unitate din moneda de bază. Această structură impune atenție specială la calculul profitului și pierderii, mai ales când moneda cotată nu este USD.
+
+Datele utilizate de sistem sunt de tip OHLCV: preț de deschidere, maxim, minim, închidere și volum pentru un interval de timp. În proiect sunt suportate mai multe intervale, precum 1 minut, 5 minute, 1 oră, 4 ore, o zi și o săptămână. Pentru backtesting, ordinea cronologică a acestor bare este esențială. Dacă un algoritm ar folosi informații din viitor, rezultatele ar deveni nerealiste. Din acest motiv, componentele proiectului calculează indicatorii folosind doar date disponibile până la momentul curent.
+
+\section{Indicatori tehnici utilizați}
+\label{cap:cap2:indicatori}
+
+Strategiile implementate folosesc indicatori tehnici clasici, aleși pentru interpretabilitate și pentru compatibilitate cu date OHLCV.
+
+\textit{Media mobilă exponențială} (EMA) acordă o pondere mai mare observațiilor recente și este folosită pentru identificarea direcției trendului. În strategia de trend sunt comparate o EMA rapidă și o EMA lentă, iar semnalul este validat suplimentar prin MACD și ADX.
+
+\textit{Relative Strength Index} (RSI) măsoară presiunea relativă de cumpărare sau vânzare. În strategia de revenire la medie, valori foarte mici ale RSI pot indica supravânzare, iar valori foarte mari pot indica supracumpărare.
+
+\textit{Benzile Bollinger} definesc un canal statistic în jurul unei medii mobile. Apropierea prețului de banda inferioară sau superioară poate indica o abatere temporară față de nivelul mediu, utilă în regimuri de piață laterale.
+
+\textit{Canalele Donchian} folosesc maximele și minimele ultimelor bare pentru a detecta străpungeri. Într-un regim de volatilitate sau trend, depășirea canalului poate semnala continuarea mișcării.
+
+\textit{Average True Range} (ATR) estimează volatilitatea și este folosit atât pentru validarea semnalelor, cât și pentru dimensionarea stop-loss-ului și a poziției. Prin raportarea riscului la ATR, sistemul adaptează mărimea tranzacției la condițiile de piață.
+
+\textit{Average Directional Index} (ADX) este utilizat pentru estimarea forței trendului, iar exponentul Hurst este folosit ca indicator suplimentar pentru caracterul persistent sau oscilant al seriilor de preț.
+
+\section{Regimuri de piață}
+\label{cap:cap2:regimuri}
+
+Un sistem care aplică aceeași strategie în toate condițiile de piață poate avea performanțe instabile. Proiectul clasifică fiecare bară într-un regim de piață: \textit{trend\_up}, \textit{trend\_down}, \textit{range} sau \textit{volatility\_spike}. Clasificarea se bazează pe ADX, ATR, z-score-ul volatilității, Hurst și poziția prețului față de o medie mobilă.
+
+Această clasificare permite strategiilor să fie activate doar în condițiile pentru care au fost concepute. Strategia de trend este relevantă în regimuri \textit{trend\_up} și \textit{trend\_down}; revenirea la medie este relevantă mai ales în \textit{range}; iar breakout-ul are sens în trend sau în episoade de volatilitate ridicată.
+
+\section{Backtesting și riscul de supraoptimizare}
+\label{cap:cap2:backtesting}
+
+Backtesting-ul simulează aplicarea unei strategii pe date istorice. Acesta este indispensabil pentru evaluarea inițială, dar nu garantează rezultate viitoare. O problemă frecventă este supraoptimizarea, situație în care parametrii sunt ajustați excesiv pentru un set istoric, iar strategia nu mai generalizează pe date noi. Bailey et al. discută acest risc și arată că evaluarea unei strategii trebuie realizată cu prudență, ținând cont de numărul de încercări și de stabilitatea rezultatelor \cite{art:bailey:backtest}.
+
+Pentru proiectul curent, backtesting-ul este construit determinist: datele sunt încărcate din cache local, fiecare bară este procesată o singură dată, iar artefactele rezultate sunt salvate într-un director timestamped. Această abordare permite reluarea experimentelor și verificarea tranzacțiilor generate.
+
+\section{Managementul riscului}
+\label{cap:cap2:risc}
+
+Managementul riscului are un rol central în sistemele de tranzacționare. O strategie cu semnale corecte poate produce pierderi mari dacă mărimea pozițiilor este necontrolată. În proiect, fiecare intrare este verificată de o componentă de risc care ține cont de capital, volatilitate, expunere totală și drawdown.
+
+Regula implicită riscă 1\% din capital pentru o tranzacție, iar expunerea totală este limitată. Stop-loss-ul este calculat ca multiplu de ATR, iar take-profit-ul folosește, la rândul său, o distanță adaptată volatilității. Sistemul include și protecții de tip break-even și trailing stop. Dacă drawdown-ul depășește pragul configurat, componenta de risc dezactivează temporar tranzacționarea până când se îndeplinesc condițiile de recuperare.
+
+\section{Soluții similare și poziționarea proiectului}
+\label{cap:cap2:solutii}
+
+Există numeroase platforme comerciale și open-source pentru tranzacționare algoritmică, de la scripturi simple pentru MetaTrader până la framework-uri extinse pentru analiză multi-asset. Multe dintre acestea oferă conectare la brokeri, backtesting și optimizare, însă pot avea limitări privind transparența codului, flexibilitatea configurării sau costurile de utilizare.
+
+Soluția propusă se poziționează ca un proiect educațional și experimental, concentrat pe claritatea fluxului de decizie. Sistemul nu urmărește execuție de frecvență înaltă, ci evaluarea riguroasă a strategiilor pe perechi Forex și generarea de rapoarte ușor de interpretat. Integrarea live este limitată la paper trading, ceea ce o face potrivită pentru validare și învățare, nu pentru utilizare financiară fără supraveghere.
+
+\section{Cerințe derivate}
+\label{cap:cap2:cerinte}
+
+Din analiza domeniului rezultă următoarele cerințe pentru aplicație:
+\begin{itemize}
+    \item datele istorice trebuie să fie curate, ordonate cronologic și reutilizabile;
+    \item strategiile trebuie să fie independente și ușor de extins;
+    \item decizia finală trebuie să fie explicabilă prin scorurile strategiilor participante;
+    \item riscul trebuie aplicat înainte de deschiderea fiecărei poziții;
+    \item rezultatele trebuie salvate în formate care permit auditarea tranzacțiilor;
+    \item modul live trebuie să includă protecții împotriva rulării accidentale pe conturi reale.
+\end{itemize}

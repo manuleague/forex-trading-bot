@@ -1,0 +1,292 @@
+\silentchapter{Anexe}
+%% Nu se pot face referinte pe silentchapter => nu are sens sa pun label
+% \label{cap:anexe}
+
+Anexe prezintă doar elementele specifice proiectului!
+
+Anexele (dacă este cazul) constituie o secțiune separată a lucrării care nu se numerotează ca și capitol. Anexele se numerotează crescător cu numere arabe (ex.: Anexa 1, Anexa 2 etc.). Anexele vor conține scheme, diagrame, secvențe din codul sursă.
+
+\section{Componente Software}
+\label{anexa1:comp_soft}
+
+% \textit{Componente software:}
+\begin{itemize}
+    \item diagramele UML care referă numai la componentele dezvoltate de student și care datorită complexității pot fi listate pe o foaie de tip A3 sau A2.
+    \item cod sursă numai pentru componentele dezvoltate de către student.
+\end{itemize}
+
+%% inserati \newpage inaintea fiecarui \section cu anexa pentru ca fiecare anexa sa inceapa pe pagina noua
+\newpage
+\section{Componente Hardware}
+\label{anexa2:comp_hard}
+
+% \textit{Componente Hardware:}
+\begin{itemize}
+    \item schemele electrice finale realizate într-un CAD de profil; 
+    \item schemele cablajelor realizate pentru implementare, realizate într-un CAD de profil;
+    \item informații suplimentare despre implementarea și testarea aplicației (de ex. capturi de osciloscop);
+    \item schemele standard ce vor fi folosite pentru testare (pseudocod sau schemă logică);
+    \item extrase din foi de catalog. 
+\end{itemize}
+
+%% inserati \newpage inaintea fiecarui \section cu anexa pentru ca fiecare anexa sa inceapa pe pagina noua
+\newpage
+\section{Codul funcției xyz()}
+\label{anexa3:func_xyz}
+
+În Figura \ref{fig:AT} este prezentat unul dintre cele mai impunătoare vechicule ale Imperiului.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{anexe/figuri/AT.png}
+    \caption{AT\protect\footnotemark}
+    \label{fig:AT}
+\end{figure}
+\footnotetext{imagine preluată de pe un site web care nu „merită” trecut la bibliografie \url{https://www.pngitem.com/}}
+
+\textcolor{gray}{\lipsum} (Figura \ref{fig:millennium_falcon})
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{anexe/figuri/millennium_falcon.jpeg}
+    \caption{Millennium Falcon\protect\footnotemark}
+    \label{fig:millennium_falcon}
+\end{figure}
+\footnotetext{imagine preluată de pe un site web care nu „merită” trecut la bibliografie \url{http://clipart-library.com/}}
+
+%% inserati \newpage inaintea fiecarui \section cu anexa pentru ca fiecare anexa sa inceapa pe pagina noua
+\newpage
+\section{Tabel lung pe mai multe pagini}
+\label{anexa4:long_table}
+
+Malware (software rău intenționat) este un termen folosit pentru a descrie orice program sau cod care ocolește procesele de control al accesului, este creat cu intenția de a ataca un sistem de calcul sau rețea, pentru a provoca daune sau a compromite acel sistem. În categoria malware se includ: viruși, \textit{ransomware}, \textit{keyloggers}, troieni, viermi, \textit{spyware} etc (Tabelul \ref{tab_tipuri_de_malware}). În vocabularul curent, termenul de "virus" este folosit abuziv pentru orice tip de malware.
+
+\begin{longtable}[c]{|l|p{7cm}|p{2cm}|}
+	\caption{Tipuri de malware\label{tab_tipuri_de_malware}}\\
+	
+	\hline
+	\multicolumn{1}{|c|}{\textbf{\textit{Tip}}} & 
+	\multicolumn{1}{c}{\textbf{\textit{Descriere}}} & 
+	\multicolumn{1}{|c|}{\textbf{\textit{Exemple elocvente}}}  \\
+	\hline
+	\endfirsthead
+	
+	% \multicolumn{3}{c}{Continuarea tabelului \ref{tab_tipuri_de_malware}}\\
+	\hline
+	\multicolumn{1}{|c|}{\textbf{\textit{Tip}}} & 
+	\multicolumn{1}{c}{\textbf{\textit{Descriere}}} & 
+	\multicolumn{1}{|c|}{\textbf{\textit{Exemple elocvente}}}  \\
+	\hline
+	\endhead
+	
+	\hline
+	\endfoot
+	
+	\hline
+	\endlastfoot
+	
+	\multirow{8}*{Virus} &
+	cod executabil malițios, atașat la fișiere sau programe legitime. Majoritatea virușilor necesită declanșarea de către utilizatorul final. Se răspândește prin intermediul unităților USB, discurilor optice, partajărilor în rețea sau e-mail-ului &
+	%\multirow{6}*{Brain, Michelangelo, Melissa} \\  
+	Brain, \newline Michelangelo, \newline Melissa \\
+	\hline
+
+	\multirow{5}{*}{Ransomware} & 
+	conceput pentru a ține captiv un sistem informatic, de obicei prin criptarea datelor esențiale, dezactivează accesul victimei la date până la efectuarea unei plăți către atacator & 
+	%\multirow{5}{*}{WannaCry, Petya} \\ 
+	WannaCry, \newline Petya \\	
+	\hline
+	
+	\multirow{2}{*}{Fileless Malware} & 
+	face modificări la fișierele native ale sistemului de operare & 
+	\multirow{2}{*}{Astaroth} \\ 
+	\hline
+	
+	\multirow{4}{*}{Spyware} & 
+	proiectat pentru a urmări acțiunile utilizatorului și a colecta date despre activitatea victimei, fără cunoștința acesteia & 
+	\multirow{4}{*}{DarkHotel} \\ 
+	\hline
+	
+	\multirow{3}{*}{Adware} & 
+	livrează anunțuri în mod automat. Unele sunt însoțite de programe \textit{spyware} & 
+	\multirow{3}{*}{Fireball} \\ 
+	\hline
+	
+	\multirow{5}{*}{Troian} & 
+	execută operațiuni rău intenționate disimulate ca operațiuni dorite. Se deghizează în codul unui program cunoscut și se atașează de fișiere non-executabile & 
+	\multirow{5}{*}{Emotet} \\ 
+	\hline
+	
+	\multirow{7}{*}{Worms} & 
+	se reproduce singur, se răspândește într-o rețea prin replicare, prin exploatarea vulnerabilităților din rețele. Au tipare similare, inclusiv o vulnerabilitate activă, o modalitate de a se propaga singuri și conțin un \textit{payload} & 
+	\multirow{7}{*}{Stuxnet} \\ 
+	\hline
+	
+	\multirow{9}{*}{Rootkit} & 
+	conceput pentru a modifica sistemul de operare, astfel încât computerul să poată fi accesat de la distanță, printr-o portiță de acces. Rootkit-urile modifică privilegiile de acces, fișierele de sistem și instrumentele de monitorizare a sistemului, ceea ce le face foarte greu de detectat și eliminat & \multirow{9}{*}{Zacinlo} \\ 
+	\hline
+	
+	\multirow{2}{*}{Keyloggers} & 
+	monitorizează apăsările de taste ale victimei & 
+	\multirow{2}{*}{Olympic Vision} \\ 
+	\hline
+	
+	\multirow{3}{*}{Bots} & 
+	lansează automat atacuri concertate si concentrate asupra sistemului țintă & 
+	\multirow{3}{*}{Echobot} \\ 
+	\hline
+	
+	\multirow{2}{*}{Mobile Malware} & 
+	conțin cod specific (Android, iOS) infectării dispozitivele mobile & 
+	\multirow{2}{*}{Triada} \\ 
+	\hline	
+\end{longtable}
+
+%% inserati \newpage inaintea fiecarui \section cu anexa pentru ca fiecare anexa sa inceapa pe pagina noua
+\newpage
+\section{Tabel simplu}
+\label{anexa5:simple_table}
+
+Pentru a ușura lecturarea lucrării de diplomă recomandăm ca tabelele (dacă nu sunt prea mari) să nu fie împărțite (sparte) pe mai multe pagini.
+
+\begin{table}[ht]
+    \centering
+    \caption{Rezultatele simulării}
+    \begin{tabular}{|c|c|c|} 
+        \hline
+        \textbf{\textit{Tipul semnalului}} & \textbf{\textit{Durata}} & \textbf{\textit{Randamentul}} \\
+        \hline
+        sinusoidal & 10s & 99\% \\ 
+        \hline
+        dreptunghiular & 12s & 81\% \\
+        \hline
+        triunghiular & 15s & 89\% \\
+        \hline
+    \end{tabular}
+    \label{tabel:2}
+\end{table}
+
+În Tabelul \ref{tabel:2} este prezentat un exemplu de formatare pentru un tabel cu cap de tabel orizontal.
+
+%% inserati \newpage inaintea fiecarui \section cu anexa pentru ca fiecare anexa sa inceapa pe pagina noua
+\newpage
+\section{Cod în python}
+\label{anexa6:listing_python}
+
+\begin{code}
+    \begin{minted}{python}
+        import numpy as np
+            
+        def incmatrix(genl1,genl2):
+            m = len(genl1)
+            n = len(genl2)
+            M = None #to become the incidence matrix
+            VT = np.zeros((n*m,1), int)  #dummy variable
+            
+            #compute the bitwise xor matrix
+            M1 = bitxormatrix(genl1)
+            M2 = np.triu(bitxormatrix(genl2),1)
+        
+            for i in range(m-1):
+                for j in range(i+1, m):
+                    [r,c] = np.where(M2 == M1[i,j])
+                    for k in range(len(r)):
+                        VT[(i)*n + r[k]] = 1;
+                        VT[(i)*n + c[k]] = 1;
+                        VT[(j)*n + r[k]] = 1;
+                        VT[(j)*n + c[k]] = 1;
+                        
+                        if M is None:
+                            M = np.copy(VT)
+                        else:
+                            M = np.concatenate((M, VT), 1)
+                        
+                        VT = np.zeros((n*m,1), int)
+            
+            return M
+    \end{minted} 
+    \caption{Codul funcției \textit{incmatrix}} 
+    \label{code:python_incmatrix}
+\end{code}
+
+%% inserati \newpage inaintea fiecarui \section cu anexa pentru ca fiecare anexa sa inceapa pe pagina noua
+\newpage
+\section{Cod în Kotlin (mai lung de o pagină)}
+\label{anexa7:listing_kotlin}
+
+\begin{code}
+    \begin{minted}{kotlin}
+internal inner class ScheduleAdapter : 
+        RecyclerView.Adapter<CalendarSessionViewHolder>(),
+        StickyHeaderHandler {
+        
+    private var schedule: MutableList<ScheduleItem> = mutableListOf()
+    var data: List<SessionDataGroup> = emptyList()
+        set(value) {
+            updateSchedule(value)
+            field = value
+        }
+
+    override fun onCreateViewHolder(
+            parent: ViewGroup, 
+            viewType: Int): CalendarSessionViewHolder {
+        val view = when (viewType) {
+            ScheduleItem.TYPE_SMALL ->
+                    R.layout.item_schedule_session_header_small
+            ScheduleItem.TYPE_LARGE -> 
+                    R.layout.item_schedule_session_header_large
+            else -> R.layout.item_schedule_session_card
+        }
+
+        val holder = layoutInflater.inflate(view, parent, false)
+        return CalendarSessionViewHolder(holder, _favoriteNeedSync)
+    }
+    override fun getItemCount(): Int = schedule.size
+
+    override fun onBindViewHolder(
+        holder: CalendarSessionViewHolder, position: Int) {
+        holder.show(schedule[position])
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return schedule[position].type
+    }
+    private fun updateSchedule(groups: List<SessionDataGroup>) {
+        val result = mutableListOf<ScheduleItem>()
+        for (group in groups) {
+            if (group.type == 0) {
+                result += ScheduleItem.SmallHeader(
+                    group.title, R.color.dark_grey_40
+                )
+                continue
+            }
+            if (group.type == 1) {
+                result += ScheduleItem.LargeHeader(group)
+                continue
+            }
+
+            result += ScheduleItem.LargeHeader(group)
+            result += group.sessions.map { ScheduleItem.Card(it) }
+        }
+
+        schedule = result
+    }
+    override fun getAdapterData(): MutableList<*> = schedule
+}
+    \end{minted}
+    \caption{clasa \textit{ScheduleAdapter}} 
+    \label{code:kotlin_scheduleAdapter}
+\end{code}
+
+%% inserati \newpage inaintea fiecarui \section cu anexa pentru ca fiecare anexa sa inceapa pe pagina noua
+\newpage
+\section{Cod în XML (preluat din fisier)}
+\label{anexa8:listing_xml}
+
+\begin{code}
+    \inputminted{xml}{anexe/coduri_sursa/pom.xml}
+    \caption{Exemplu de cod XML preluat din fișier extern}
+    \label{code:xml_pom}
+\end{code}
+
+

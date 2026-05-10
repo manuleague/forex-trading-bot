@@ -1,0 +1,146 @@
+%% Text preluat de la George Vieriu https://ac.tuiasi.ro/studenti/didactic/finalizare-studii/finalizare-studii-calculatoare/finalizare-studii-calculatoare-ghidul-studentului/
+% Lucrarea de diplomă va formata notele și trimiterile bibliografice conform stilului IEEE care spre deosebire de stilul Harvard (ISO 690:2010 denumit și sistemul "autor–data") utilizează pentru trimiteri metoda numerică. Referințele numerice sunt mai concise – nu întrerup lecturarea textului – și pot fi numerotate automat în funcție de poziția acestora în lista intrărilor bibliografice. 
+% Elementele principale ale unei referințe bibliografice sunt: numele autorului(lor), titlul lucrării, subtitlul lucrării, caracterizarea cantitativă (numerotare, paginație, volum, format, tipul și extinderea resursei etc.) și datele referitoare la publicare (locul publicării, editorul, data publicării).
+% Numele autorului(lor) reprezintă numele persoanei sau a grupului de persoane sau a colectivului responsabil de conținutul intelectual sau artistic al publicației. Acesta poate fi autorul propriu‑zis al documentului, compozitorul (în cazul operelor muzicale), programatorul (în cazul aplicațiilor software), inventatorul (în cazul brevetelor de invenție), editorul (pentru contribuții realizate de diverși autori, în cazul în care numele editorului este evidențiat pe sursa de informare) etc.
+%5 În referința bibliografică autorii sunt indicați în ordinea în care sunt specificați în sursa de informare. Conform stilului IEEE numele autorului va conține: Prenume (inițiala sau inițialele acestuia) urmat de Numele autorului. Dacă sunt mai mulți autori numele acestora se despart prin virgulă.
+% În cazul unei lucrări cu mai mult de 4 autori, se vor menționa numele primilor trei sau patru autori, urmate de ș.a. – și alții, et al. – et alii.
+% Titlul, conform definiției din DEX1 reprezintă un "cuvânt sau text pus în fruntea unei lucrări sau a unei părți distincte a ei, indicând rezumativ sau sugestiv cuprinsul acesteia.” Astfel titlul reprezintă numele acordat de autor operei sale sau unei părți a acesteia, care indică tema tratată.
+%% Pentru anumite tipuri de documente (enciclopedii, dicționare, rapoarte tehnice, standarde etc.), pentru documente elaborate de mai multe persoane, dintre care niciuna cu rol dominant (filme, materialele conferințelor, publicații periodice etc.), precum și în cazul în care autorii nu sunt specificați, referința bibliografică începe cu titlul lucrării.
+% Conform stilului IEEE, titlul lucrărilor se va scrie între ghilimele („ ”) cu litere înclinate (italic) și va avea doar primul cuvânt scris cu literă mare cu excepția numelor proprii, acronimelor sau simbolurilor. 
+% Titlul și subtitlul se scriu unul după altul, despărțite prin două puncte (de exemplu: Semnele ortografice și de punctuație în limba română: Norme și exerciții).
+% Ediția lucrării reprezintă versiunea unei lucrări a autorului apărute sub același nume. Mențiunea de ediției în referința bibliografică va conține cuvântul „ediția” (prescurtat – „ed.”), un număr (în cifre arabe) care determină ediția și precizări referitoare la ediție. Prima ediție a sursei, de regulă, nu se menționează. Pentru desemnarea ediției, în documentele electronice pot fi utilizate cuvintele „versiune” (prescurtat – „ver.”), „revizia” (prescurtat – „rev.”) etc. Exemplu:	3rd ed. sau Ed. a 2-a, rev.
+%% Despre Datele referitoare la publicare si Caracterizarea cantitativă, puteti citi in continuare modelul propus de George Vieriu, disponibil la adresa de mai sus.
+
+% Un set complet, actualizat, de exemple pentru stilul bibliografic IEEE se regaseste la adresa urmatoare: 
+%% http://tug.ctan.org/biblio/bibtex/contrib/IEEEtran/IEEEexample.bib
+
+% Pentru articolele publicate in jurnale/conferinte, va recomandam sa utilizati functia de "Export citation" de pe pagina acelui jurnal/conferinte 
+
+% Cateva exemple pentru categoriile uzuale folosite intr-o lucrare de finalizare de studii:
+
+%% articol in jurnal
+@article{art:mironeanu:ECAD:2021,
+    author  = "Cătălin Mironeanu and Alexandru Archip and Cristian-Mihai Amarandei and Mitică Craus",
+    title   = "Experimental Cyber Attack Detection Framework",
+    journal = "Electronics",
+    volume  = "10",
+    year    = "2021",
+    number  = "14",
+    article-number = "1682",
+    issn    = "2079-9292",
+    doi     = "10.3390/electronics10141682",
+    note    = "\doi{10.3390/electronics10141682}",
+}
+% url     = {https://www.mdpi.com/2079-9292/10/14/1682},
+% https://doi.org/10.3390/electronics10141682
+
+%% articol in proceedings
+@inproceedings{inproc:archip:restful:2018,  
+	author		= "Alexandru Archip and Cristian-Mihai Amarandei and Paul Herghelegiu and Catalin Mironeanu and Elena Serban",  
+	booktitle	= "Proceedings of the 22\textsuperscript{nd} International Conference on System Theory, Control and Computing (ICSTCC)",   
+	title		= "{RESTful Web Services - A Question of Standards}",
+	year		= "2018",  
+	volume		= "",  
+	number		= "",  
+	pages		= "677--682",
+	doi         = "10.1109/ICSTCC.2018.8540763",
+    note        = "\doi{10.1109/ICSTCC.2018.8540763}",
+}
+
+@inproceedings{inproc:archip:restful:2018:nodoi,  
+	author		= "Alexandru Archip and Cristian-Mihai Amarandei and Paul Herghelegiu and Catalin Mironeanu and Elena Serban",  
+	booktitle	= "Proceedings of the 22\textsuperscript{nd} International Conference on System Theory, Control and Computing (ICSTCC)",   
+	title		= "{RESTful Web Services - A Question of Standards}",
+	year		= "2018",  
+	volume		= "",  
+	number		= "",  
+	pages		= "677--682",
+	doi         = "10.1109/ICSTCC.2018.8540763",
+}
+
+%% carte 
+% modul de citare IEEEtrans nu afiseaza in mod implicit ISBN. Din acest motiv, trebuie pus in note{" asa cum este in exemplele de mai jos
+@book{book:marinescu:2018,
+   author    = "Dan C. Marinescu",
+   title     = "Cloud Computing: Theory and Practice",
+   publisher = "Morgan Kaufmann Publishers",
+   isbn      = "0128128100, 9780128128107",
+   year      = "2018",
+   series    = "",
+   edition   = "2\textsuperscript{nd}",
+   volume    = "",
+   doi       = "10.1016/C2016-0-02364-1",
+   note      = "{ISBN}: 978-0-12-812810-7, \doi{10.1016/C2016-0-02364-1}",
+}
+
+@book{book:operating_systems:2014,
+    author  = "Anderson, Thomas and Dahlin, Michael",
+    title   = "Operating Systems: Principles and Practice",
+    year    = "2014",
+    isbn    = "0985673524",
+    publisher = "Recursive books",
+    edition = "2\textsuperscript{nd}",
+    doi     = "10.5555/2692413",
+    note    = "{ISBN}: 978-0-9856735-2-9, \doiacm{10.5555/2692413}",
+}
+
+%% capitol de carte
+% modul de citare IEEEtrans nu afiseaza in mod implicit ISBN. Din acest motiv, trebuie pus in note{" asa cum este in exemplul de mai jos
+@incollection{incollection:ARASEC2020,
+	author 		= "Cătălin Mironeanu and Simona Caraiman",
+	title       = "{Growing the Cybersecurity Ecosystem: a Higher Education Perspective}",
+	booktitle 	= "{Securitatea cibernetica - provocări și perspective în educație}",
+	publisher 	= "Editura SITECH",
+	address 	= "Craiova, România",
+	year        = "2020",
+	chapter     = "",
+	pages 		= "175--182",
+	edition 	= "1\textsuperscript{st}",
+	editor 		= "Mihai Ioan-Cosmin and Ciuchi Costel and Gabriel Petrica",	
+	isbn 		= "9786061176755",
+	doi 		= "10.19107/CYBERSEC-EDU.2020.RO",
+	note        = "{ISBN}: 978-606-11-7675-5, \doi{10.19107/CYBERSEC-EDU.2020.RO}",
+}
+
+%% teza de doctorat
+@phdthesis{thesis:fielding:2000,
+	author 	= "Roy Thomas Fielding",
+	title 	= "{Architectural Styles and the Design of Network-based Software Architectures}",
+	school 	= "University of California, Irvine",
+	month   = "",
+	year 	= "2000",
+}
+
+%% techreport
+@techreport{IEEEexample:techreptypeii,
+  author        = "D. Middleton and A. D. Spaulding",
+  title         = "A Tutorial Review of Elements of Weak Signal Detection
+                   in Non-{G}aussian {EMI} Environments",
+  institution   = "National Telecommunications and Information
+                   Administration ({NTIA}), U.S. Dept. of Commerce",
+  type          = "NTIA Report",
+  number        = "86--194",
+  month         = may,
+  year          = "1986",
+}
+
+%% RFC
+@misc{misc:web:rfc7231,
+	author 	= "Roy T. Fielding and J. Reschke",
+	title 	= "{HyperText Transfer Protocol (HTTP/1.1): Semantics and Content}",
+    howpublished  = "RFC 7231",
+	year 	= "2014",
+	url 	= "https://tools.ietf.org/html/rfc7231",
+}
+
+%% surse electronice/surse web
+% se prefera ca aceste surse sa fie in numar limitat, incluse strict daca sunt relevante sau indica instrumente preluate si folosite ca atare sau adaptate (de exemplu: se pot cita corect, in acest mod, resursele github/gitlab si/sau tutoriale)
+% la surse electronice/surse web este recomandat sa fie trecuta ultima accesare deoarece anumite pagini pot fi mutate/arhivate/sterse de pe site-uri
+% A SE EVITA introducerea la bibliografie a referintelor de tip wikipedia!
+@misc{misc:web:schneier2021,
+    author  = "Bruce Schneier",
+    title   = "When {AI}s Start Hacking",
+    howpublished = "\url{https://www.schneier.com/blog/archives/2021/04/when-ais-start-hacking.html}",
+    year    = "2021",
+    note    = "{Ultima accesare}: 11.02.2022",
+}

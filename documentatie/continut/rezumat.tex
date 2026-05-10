@@ -1,0 +1,23 @@
+\newpage
+\begin{center}
+    \LARGE
+    \textbf{\thesistitle}
+    
+    \vspace{0.5cm}
+    
+    \authornamefl
+    
+    \vspace{1cm}
+    
+    \textbf{Rezumat}
+    
+    \vspace{1cm}
+\end{center}
+
+Lucrarea prezintă proiectarea și implementarea unui sistem software pentru tranzacționare algoritmică pe piața Forex, orientat către testarea reproductibilă a strategiilor și rularea controlată în regim de paper trading. Soluția dezvoltată, denumită \textit{Forex Quant Bot}, urmărește separarea clară dintre colectarea datelor, generarea semnalelor, evaluarea riscului, simularea tranzacțiilor și raportarea rezultatelor. Sistemul utilizează date istorice OHLCV descărcate prin Dukascopy și păstrate local în fișiere CSV, iar pentru modul live se integrează cu Interactive Brokers printr-o conexiune limitată la conturi paper.
+
+Contribuția principală constă în realizarea unui cadru modular care combină trei familii de strategii: urmărire de trend, revenire la medie și străpungere de canal. Semnalele individuale sunt agregate printr-un allocator care ia în calcul performanța recentă, încrederea strategiei, potrivirea cu regimul de piață și diversificarea semnalelor. Riscul este controlat prin dimensionarea pozițiilor în funcție de ATR, limitarea expunerii, stop-loss, take-profit, trailing stop și mecanism de oprire temporară la depășirea pragului de drawdown.
+
+Validarea s-a realizat prin backtesting pe perechi valutare majore, folosind indicatori precum profitul net, profit factor, rata tranzacțiilor profitabile, drawdown maxim, Sharpe și Sortino. Rezultatele arată că performanța depinde semnificativ de perechea valutară și de regimul de piață, confirmând utilitatea evaluării sistematice înaintea utilizării operaționale.
+
+\textbf{Cuvinte-cheie:} tranzacționare algoritmică, Forex, backtesting, managementul riscului, Interactive Brokers, Python, strategii financiare.

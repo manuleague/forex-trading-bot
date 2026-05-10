@@ -1,0 +1,159 @@
+\silentchapter{Anexe}
+
+\section{Comenzi de rulare utilizate}
+\label{anexa:comenzi}
+
+Această anexă prezintă comenzile principale folosite pentru instalarea și testarea aplicației.
+
+\begin{code}
+\begin{minted}{bash}
+pip install -r requirements.txt
+
+python main.py --mode backtest --pair EURUSD --start 2018-01-01 \
+  --end 2024-12-31 --timeframe D
+
+python main.py --mode backtest --pair GBPUSD --start 2018-01-01 \
+  --end 2024-12-31 --timeframe D
+
+python main.py --mode backtest --pair USDJPY --start 2018-01-01 \
+  --end 2024-12-31 --timeframe D
+\end{minted}
+\caption{Comenzi pentru instalare și backtesting}
+\label{code:anexa_backtest_commands}
+\end{code}
+
+Pentru modul live paper trading, aplicația se pornește după ce TWS sau IB Gateway rulează în cont paper și are activat accesul API:
+
+\begin{code}
+\begin{minted}{bash}
+python main.py --mode live --pairs EURUSD,GBPUSD --timeframe 5m \
+  --ib-port 7497 --client-id 17
+\end{minted}
+\caption{Comandă pentru rularea în mod live paper}
+\label{code:anexa_live_command}
+\end{code}
+
+\newpage
+\section{Structura artefactelor generate}
+\label{anexa:artefacte}
+
+Fiecare rulare creează un director separat în \texttt{output}. Numele directorului include modul de rulare, perechea valutară, timeframe-ul, perioada testată și timestamp-ul rulării.
+
+\begin{table}[H]
+    \centering
+    \caption{Fișiere generate de o rulare de backtesting}
+    \label{tabel:anexa_artefacte}
+    \begin{tabular}{|l|p{9cm}|}
+        \hline
+        \textbf{Fișier} & \textbf{Rol} \\
+        \hline
+        \texttt{trades.csv} & Tranzacțiile închise, cu prețuri de intrare/ieșire, P\&L, regim și motivul semnalului. \\
+        \hline
+        \texttt{transactions.csv} & Evenimentele individuale de intrare și ieșire pentru fiecare tranzacție. \\
+        \hline
+        \texttt{equity\_curve.csv} & Evoluția capitalului după fiecare bară procesată. \\
+        \hline
+        \texttt{returns.csv} & Tabel sumar pentru profit brut, pierdere brută, profit factor și comisioane. \\
+        \hline
+        \texttt{strategy\_metrics.csv} & Metrici asociate performanței strategiilor. \\
+        \hline
+        \texttt{regime\_metrics.csv} & Performanța grupată după regimul de piață al intrării. \\
+        \hline
+        \texttt{risk\_overlay\_metrics.csv} & Deciziile componentei de risc și motivele aprobării sau respingerii semnalelor. \\
+        \hline
+        \texttt{summary.txt} & Raport text cu indicatorii principali și lista tranzacțiilor. \\
+        \hline
+        \texttt{dashboard.html} & Dashboard HTML pentru inspectarea vizuală a performanței. \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\newpage
+\section{Parametri relevanți de configurare}
+\label{anexa:config}
+
+Aplicația folosește clase de configurare pentru strategii, risc, date, logare și broker. Parametrii principali ai componentei de risc sunt:
+
+\begin{table}[H]
+    \centering
+    \caption{Parametri de risc utilizați în proiect}
+    \label{tabel:anexa_risc}
+    \begin{tabular}{|l|l|p{6cm}|}
+        \hline
+        \textbf{Parametru} & \textbf{Valoare implicită} & \textbf{Descriere} \\
+        \hline
+        \texttt{initial\_capital} & 10.000 USD & Capitalul inițial al simulării. \\
+        \hline
+        \texttt{risk\_per\_trade} & 0,01 & Ponderea capitalului riscată per tranzacție. \\
+        \hline
+        \texttt{max\_total\_exposure} & 0,05 & Expunerea totală maximă permisă. \\
+        \hline
+        \texttt{drawdown\_circuit\_breaker} & 0,05 & Pragul de drawdown care oprește temporar tranzacționarea. \\
+        \hline
+        \texttt{atr\_stop\_multiplier} & 1,5 & Multiplicatorul ATR pentru stop-loss. \\
+        \hline
+        \texttt{take\_profit\_atr\_multiplier} & 5,0 & Multiplicatorul ATR pentru take-profit. \\
+        \hline
+        \texttt{max\_notional\_leverage} & 1,0 & Levierul noțional maxim permis. \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\newpage
+\section{Fragment reprezentativ de flux decizional}
+\label{anexa:flux}
+
+Fragmentul următor sintetizează logica folosită de motorul de backtesting. Codul complet se află în depozitul proiectului.
+
+\begin{code}
+\begin{minted}{python}
+for event in BarReplay(market_data, warmup_bars=warmup_bars):
+    bar = event.bar
+    close_price = float(bar["close"])
+
+    decisions = {
+        strategy.name: strategy.evaluate(event.history)
+        for strategy in strategies
+    }
+    composite = allocator.allocate(
+        decisions,
+        current_regime=str(bar["regime"]),
+        performance_tracker=tracker,
+    )
+
+    risk_decision = risk_overlay.evaluate_entry(
+        pair=pair,
+        open_positions=[],
+        bias=composite.bias,
+        equity=equity,
+        current_open_risk_ratio=open_risk_ratio,
+        close_price=close_price,
+        atr_value=float(bar["atr"]),
+        quote_to_usd_rate=quote_to_usd,
+    )
+\end{minted}
+\caption{Sinteză a fluxului de decizie din backtesting}
+\label{code:anexa_flux_decizie}
+\end{code}
+
+\newpage
+\section{Fragment reprezentativ pentru dimensionarea poziției}
+\label{anexa:position_size}
+
+Dimensionarea poziției se realizează pornind de la riscul acceptat și de la distanța stop-loss-ului exprimată prin ATR.
+
+\begin{code}
+\begin{minted}{python}
+target_risk_amount = equity * self.config.risk_per_trade
+stop_distance = atr_value * self.config.atr_stop_multiplier
+usd_risk_per_unit = stop_distance * quote_to_usd_rate
+
+size_by_risk = int(max(target_risk_amount / usd_risk_per_unit, 1))
+max_notional_usd = equity * self.config.max_notional_leverage
+size_by_notional = int(max(max_notional_usd / usd_notional_per_unit, 0))
+
+size_units = min(size_by_risk, size_by_notional)
+\end{minted}
+\caption{Dimensionarea poziției în funcție de risc și volatilitate}
+\label{code:anexa_position_size}
+\end{code}

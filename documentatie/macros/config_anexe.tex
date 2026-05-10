@@ -1,0 +1,20 @@
+%% refacem counter-ul de figuri/tabele/listing-uri, pentru a putea mentine
+%% numerotarea si referirea corecta a figurilor din anexe
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{A.\arabic{figure}}
+\setcounter{table}{0}
+\renewcommand{\thetable}{A.\arabic{table}}
+%% reset counter capitole, sectiuni pentru anexe
+\setcounter{chapter}{0}
+\setcounter{section}{0}
+\renewcommand{\thesection}{\arabic{section}}
+%% titlul anexei in pagina
+%% in cuprins va aparea doar numerotat
+\titleformat
+    {\section}
+    [hang]
+    {\color{albastru-ac}\bfseries\itshape}
+    {Anexa \thesection.\ }
+    {0pt}
+    {}
+    []

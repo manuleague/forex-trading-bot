@@ -1,0 +1,188 @@
+\chapter{Soluția propusă}
+\label{cap:cap3}
+
+(aproximativ 14 pagini)
+
+\section{Recomandări conținut}
+
+Prezentarea proiectării și implementării sistemului/aplicației în funcție de specificul acesteia. Ar trebui incluse doar elementele relevante proiectului dintre cele ce urmează.
+
+\begin{itemize}
+    \item Reiterarea problemei pe care o rezolvă soluția propusă și a strategiei de rezolvare.
+    \item Idei originale, soluții noi.
+    \item Cerințe ale utilizatorului (en., user requirements): așteptările utilizatorilor finali de la sistemul sau aplicația dezvoltată.
+    \item Arhitectura/Modelarea sistemului: descrierea componentelor principale și a interacțiunilor dintre acestea, e.g., prin scheme bloc.
+    \item Proiectarea propriu-zisă:
+    \begin{itemize}
+        \item diagrame ER pentru baze de date,
+        \item UML pentru proiectele care necesită diverse paradigme complexe și lucru cu clase – diagramele pot fi incluse și în anexe,
+        \item pseudocod pentru algoritmii creați,
+        \item scheme logice pentru cei care dezvoltă în limbaje structurate,
+        \item proiectare cablaj imprimat.
+    \end{itemize}
+    \item Descrierea succintă a elementelor (e.g., claselor) dezvoltate și implementate de absolvent.
+    \item Analiza platformei hardware pe care va fi executată respectiva aplicație și se analizează care abordare în implementare ar fi mai bună pentru respectiva structură.
+    \item Alegerea tehnologiilor și justificarea pe scurt a alegerii.
+    \item Identificarea avantajelor și a dezavantajelor metodei alese.
+    \item Descrierea implementării soluției.
+    \item Prezentarea unor capturi de ecran relevante sau a unor imagini cu soluția dezvoltată, e.g., capturi de ecran cu funcționalități importante din interfața cu utilizatorul, poze cu sistemul fizic dezvoltat.
+\end{itemize}
+
+\section{Exemple și alte elemente de ajutor}
+
+\begin{itemize}
+    \item se analizează platforma hardware pe care va fi executată respectiva aplicație și se analizează care abordare în implementare ar fi mai bună pentru respectiva structură
+    \item se stabilesc modulele generale ale aplicației și interacțiunile dintre ele;
+    \item se analizează avantaje și dezavantajele metodei alese;
+    \item se indică limitele în care metoda va funcționa. 
+\end{itemize}
+
+\textit{Componente software:}
+\begin{itemize}
+    \item proiectarea propriu zisă (diagrame ER pentru baze de date, UML pentru proiectele care necesită diverse paradigme complexe și lucru cu clase – orientat obiect, scheme logice pentru cei care dezvoltă în limbaje structurate etc);
+    \item se stabilește tehnologia aleasă pentru implementare și se justifică alegerea făcută;
+    \item se descriu succint numai clasele dezvoltate și implementate de absolvent cu trimitere la pagina din anexă unde se află codul complet;
+\end{itemize}
+
+Figurile mai complexe, care nu se văd bine în format A4/portrait, pot fi incluse în anexe și referite normal (vezi Figura \ref{fig:AT} din Anexa \ref{anexa3:func_xyz}).
+
+\vspace{1em}
+
+\textit{Componente hardware:}
+\begin{itemize}
+    \item stabilirea componentelor hardware necesare. Exemplu: etaje analogice, display-uri, dispozitive I/O, periferice USB, etc.;
+    \item analiza performanțelor și descrierea perifericelor procesorului/microcontrolerului folosit
+    \item realizarea schemei bloc care să reflecte interconectarea componentelor principale;
+    \item simularea funcționării componentelor hardware (OrCAD, Proteus, simulatoare HDL);
+    \item proiectarea cablajului imprimat (Altium Designer, Eagle).
+\end{itemize}
+
+\textcolor{gray}{\lipsum} (Figura \ref{fig:BB8})
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{continut/capitol3/figuri/BB8.png}
+    \caption{BB8\protect\footnotemark}
+    \label{fig:BB8}
+\end{figure}
+\footnotetext{imagine preluată de pe un site web care nu „merită” trecut la bibliografie \url{https://www.pngitem.com/}}
+
+\textcolor{gray}{\lipsum}
+
+Ecuația \eqref{eq:sample} este un exemplu foarte simplu de formulă matematică. Ecuațiile vor fi referite prin comanda \LaTeX\ \verb|\eqref{}| din pachetul \verb|amsmath|.
+
+\begin{equation}
+    \label{eq:multiline_sample}
+    \begin{split}
+        A & = \frac{\pi r^2}{2} \\
+         & = \frac{1}{2} \pi r^2
+    \end{split}
+\end{equation}
+
+\begin{equation}
+    \label{eq:sample}
+    e^{\pi i} + 1 = 0
+\end{equation}
+
+În ecuația \eqref{eq:multiline_sample} avem un prim exemplu multiline în care alinierea față de simbolul egal este specificată în codul de generare a ecuației.
+
+În cazul unui număr mare de ecuații poate fi de dorit folosirea de macrodefiniții pentru a standardiza și urmări mai ușor codul de generare al acestora, evitându-se variații de formă și alte greșeli de redactare.
+Un principal avantaj al utilizării macrodefinițiilor pentru notații este că eventualele modificări pot fi propagate rapid și uniform în întregul document.
+
+Ecuațiile, definițiile și teoremele se referă în textul lucrării de licență/disertație prefixate: ecuația \eqref{eq:sample}, definiția \ref{def:diploma} sau teorema \ref{thm:equal}, iar aici este o pură întâmplare că au același indice, fiind vorba despre prima ecuație, prima definiție și prima teoremă din Capitolul \ref{cap:cap3}.
+
+În continuare, definiția \ref{def:diploma} introduce conceptul de „Lucrare de diplomă”. Titlul efectiv este opțional și îl regăsiți în \LaTeX\ între [].
+
+\begin{definition}[Lucrare de diplomă]
+    \label{def:diploma}
+    Lucrarea de diplomă face dovada nivelului și calității pregătirii profesionale, teoretice și aplicative a absolventului, iar prin modul în care aceasta este prezentată (susținută public în fața unei comisii de examinare) ea evidențiază calitățile științifice și inginerești definitorii ale absolventului.
+\end{definition}
+
+Numerotarea teoremelor se va face similar ecuațiilor și definițiilor de mai sus. Vezi teorema \ref{thm:equal}.
+
+\begin{theorem}[Teorema egalității]
+    \label{thm:equal}
+    Dacă $a=b$, atunci $b=a$.
+\end{theorem}
+
+\begin{proof}
+Ne bazăm pe proprietatea de reflexivitate.
+\end{proof}
+
+\textcolor{gray}{\lipsum}
+
+În acest capitol ar trebui să se regăsească un algoritm (dacă este cazul) și el va fi referit ca Algoritmul \ref{alg:acceptance}.
+
+\begin{algorithm}[ht]
+    \caption{Pseudo code for reviewing process}\label{alg:acceptance}
+    \begin{algorithmic}[1]
+        \Procedure{Acceptance}{paper, committee}
+            \State $\textit{reviewers} \gets \text{randomly select } \{(i,j) \mid i,j \in  \{1, \cdots, \#\{\textit{committee}\}\}, i \neq j \}$
+            \State $\textit{reviews} \gets 2 \times 1 \text{ array of } \textit{False}$
+            \BState \emph{reviewing round}:
+            \For {$i \in \textit{reviewers }$}
+                \If {$paper \text{ reads well for } \textit{committee}(i) $}
+                    \State $\textit{review}(i) \gets \textit{True}$.
+                \Else \text{ do nothing}
+                \EndIf
+            \EndFor
+            \BState \emph{evaluation round}:
+            \If {$\textit{reviews}(i) \text{ is } \textit{False} \text{ for all } i \in \textit{reviewers}$}
+                \State \textbf{goto} \emph{hell}.
+            \ElsIf {$\textit{reviews}(i) \text{ is } \textit{True} \text{ for all } i \in \textit{reviewers}$}
+                \State \textbf{goto} \emph{Licența 2022}
+            \Else \textbf{ goto} \emph{revision round}
+            \EndIf
+            \BState \emph{revision round}:
+            \State $\textit{reviser} \gets \text{randomly select } \{i \mid i \in  \{1, \cdots, \#\{\textit{committee}\}\}, i \not\in \textit{reviewers} \}$
+            \If {$paper \text{ reads well for } \textit{committee(reviser)} $}
+                \State \textbf{ goto} \emph{Licența 2022}
+            \ElsIf{\textit{committee(reviser)} \text{ has no opinion and likes inifinite loop}}
+                \State \textbf{ goto} \emph{reviewing round}
+            \Else \textbf{ goto} \emph{hell}
+            \EndIf
+            \BState \emph{hell} 
+            \State \text{Try again in summer 2023!}
+            \BState \emph{Licența 2022 (some people also call it hell)}:
+            \State \text{See you at Beer Zone!}
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+În acest capitol se descrie și implementarea practică a proiectului. În mod uzual, puteți insera cod de dimensiuni mici, care este relevant și care se impune a fi comentat în detaliu. Astfel, Listing-ul \ref{code:c_mpi} prezintă un supergreu pas de inițializare a unui program MPI pentru a obține cinstit punctul din oficiu, în care se poate face referire la linia \ref{line:if} pentru a descrie ce face \verb|if|-u' di acolo.
+
+\begin{code}
+    \begin{minted}{c}
+        #include <stdio.h>
+        #include "mpi.h"
+        
+        int main( int argc, char **argv ) {
+        	char message[20];
+        	int myrank;	
+        		
+        	MPI_Status status;
+        
+        	MPI_Init( &argc, &argv );
+        	MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
+        	
+        	if (myrank == 0) { /* codul pentru procesul 0 */|\label{line:if}|
+        		strcpy(message,"Hello");
+        		MPI_Send(message, strlen(message), MPI_CHAR, 
+        			1, 99, MPI_COMM_WORLD);
+        	} else { /* codul pentru procesul 1 */
+        		MPI_Recv(message, 20, MPI_CHAR, 
+        			0, 99, MPI_COMM_WORLD, &status);
+        		printf("received :%s:\n", message);
+        	}
+        	
+        	MPI_Finalize();
+        	return 0;
+        }
+    \end{minted}
+    \caption{Supercod MPI în C} 
+    \label{code:c_mpi}
+\end{code}
+
+Codul complet relevant se va include în anexe (vezi Anexele \ref{anexa6:listing_python}, \ref{anexa7:listing_kotlin} și \ref{anexa8:listing_xml}). De exemplu, Listing-ul \ref{code:xml_pom} (Anexa \ref{anexa8:listing_xml}) prezintă fișierul de configurare \textit{maven} pentru un serviciu SOAP minimal.
+
+\textcolor{gray}{\lipsum}

@@ -1,0 +1,141 @@
+\chapter{Soluția propusă}
+\label{cap:cap3}
+
+Soluția propusă este o aplicație Python modulară pentru tranzacționare algoritmică Forex. Proiectul are două moduri principale de funcționare: \textit{backtest}, pentru simularea strategiilor pe date istorice, și \textit{live}, pentru paper trading prin Interactive Brokers. În ambele moduri, deciziile sunt generate prin același nucleu logic: datele sunt pregătite, este detectat regimul de piață, strategiile produc semnale, allocatorul agregă semnalele, iar componenta de risc decide dacă o poziție poate fi deschisă.
+
+\section{Cerințe funcționale și nefuncționale}
+\label{cap:cap3:cerinte}
+
+Aplicația trebuie să permită rularea unui backtest pentru o pereche valutară, un interval de timp, o dată de început și o dată de final. Utilizatorul poate configura capitalul inițial, riscul pe tranzacție, slippage-ul, directorul de cache și directorul de ieșire. Sistemul trebuie să descarce sau să reutilizeze date istorice, să genereze tranzacții simulate și să salveze rezultatele.
+
+Pentru modul live, aplicația trebuie să se conecteze la TWS sau IB Gateway în regim paper trading, să monitorizeze perechile selectate și să trimită ordine de piață doar dacă toate filtrele sunt îndeplinite. O cerință importantă este prevenirea utilizării accidentale a unui cont real; de aceea configurația implicită acceptă doar porturile paper 7497 și 4002.
+
+Cerințele nefuncționale urmăresc reproductibilitatea, modularitatea și trasabilitatea. Backtest-ul trebuie să poată fi reluat cu aceiași parametri, iar rezultatele trebuie să includă fișiere separate pentru tranzacții, curba capitalului, metrici de risc, metrici de strategie și sumar text.
+
+\section{Arhitectura sistemului}
+\label{cap:cap3:arhitectura}
+
+Figura \ref{fig:arhitectura_sistem} prezintă arhitectura generală a sistemului. Aplicația este organizată în module cu responsabilități clare: interfață CLI, configurare, date, strategii, nucleu decizional, backtesting, live trading și raportare.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{coperti/arhitectura_sistem.png}
+    \caption{Arhitectura sistemului de tranzacționare algoritmică}
+    \label{fig:arhitectura_sistem}
+\end{figure}
+
+Structura principală a proiectului este:
+\begin{itemize}
+    \item \texttt{forex\_quant\_bot/backtest}: motorul de simulare și calculul rapoartelor;
+    \item \texttt{forex\_quant\_bot/core}: detector de regim, allocator, componentă de risc și tracker de performanță;
+    \item \texttt{forex\_quant\_bot/data}: descărcare, cache și replay cronologic al datelor;
+    \item \texttt{forex\_quant\_bot/live}: integrarea cu Interactive Brokers și orchestrarea modului live;
+    \item \texttt{forex\_quant\_bot/logs}: persistarea artefactelor CSV, HTML, SVG și text;
+    \item \texttt{forex\_quant\_bot/strategies}: strategiile de trend, mean reversion și breakout;
+    \item \texttt{settings.py}: clasele de configurare și suprascrierile per pereche valutară;
+    \item \texttt{cli.py}: parsarea parametrilor din linia de comandă și selectarea modului de rulare.
+\end{itemize}
+
+\section{Fluxul de backtesting}
+\label{cap:cap3:backtest}
+
+În modul backtest, utilizatorul pornește aplicația printr-o comandă de forma:
+
+\begin{code}
+\begin{minted}{bash}
+python main.py --mode backtest --pair EURUSD --start 2018-01-01 \
+  --end 2024-12-31 --timeframe D
+\end{minted}
+\caption{Exemplu de comandă pentru rularea unui backtest}
+\label{code:backtest_command}
+\end{code}
+
+Motorul verifică existența datelor în directorul \texttt{data\_cache}. Dacă acoperirea temporală este suficientă, fișierul CSV local este reutilizat. În caz contrar, datele sunt descărcate prin Dukascopy, dacă descărcarea automată este activă. Datele sunt apoi adnotate cu indicatori de regim și cu indicatorii specifici fiecărei strategii.
+
+Procesarea se face bară cu bară. Pentru fiecare moment, motorul actualizează poziția curentă, verifică stop-loss-ul și take-profit-ul, evaluează strategiile și transmite semnalul compus către componenta de risc. Dacă riscul este aprobat, este creată o poziție nouă. Dacă există deja o poziție, aceasta poate fi închisă prin stop, take-profit, trailing stop, break-even sau semnal opus.
+
+\section{Strategiile implementate}
+\label{cap:cap3:strategii}
+
+Sistemul include trei strategii complementare.
+
+\textit{Strategia de trend} folosește EMA rapidă și lentă, ADX, MACD și confirmare multi-timeframe. Ea produce semnal long în regim \textit{trend\_up}, când EMA rapidă este peste EMA lentă, ADX depășește pragul configurat, iar MACD confirmă direcția. Pentru semnal short sunt verificate condiții simetrice în regim \textit{trend\_down}.
+
+\textit{Strategia de revenire la medie} folosește Bollinger Bands, RSI și filtre de calitate a lumânării. Ea este activă doar în regim \textit{range}, cu ADX scăzut și volatilitate controlată. Semnalele apar când prețul se află la extremele canalului statistic, iar RSI indică supravânzare sau supracumpărare.
+
+\textit{Strategia de breakout} folosește canale Donchian și ATR. Ea caută închideri peste maximul canalului sau sub minimul canalului anterior, dar acceptă tranzacții doar când volatilitatea este suficient de ridicată. Această strategie este potrivită pentru trenduri și pentru episoade de creștere bruscă a volatilității.
+
+\section{Allocatorul de strategii}
+\label{cap:cap3:allocator}
+
+Fiecare strategie returnează un semnal, o încredere și metadate explicative. Allocatorul combină semnalele printr-un scor compus. Pentru fiecare strategie sunt evaluate patru componente:
+\begin{itemize}
+    \item performanța recentă, calculată din win rate, profit factor, profit mediu și drawdown;
+    \item încrederea declarată de strategie pentru semnalul curent;
+    \item potrivirea cu regimul de piață;
+    \item diversificarea față de istoricul semnalelor celorlalte strategii.
+\end{itemize}
+
+Scorul compus folosește ponderile 0,4 pentru performanță, 0,3 pentru încredere, 0,2 pentru potrivirea cu regimul și 0,1 pentru diversificare. Semnalul final este suma semnalelor individuale ponderate cu scorurile normalizate. Dacă valoarea finală depășește pragul configurat, bias-ul devine long; dacă scade sub pragul negativ, bias-ul devine short; în caz contrar sistemul rămâne flat.
+
+\section{Managementul riscului}
+\label{cap:cap3:risk_overlay}
+
+Componenta \texttt{RiskOverlay} decide dacă un semnal poate fi executat. Prima verificare este starea circuit breaker-ului. Dacă drawdown-ul curent a depășit pragul configurat, tranzacționarea este dezactivată temporar. Apoi sunt validate prețul, ATR-ul, cursul de conversie către USD, nivelul de volatilitate și expunerea pe monede.
+
+Dimensiunea poziției este calculată pornind de la riscul dorit:
+
+\begin{equation}
+    \label{eq:position_size}
+    size = \frac{equity \cdot risk\_per\_trade}{ATR \cdot atr\_multiplier \cdot quote\_to\_usd}
+\end{equation}
+
+Formula \eqref{eq:position_size} este limitată suplimentar de expunerea maximă și de levierul noțional maxim. Stop-loss-ul este plasat la o distanță de ATR față de prețul de intrare, iar take-profit-ul este stabilit la o distanță mai mare, pentru a permite raporturi risc-recompensă favorabile. Pe parcursul tranzacției, sistemul poate muta stop-ul la break-even și poate activa trailing stop-ul.
+
+\section{Modul live paper trading}
+\label{cap:cap3:live}
+
+Modul live folosește Interactive Brokers prin biblioteca \textit{ib\_insync}. La pornire, sistemul se conectează la broker, încarcă date istorice pentru încălzirea indicatorilor și pornește fluxurile de bare și prețuri. Pentru fiecare bară completă, fluxul decizional este similar cu cel din backtest. Diferența principală este că intrările și ieșirile sunt trimise brokerului ca ordine de piață, iar prețul de execuție este preluat din răspunsul brokerului.
+
+Sistemul include mecanisme operaționale importante: lock-uri locale pentru a preveni rularea mai multor procese pe aceeași pereche și același cont, heartbeat pentru conexiunea Interactive Brokers, detectarea lipsei de actualizări și reconectare automată. Aceste mecanisme nu garantează absența riscului operațional, dar cresc robustețea în mediu paper.
+
+\section{Artefacte generate}
+\label{cap:cap3:artefacte}
+
+Fiecare rulare generează un director în \texttt{output}. Artefactele principale sunt:
+\begin{itemize}
+    \item \texttt{trades.csv}: lista tranzacțiilor închise;
+    \item \texttt{transactions.csv}: evenimente de intrare și ieșire;
+    \item \texttt{equity\_curve.csv}: evoluția capitalului;
+    \item \texttt{strategy\_metrics.csv}: performanța strategiilor;
+    \item \texttt{regime\_metrics.csv}: performanța pe regimuri de piață;
+    \item \texttt{risk\_overlay\_metrics.csv}: deciziile componentei de risc;
+    \item \texttt{summary.txt}: raport text cu metricile principale;
+    \item \texttt{dashboard.html} și \texttt{performance\_dashboard.svg}: vizualizări pentru analiză.
+\end{itemize}
+
+\section{Algoritmul general}
+\label{cap:cap3:algoritm}
+
+\begin{algorithm}[H]
+    \caption{Fluxul decizional al sistemului}
+    \label{alg:flux_decizional}
+    \begin{algorithmic}[1]
+        \Procedure{RunBot}{config}
+            \State Încarcă datele istorice sau fluxul live
+            \State Calculează indicatorii și regimul de piață
+            \For{fiecare bară completă}
+                \State Actualizează poziția deschisă și capitalul
+                \State Verifică stop-loss, take-profit, break-even și trailing stop
+                \State Evaluează strategiile active
+                \State Agregă semnalele prin allocator
+                \State Verifică aprobarea componentei de risc
+                \If{riscul este aprobat și nu există poziție deschisă}
+                    \State Deschide poziție long sau short
+                \EndIf
+                \State Înregistrează tranzacții, metrici și curba capitalului
+            \EndFor
+            \State Generează rapoarte CSV, text și dashboard
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}

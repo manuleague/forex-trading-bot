@@ -1,0 +1,198 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                              DISCLAIMER                                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Actualizat 3.03.2025, conform https://docs.google.com/document/d/1n4uhi__rkf_EdM-_Hfda0qlRuNRVncVt/edit
+%% Acest template latex este o propunere bazata pe recomandarile incluse 
+%% in ghidul studentului disponibil pe pagina Web a facultatii: 
+%% https://ac.tuiasi.ro/studenti/didactic/finalizare-studii/finalizare-studii-calculatoare/finalizare-studii-calculatoare-ghidul-studentului/, 
+%% ghid dezvoltat de George Vieriu si adoptat de membrii Departamentului de 
+%% Calculatoare al Facultății de Automatică și Calculatoare din Iași cu scopul de 
+%% a facilita o redactare corectă și unitară a lucrărilor de diplomă/disertație 
+%% ale absolvenților facultății.
+
+%% Va recomandam insistent sa cititi cu atentie ghidul indicat anterior deoarece
+%% contine toate informatiile si sfaturile necesare redactarii unei lucrari !!!
+
+%% AVEM RUGAMINTEA CA ORICE EVENTUALA CORECTIE/IMBUNATATIRE sa fie comunicata 
+%% si autorilor si review-erilor acestui document, pentru a putea fi ulterior 
+%% inclusa intr-o eventuala noua versiune.
+
+%% Autori:
+%%      Alexandru Archip: alexandru.archip@academic.tuiasi.ro
+%%      Catalin Mironeanu: catalin.mironeanu@academic.tuiasi.ro
+%%      Alexandru Tudor Popovici: alexandru-tudor.popovici@academic.tuiasi.ro
+%% Review-eri:
+%%      Cristian-Mihai Amarandei: cristian-mihai.amarandei@academic.tuiasi.ro
+%%      Elena Serban: elena.serban@academic.tuiasi.ro
+
+%% Ideea acestui template a venit ca urmare a unor probleme semnalate de catre
+%% studenti in utilizarea LibreOffice in momentul in care era mai mult continut
+%% in lucrare si figurile se decalau.
+
+%% In cadrul acestui template au fost folosite atat experienta acumulata, cat si
+%% elemente din lucrarile de diploma ale studentilor (in ordine alfabetica):
+%%      Valeriu-Mihai Acar (promotia 2021)
+%%      Georgiana Atomei (promotia 2021)
+%%      Gabriel Cozma (promotia 2021)
+%%      George Vrînceanu (promotia 2021)
+
+%% Structura proiect -- elemente importante
+%%  1. main.tex - fisierul principal, care va fi compilat
+%%              - include lista completa de pachete latex considerate utile
+%%              - orice alt pachet considerat necesar va fi inclus tot prin acest fisier
+%%  2. Raport1_IEEE.tex - fisierele principale pentru rapoartele intermediare (licenta)
+%%  3. pdf      - director in care veti incarca, pentru forma finala, documentele solicitate
+%%              (de exemplu: declaratia de asumare a autenticitatii proiectului de diploma, 
+%%               semnata si scanata)
+%%  4. macros   - director care contine diferite fisiere de configurare
+%%              - nu va recomandam sa modificati fisierele:
+%%                  configurari.tex, config_anexe.tex, dimensiuni.tex
+%%                  constante.tex
+%%              - actualizati:
+%%                  student.tex:    titlul tezei, tipul tezei, programul de studiu/specializarea
+%%                                  numele vostru, gradul si numele coordonatorului
+%%                                  anul/promotia
+%%  5. coperti  - director care cuprinde copertile externa si interna
+%%              - nu ar trebui modificat
+%%  6. continut, bibligrafie, anexe
+%%              - directoarele care contin o prima propunere de structurare a tezei
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                            !! SUCCES !!                                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Template pentru lucrarile de licenta/disertatie/doctorat, bazat pe report ca tip de document
+\documentclass[12pt, twoside]{report}
+
+%% limba document
+\usepackage[romanian]{babel}
+\selectlanguage{romanian}
+
+%% font lucrare
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+
+%% geometria paginii
+\usepackage{geometry}
+%% setari antet/subsol
+\usepackage{fancyhdr}
+%% indentare primul paragraf din capitol
+\usepackage{indentfirst}
+%% cuprinsul include si bibliografia si este navigabil
+\usepackage[nottoc]{tocbibind}
+\usepackage[unicode, hidelinks, colorlinks, linkcolor=black, urlcolor=blue, citecolor=black]{hyperref}
+%% culoare text (pe moment folosit in titluri de capitole)
+%% https://www.overleaf.com/learn/latex/Using_colours_in_LaTeX
+\usepackage[dvipsnames]{xcolor}
+%% format titlu capitol/subcapitol/etc
+\usepackage{titlesec}
+%% pentru includerea unor pdf-uri externe in document (necesar pentru declaratia de autenticitate)
+\usepackage{pdfpages}
+%% titluri pentru figuri/tabele/listing-uri de cod/etc.
+\usepackage{caption}
+%% pozitionare float-uri (figuri/tabele/etc)
+\usepackage{float}
+%% pentru tabele pe mai multe pagini
+\usepackage{longtable}	
+%% pentru tabele cu celule cu mai multe linii
+\usepackage{multirow}			
+%% pentru ecuatii
+\usepackage{amsmath}
+%% pentru definitii, teoreme
+\usepackage{amsthm}
+%% pentru algoritmi, pachetul algorithm este cel mai basic
+\usepackage[chapter]{algorithm}
+\usepackage[noend]{algpseudocode}
+% daca pachetul algorithm nu este satisfacator pentru ceea ce aveti de scris, mai exista pachetele:
+% algorithmic, algorithmicx, algpseudocode, algorithm2e
+% https://tex.stackexchange.com/questions/229355/algorithm-algorithmic-algorithmicx-algorithm2e-algpseudocode-confused
+%% formatari listing
+\usepackage{listings}
+% https://www.overleaf.com/learn/latex/Code_listing
+%% pachetul minted formateaza/coloreaza sintaxa codului sursa, spre deosebire de pachetul listings care doar face bold pe sintaxa
+\usepackage[newfloat]{minted}
+% https://www.overleaf.com/learn/latex/Code_Highlighting_with_minted
+
+%% ==================================================================================================== %%
+%% pachetele sunt utilizate doar pentru componenta demo
+%% TREBUIE SCOASE DIN FORMA DE LUCRU/FINALA
+%% pentru text dummy
+\usepackage{lipsum}
+%% pentru TODO-uri
+\usepackage{todonotes}
+%% ==================================================================================================== %%
+
+%% setup dimensiune pagina, dimensiune header/footer
+%% setup dimensiune 16pt
+\input{macros/dimensiuni}
+%% date caracteristice universitatii/facultatii.
+\input{macros/constante}
+%% datele specifice: nume, prenume student; titlu lucrare; nume, prenume, grad didactic coordonator
+%% PENTRU MODIFICARE SE EDITEAZA FISIERUL macros/student.tex
+\input{macros/student}
+
+\begin{document}
+
+%% elimin header si footer pentru coperti si paginile de cuprins/rezumat
+%% \cleardoublepage se inseraza pentru a lasa pagina "verso" libera (pentru versiunile listate
+    \pagestyle{empty}
+    {
+        %% coperta externa
+        \input{coperti/extern}
+        \cleardoublepage
+    
+        %% coperta interna
+        \input{coperti/intern}
+        \cleardoublepage
+    
+        %% absolventii de master vor inlocui "declaratie_autenticitate_diploma" cu "declaratie_autenticitate_disertatie"
+        \includepdf[pages=1, scale=1]{pdf/declaratie_autenticitate_diploma}
+        \cleardoublepage
+        
+        %% cuprins
+        \renewcommand{\thispagestyle}[1]{}
+        \setcounter{tocdepth}{4}
+        \setcounter{secnumdepth}{4}
+        \tableofcontents
+        \cleardoublepage
+        
+        %%rezumat
+        \input{continut/rezumat}
+        \cleardoublepage
+    }
+    
+    %% reset numerotare pagini
+    \setcounter{page}{1}
+    \pagenumbering{arabic}
+    %% import setari generale
+    \input{macros/configurari}
+    
+    %% *************** continutul efectiv al lucrarii ***************
+    %% dupa fiecare capitol, in main.tex este introdus \cleardoublepage pentru ca fiecare capitol nou sa inceapa pe pagina impara
+    \input{continut/capitol1/capitol1}
+    \cleardoublepage
+
+    \input{continut/capitol2/capitol2}
+    \cleardoublepage
+
+    \input{continut/capitol3/capitol3}
+    \cleardoublepage
+
+    \input{continut/capitol4/capitol4}
+    \cleardoublepage
+
+    \input{continut/capitol5/capitol5}
+    \cleardoublepage
+    % *************** referinte bibliografice ***************
+    \bibliographystyle{IEEEtran}
+    \bibliography{bibliografie/bibliografie}
+    \cleardoublepage
+    
+    % *************** anexe ***************
+    %% config anexe
+    \input{macros/config_anexe}
+    \input{anexe/anexe}
+    \cleardoublepage
+
+\end{document}
