@@ -9,6 +9,22 @@ Contribuția principală constă în combinarea mai multor strategii printr-un a
 
 Rezultatele experimentale au arătat că performanța diferă semnificativ între perechi valutare. USDJPY a produs cel mai bun rezultat în intervalul analizat, în timp ce GBPUSD a avut rezultat negativ, deși rata tranzacțiilor câștigătoare a fost peste 50\%. Această observație confirmă că o strategie trebuie evaluată nu doar prin procentul de tranzacții profitabile, ci și prin raportul dintre câștiguri și pierderi, drawdown și performanța ajustată la risc.
 
+\section{Contribuții personale}
+\label{cap:cap5:contributii}
+
+Contribuțiile personale ale lucrării sunt:
+\begin{itemize}
+    \item proiectarea unei arhitecturi modulare pentru backtesting și paper trading Forex;
+    \item implementarea unui flux determinist de procesare bară cu bară, fără acces la informații viitoare;
+    \item integrarea a trei strategii complementare adaptate la regimuri diferite de piață;
+    \item realizarea unui allocator multi-strategie care folosește performanță, încredere, regim și diversificare;
+    \item implementarea unei componente de risc independente, cu dimensionare pe baza ATR și circuit breaker;
+    \item generarea de artefacte de audit pentru tranzacții, evenimente, risc, regimuri și performanță;
+    \item integrarea controlată cu Interactive Brokers în regim paper, cu protecții împotriva utilizării accidentale pe cont real.
+\end{itemize}
+
+Prin aceste contribuții, lucrarea nu se limitează la o strategie izolată, ci propune un cadru complet de evaluare și execuție controlată. Valoarea proiectului constă în faptul că fiecare etapă a deciziei poate fi explicată și verificată ulterior.
+
 \section{Comparație cu soluții similare}
 \label{cap:cap5:comparatie}
 

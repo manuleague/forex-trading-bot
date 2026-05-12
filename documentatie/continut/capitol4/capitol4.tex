@@ -18,6 +18,25 @@ pip install -r requirements.txt
 
 Pentru rulările experimentale au fost folosite date istorice Forex păstrate local în \texttt{data\_cache}. Perechile analizate sunt EURUSD, GBPUSD și USDJPY, pe timeframe zilnic, în intervalul 2018-01-01 -- 2024-12-31. Capitalul inițial implicit este 10.000 USD, iar riscul per tranzacție este 1\%.
 
+\section{Punerea în funcțiune și configurarea aplicației}
+\label{cap:cap4:configurare}
+
+Punerea în funcțiune a aplicației presupune pregătirea mediului Python, instalarea dependențelor și alegerea parametrilor de rulare. Fișierul \texttt{requirements.txt} definește bibliotecile necesare, iar fișierele din directorul \texttt{config} permit setarea perechilor și a parametrilor de strategie. Pentru backtesting, aplicația nu necesită conexiune la Interactive Brokers, deoarece datele sunt citite din cache local sau sunt descărcate prin furnizorul istoric configurat.
+
+Parametrii importanți pentru o rulare sunt:
+\begin{itemize}
+    \item \texttt{--mode}: selectează modul \texttt{backtest} sau \texttt{live};
+    \item \texttt{--pair} sau \texttt{--pairs}: definește perechea sau lista de perechi valutare;
+    \item \texttt{--timeframe}: stabilește granularitatea barelor;
+    \item \texttt{--start} și \texttt{--end}: definesc intervalul istoric pentru backtesting;
+    \item \texttt{--initial-capital}: configurează capitalul inițial;
+    \item \texttt{--risk-per-trade}: configurează riscul procentual pe tranzacție;
+    \item \texttt{--slippage-bps}: permite simularea slippage-ului;
+    \item \texttt{--ib-port}: definește portul Interactive Brokers pentru modul live paper.
+\end{itemize}
+
+Această abordare face ca experimentele să fie ușor de reprodus. O comandă completă descrie explicit perechea, intervalul, timeframe-ul, riscul și directorul de ieșire, iar rezultatele sunt salvate separat pentru fiecare rulare.
+
 \section{Scenarii de test}
 \label{cap:cap4:scenarii}
 
@@ -51,6 +70,23 @@ Pentru evaluarea rezultatelor au fost urmărite următoarele metrici:
     \item \textit{Sharpe} și \textit{Sortino}: indicatori de performanță ajustată la risc;
     \item comparația cu strategia buy-and-hold pe aceeași pereche.
 \end{itemize}
+
+\section{Metodologia de testare}
+\label{cap:cap4:metodologie_testare}
+
+Testarea a fost realizată prin rulări de backtesting pe aceleași condiții generale, pentru a putea compara rezultatele între perechi. Fiecare scenariu a folosit același interval istoric, același capital inițial și aceeași logică de risc. Diferențele rezultate provin din comportamentul perechii valutare și din modul în care strategiile reacționează la regimurile de piață identificate.
+
+Pentru fiecare rulare au fost verificate următoarele aspecte:
+\begin{itemize}
+    \item existența datelor istorice și ordonarea lor cronologică;
+    \item generarea coloanelor de indicatori fără valori invalide în zona de tranzacționare;
+    \item existența fișierelor de ieșire în directorul \texttt{output};
+    \item corelarea tranzacțiilor din \texttt{trades.csv} cu evenimentele din \texttt{transactions.csv};
+    \item calcularea sumarului text și a dashboard-ului vizual;
+    \item respectarea limitelor de risc declarate.
+\end{itemize}
+
+Testarea modului live a fost tratată separat, deoarece depinde de TWS sau IB Gateway și de disponibilitatea conexiunii Interactive Brokers. Pentru această componentă, accentul a fost pus pe protecțiile operaționale: porturi paper, lock-uri locale, heartbeat și reconectare.
 
 \section{Rezultate obținute}
 \label{cap:cap4:rezultate}
@@ -92,6 +128,26 @@ Componenta de risc a limitat pierderile individuale în jurul pragului de 1\% di
 
 Drawdown-ul maxim a rămas sub 6\% în toate cele trei scenarii analizate. Acest rezultat indică faptul că dimensionarea pozițiilor și limitarea expunerii au funcționat conform obiectivelor. Totuși, rezultatul negativ pe GBPUSD arată că protecția riscului nu transformă automat o strategie nepotrivită într-una profitabilă; ea controlează pierderea, dar selecția semnalelor rămâne decisivă.
 
+\section{Resurse, fiabilitate și scalabilitate}
+\label{cap:cap4:resurse}
+
+Aplicația este proiectată pentru rulări locale pe volume moderate de date OHLCV. Pentru scenariile analizate, datele zilnice pentru perioada 2018--2024 sunt reduse ca dimensiune și pot fi procesate rapid pe un calculator obișnuit. În cazul timeframe-urilor mici, precum 1 minut sau 5 minute, numărul de bare crește semnificativ, iar timpul de rulare depinde de dimensiunea fișierelor CSV, de numărul strategiilor și de numărul perechilor analizate.
+
+Din punct de vedere al memoriei, proiectul folosește \texttt{pandas DataFrame} pentru păstrarea datelor istorice și a indicatorilor. Această alegere este potrivită pentru claritate și prototipare, dar pentru volume foarte mari ar putea necesita optimizări, cum ar fi procesarea pe ferestre, reducerea coloanelor intermediare sau folosirea unui format de stocare mai eficient decât CSV. În stadiul actual, soluția este suficientă pentru backtesting educațional și pentru validarea logicii de tranzacționare pe perechi majore.
+
+Fiabilitatea este susținută prin cache local, procesare deterministă și separarea artefactelor pe directoare de rulare. Dacă o rulare produce rezultate neașteptate, fișierele generate permit revenirea la tranzacții, evenimente, curba capitalului și motivele deciziilor de risc. În modul live, fiabilitatea operațională este îmbunătățită prin heartbeat, detectarea lipsei de actualizări și reconectare automată.
+
+Scalabilitatea este limitată în principal de faptul că backtest-ul procesează secvențial fiecare bară și fiecare strategie. Pentru extindere, se pot rula perechi diferite în procese separate, se pot paraleliza experimentele sau se poate introduce un mecanism de optimizare distribuită. Aceste extinderi nu au fost incluse deoarece obiectivul proiectului este claritatea arhitecturală, nu execuția pe infrastructură de producție.
+
+\section{Aspecte de securitate și siguranță operațională}
+\label{cap:cap4:securitate}
+
+Într-un sistem de tranzacționare, securitatea nu se referă doar la autentificare, ci și la prevenirea utilizării greșite a aplicației. Cea mai importantă măsură din proiect este limitarea conexiunii Interactive Brokers la porturile paper trading 7497 și 4002. Dacă utilizatorul încearcă să conecteze aplicația la un port nepermis, brokerul refuză conexiunea. Această decizie reduce riscul trimiterii accidentale de ordine către un cont real.
+
+Aplicația nu stochează parole sau chei API în codul sursă. Conexiunea cu Interactive Brokers se realizează prin sesiunea locală TWS sau IB Gateway, iar controlul accesului rămâne la nivelul platformei brokerului. În plus, lock-urile locale previn rularea simultană a două procese care ar putea administra aceeași pereche și același cont paper, reducând riscul de conflicte operaționale.
+
+Totuși, aceste mecanisme nu transformă aplicația într-un sistem de producție complet securizat. Pentru utilizare reală ar fi necesare audit de cod, jurnalizare persistentă mai detaliată, management al erorilor la nivel de infrastructură, monitorizare externă și proceduri clare de oprire de urgență.
+
 \section{Testarea modului live}
 \label{cap:cap4:live}
 
@@ -115,6 +171,30 @@ python main.py --mode live --pairs EURUSD,GBPUSD --timeframe 5m \
 \end{code}
 
 Testarea live trebuie realizată exclusiv pe cont paper. Sistemul include protecții software, însă acestea nu elimină riscul operațional generat de configurări greșite, întreruperi de conexiune sau comportamente neprevăzute ale brokerului.
+
+\section{Capturi și artefacte vizuale relevante}
+\label{cap:cap4:capturi}
+
+Pe lângă tabelele numerice, proiectul generează artefacte vizuale care pot fi folosite pentru analiză și pentru susținerea lucrării. Fișierul \texttt{dashboard.html} oferă o vedere agregată asupra performanței, iar \texttt{performance\_dashboard.svg} conține reprezentări grafice ale evoluției sistemului. Pentru forma finală a lucrării se recomandă includerea unei capturi din dashboard-ul celei mai reprezentative rulări, de exemplu USDJPY pe timeframe zilnic, deoarece acesta ilustrează cel mai clar funcționarea sistemului pe un scenariu profitabil.
+
+\begin{table}[H]
+    \centering
+    \caption{Artefacte vizuale recomandate pentru susținere}
+    \label{tabel:artefacte_vizuale}
+    \begin{tabular}{|p{5.2cm}|p{8.4cm}|}
+        \hline
+        \textbf{Artefact} & \textbf{Utilitate} \\
+        \hline
+        \texttt{dashboard.html} & Demonstrează modul în care rezultatele pot fi inspectate vizual după rulare. \\
+        \hline
+        \texttt{performance\_dashboard.svg} & Poate fi inclus ca imagine pentru evoluția performanței și a capitalului. \\
+        \hline
+        \texttt{trades.csv} & Poate fi deschis în Excel pentru a arăta tranzacțiile generate și motivele de intrare/ieșire. \\
+        \hline
+        \texttt{risk\_overlay\_metrics.csv} & Demonstrează trasabilitatea deciziilor de risc și motivele respingerii semnalelor. \\
+        \hline
+    \end{tabular}
+\end{table}
 
 \section{Limitări}
 \label{cap:cap4:limitari}

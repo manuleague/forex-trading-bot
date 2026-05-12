@@ -53,7 +53,30 @@ Regula implicită riscă 1\% din capital pentru o tranzacție, iar expunerea tot
 
 Există numeroase platforme comerciale și open-source pentru tranzacționare algoritmică, de la scripturi simple pentru MetaTrader până la framework-uri extinse pentru analiză multi-asset. Multe dintre acestea oferă conectare la brokeri, backtesting și optimizare, însă pot avea limitări privind transparența codului, flexibilitatea configurării sau costurile de utilizare.
 
+O categorie importantă este reprezentată de platformele integrate, precum MetaTrader, care permit dezvoltarea de roboți de tranzacționare și rularea lor directă în terminalul brokerului. Aceste platforme sunt accesibile pentru utilizatorii finali, dar logica de testare, calitatea datelor și portabilitatea pot depinde puternic de ecosistemul brokerului. O altă categorie este reprezentată de framework-urile Python pentru cercetare cantitativă, precum Backtrader sau Zipline, care oferă motoare de backtesting generale. Acestea sunt utile pentru prototipare, dar adesea necesită adaptări pentru integrarea cu brokeri, pentru gestionarea perechilor valutare și pentru raportarea exactă dorită într-un proiect restrâns. Există și platforme cloud, cum ar fi QuantConnect sau servicii de tip API brokerage, care reduc efortul operațional, dar introduc dependențe de infrastructură externă și de politici comerciale.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparație între tipuri de soluții pentru tranzacționare algoritmică}
+    \label{tabel:comparatie_solutii}
+    \begin{tabular}{|p{3.3cm}|p{4.2cm}|p{4.2cm}|p{3.6cm}|}
+        \hline
+        \textbf{Soluție} & \textbf{Avantaje} & \textbf{Limitări} & \textbf{Poziționarea proiectului} \\
+        \hline
+        MetaTrader / roboți Expert Advisor & Integrare directă cu brokeri, interfață matură, ecosistem larg. & Dependență de platformă, limbaj specific, control mai redus asupra pipeline-ului de cercetare. & Proiectul oferă cod Python transparent și flux ușor de auditat. \\
+        \hline
+        Framework-uri Python de backtesting & Flexibilitate, biblioteci numerice mature, potrivite pentru cercetare. & Necesită integrare separată cu brokeri și raportare personalizată. & Proiectul include atât backtesting, cât și integrare paper cu Interactive Brokers. \\
+        \hline
+        Platforme cloud de trading algoritmic & Infrastructură administrată, date și execuție integrate. & Costuri, dependență de furnizor, control mai redus asupra mediului local. & Proiectul rulează local, cu date cache-uite și rezultate reproductibile. \\
+        \hline
+        Scripturi simple de semnalizare & Ușor de implementat și modificat. & Lipsă de arhitectură, risc slab controlat, raportare incompletă. & Proiectul separă datele, strategiile, riscul, execuția și raportarea. \\
+        \hline
+    \end{tabular}
+\end{table}
+
 Soluția propusă se poziționează ca un proiect educațional și experimental, concentrat pe claritatea fluxului de decizie. Sistemul nu urmărește execuție de frecvență înaltă, ci evaluarea riguroasă a strategiilor pe perechi Forex și generarea de rapoarte ușor de interpretat. Integrarea live este limitată la paper trading, ceea ce o face potrivită pentru validare și învățare, nu pentru utilizare financiară fără supraveghere.
+
+Lacuna pe care proiectul o urmărește este lipsa unei soluții compacte, ușor de inspectat, care să combine într-un singur cod sursă: descărcare și cache de date Forex, backtesting determinist, mai multe strategii complementare, allocator explicabil, management de risc independent și export de artefacte pentru analiză. Din acest motiv, accentul nu este pus pe numărul de indicatori sau pe promisiunea profitabilității, ci pe trasabilitatea deciziilor și pe posibilitatea de a justifica fiecare rezultat obținut.
 
 \section{Cerințe derivate}
 \label{cap:cap2:cerinte}

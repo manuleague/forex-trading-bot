@@ -12,6 +12,103 @@ Pentru modul live, aplicația trebuie să se conecteze la TWS sau IB Gateway în
 
 Cerințele nefuncționale urmăresc reproductibilitatea, modularitatea și trasabilitatea. Backtest-ul trebuie să poată fi reluat cu aceiași parametri, iar rezultatele trebuie să includă fișiere separate pentru tranzacții, curba capitalului, metrici de risc, metrici de strategie și sumar text.
 
+\subsection{Cerințe ale utilizatorului}
+\label{cap:cap3:cerinte_utilizator}
+
+Utilizatorul țintă al aplicației este o persoană care dorește să testeze strategii Forex în mod reproductibil, fără a depinde de o interfață grafică complexă și fără a trimite ordine reale înainte de validare. Din această perspectivă, cerințele utilizatorului sunt:
+
+\begin{itemize}
+    \item rularea rapidă a unui backtest prin linia de comandă, cu parametri expliciți;
+    \item selectarea perechii valutare, a timeframe-ului, a perioadei istorice și a capitalului inițial;
+    \item reutilizarea datelor istorice locale pentru a evita descărcări repetate;
+    \item obținerea unui sumar ușor de citit după fiecare rulare;
+    \item inspectarea tranzacțiilor individuale, a motivelor de intrare și a motivelor de ieșire;
+    \item testarea modului live exclusiv pe cont paper Interactive Brokers;
+    \item păstrarea rezultatelor în fișiere standard, care pot fi analizate ulterior în Excel, Python sau alte instrumente.
+\end{itemize}
+
+\subsection{Cerințe funcționale detaliate}
+\label{cap:cap3:cerinte_functionale}
+
+\begin{table}[H]
+    \centering
+    \caption{Cerințe funcționale ale sistemului}
+    \label{tabel:cerinte_functionale}
+    \begin{tabular}{|p{2cm}|p{9.2cm}|p{3cm}|}
+        \hline
+        \textbf{Cod} & \textbf{Descriere} & \textbf{Prioritate} \\
+        \hline
+        CF1 & Sistemul permite rularea unui backtest pentru o pereche Forex, un timeframe și un interval temporal definite de utilizator. & Ridicată \\
+        \hline
+        CF2 & Sistemul încarcă date istorice din cache local sau le descarcă automat atunci când lipsesc. & Ridicată \\
+        \hline
+        CF3 & Sistemul calculează indicatorii tehnici necesari strategiilor și detectorului de regim. & Ridicată \\
+        \hline
+        CF4 & Sistemul combină semnalele strategiilor într-o decizie finală explicabilă. & Ridicată \\
+        \hline
+        CF5 & Sistemul verifică fiecare intrare prin reguli de risc înainte de deschiderea poziției. & Ridicată \\
+        \hline
+        CF6 & Sistemul salvează rapoarte CSV, sumar text și dashboard-uri după fiecare rulare. & Medie \\
+        \hline
+        CF7 & Sistemul permite conectarea la Interactive Brokers doar în regim paper trading. & Ridicată \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Cerințe nefuncționale detaliate}
+\label{cap:cap3:cerinte_nefunctionale}
+
+\begin{table}[H]
+    \centering
+    \caption{Cerințe nefuncționale ale sistemului}
+    \label{tabel:cerinte_nefunctionale}
+    \begin{tabular}{|p{2cm}|p{9.2cm}|p{3cm}|}
+        \hline
+        \textbf{Cod} & \textbf{Descriere} & \textbf{Categorie} \\
+        \hline
+        CNF1 & Rulările de backtesting trebuie să fie reproductibile pentru aceleași date și aceiași parametri. & Reproductibilitate \\
+        \hline
+        CNF2 & Modulele trebuie să poată fi extinse fără modificarea întregului sistem. & Mentenabilitate \\
+        \hline
+        CNF3 & Deciziile trebuie să poată fi auditate prin fișierele generate. & Trasabilitate \\
+        \hline
+        CNF4 & Aplicația trebuie să prevină conectarea accidentală la porturi non-paper Interactive Brokers. & Siguranță operațională \\
+        \hline
+        CNF5 & Erorile de conexiune live trebuie tratate prin mesaje clare și reconectare controlată. & Fiabilitate \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\section{Alegerea tehnologiilor}
+\label{cap:cap3:tehnologii}
+
+Implementarea a fost realizată în Python deoarece limbajul are un ecosistem matur pentru analiză de date, integrare cu API-uri externe și prototipare rapidă. Bibliotecile \texttt{pandas} și \texttt{NumPy} sunt utilizate pentru prelucrarea seriilor de timp, calculul indicatorilor și agregarea rezultatelor. \texttt{PyYAML} permite separarea parametrilor de configurare de codul sursă, iar \texttt{dukascopy-python} asigură accesul la date istorice Forex. Pentru modul live, \texttt{ib\_insync} oferă o interfață Python peste API-ul Interactive Brokers.
+
+Alegerea unei aplicații de tip CLI, în locul unei interfețe grafice, este justificată de caracterul experimental al proiectului. Parametrii pot fi salvați în comenzi reproductibile, rulările pot fi automatizate, iar rezultatele sunt persistate în fișiere. Pentru documentare s-a folosit LaTeX, deoarece permite structurarea riguroasă a capitolelor, numerotarea automată a figurilor și tabelelor, bibliografie IEEE și integrarea fragmentelor de cod.
+
+\begin{table}[H]
+    \centering
+    \caption{Tehnologii utilizate și rolul acestora}
+    \label{tabel:tehnologii}
+    \begin{tabular}{|p{3.5cm}|p{5cm}|p{5.2cm}|}
+        \hline
+        \textbf{Tehnologie} & \textbf{Rol în proiect} & \textbf{Justificare} \\
+        \hline
+        Python & Limbaj principal de implementare & Ecosistem puternic pentru date financiare și prototipare. \\
+        \hline
+        pandas / NumPy & Prelucrare date, indicatori, tabele de rezultate & Performanță suficientă pentru backtesting pe date OHLCV și API familiar. \\
+        \hline
+        Dukascopy & Sursă de date istorice Forex & Date accesibile și potrivite pentru cache local. \\
+        \hline
+        Interactive Brokers & Broker pentru paper trading & Permite testare operațională fără expunere financiară reală. \\
+        \hline
+        CSV / HTML / SVG & Formate de raportare & Ușor de inspectat, arhivat și analizat ulterior. \\
+        \hline
+        LaTeX & Documentație tehnică & Potrivit pentru lucrări academice, bibliografie și figuri numerotate. \\
+        \hline
+    \end{tabular}
+\end{table}
+
 \section{Arhitectura sistemului}
 \label{cap:cap3:arhitectura}
 
@@ -35,6 +132,33 @@ Structura principală a proiectului este:
     \item \texttt{settings.py}: clasele de configurare și suprascrierile per pereche valutară;
     \item \texttt{cli.py}: parsarea parametrilor din linia de comandă și selectarea modului de rulare.
 \end{itemize}
+
+\subsection{Responsabilitățile modulelor}
+\label{cap:cap3:responsabilitati}
+
+Modulul \texttt{data} este responsabil pentru obținerea și normalizarea datelor OHLCV. Clasa \texttt{DataCache} verifică existența fișierelor locale, validează acoperirea temporală și, atunci când este necesar, declanșează descărcarea datelor. Această separare este importantă deoarece motorul de backtesting nu trebuie să cunoască detaliile furnizorului de date; el primește doar un \texttt{DataFrame} ordonat cronologic.
+
+Modulul \texttt{strategies} conține strategiile propriu-zise. Fiecare strategie are două responsabilități: pregătirea coloanelor de indicatori și evaluarea istoricului disponibil la momentul curent. Rezultatul este un obiect \texttt{StrategyDecision}, care include semnalul, încrederea și metadatele explicative. Această structură face posibilă adăugarea unei noi strategii fără modificarea motorului de simulare.
+
+Modulul \texttt{core} conține componentele comune pentru decizie: \texttt{RegimeDetector}, \texttt{StrategyAllocator}, \texttt{PerformanceTracker} și \texttt{RiskOverlay}. Detectorul de regim adaugă contextul de piață, allocatorul decide ponderea semnalelor, tracker-ul calculează performanța recentă, iar componenta de risc verifică dacă semnalul poate fi transformat în poziție.
+
+Modulul \texttt{backtest} orchestrează simularea. El parcurge barele istorice în ordine cronologică, verifică pozițiile deschise, evaluează strategiile, aplică riscul și salvează tranzacțiile. Modulul \texttt{live} reutilizează aceeași logică decizională, dar înlocuiește sursa de date cu fluxuri Interactive Brokers și transformă intrările/ieșirile în ordine paper.
+
+\subsection{Modelul datelor interne}
+\label{cap:cap3:model_date}
+
+Datele și deciziile importante sunt reprezentate prin clase de tip \texttt{dataclass}. Această alegere oferă o structură clară, cu atribute explicite, fără complexitatea unei ierarhii de clase inutile. Printre modelele principale se află:
+
+\begin{itemize}
+    \item \texttt{StrategyDecision}: semnalul unei strategii, încrederea și metadatele aferente;
+    \item \texttt{CompositeDecision}: semnalul final rezultat din allocator;
+    \item \texttt{RiskDecision}: aprobarea sau respingerea unei intrări și motivul deciziei;
+    \item \texttt{Position}: starea unei poziții deschise;
+    \item \texttt{TradeRecord}: tranzacția închisă, folosită pentru metrici;
+    \item \texttt{TradeEventRecord}: evenimentele individuale de intrare și ieșire.
+\end{itemize}
+
+Prin aceste structuri, sistemul păstrează o separare clară între semnal, decizie de risc, poziție și rezultat final. Această separare ajută la auditarea rulărilor: dacă o tranzacție este respinsă, motivul se regăsește în decizia de risc; dacă o tranzacție este deschisă, motivul semnalului se păstrează în înregistrarea poziției și apoi în fișierul \texttt{trades.csv}.
 
 \begin{figure}[H]
     \centering
@@ -107,6 +231,25 @@ Sistemul include trei strategii complementare.
 
 \textit{Strategia de breakout} folosește canale Donchian și ATR. Ea caută închideri peste maximul canalului sau sub minimul canalului anterior, dar acceptă tranzacții doar când volatilitatea este suficient de ridicată. Această strategie este potrivită pentru trenduri și pentru episoade de creștere bruscă a volatilității.
 
+\begin{table}[H]
+    \centering
+    \caption{Rezumatul strategiilor implementate}
+    \label{tabel:strategii_rezumat}
+    \begin{tabular}{|p{3cm}|p{4.2cm}|p{3.5cm}|p{3.7cm}|}
+        \hline
+        \textbf{Strategie} & \textbf{Indicatori utilizați} & \textbf{Regim țintă} & \textbf{Rol în sistem} \\
+        \hline
+        Trend & EMA, ADX, MACD, confirmare multi-timeframe & \texttt{trend\_up}, \texttt{trend\_down} & Urmărește mișcări direcționale persistente. \\
+        \hline
+        Mean reversion & Bollinger Bands, RSI, ADX, filtre de lumânare & \texttt{range} & Caută revenirea prețului de la extreme statistice. \\
+        \hline
+        Breakout & Donchian Channels, ATR, z-score volatilitate & trend sau \texttt{volatility\_spike} & Caută străpungeri ale canalelor de preț. \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Complementaritatea strategiilor este importantă deoarece piața Forex nu rămâne permanent într-un singur comportament. O strategie de trend poate avea rezultate slabe într-o piață laterală, în timp ce o strategie de revenire la medie poate produce semnale greșite în timpul unui breakout puternic. Prin urmare, sistemul nu alege manual o singură strategie pentru toate perioadele, ci permite allocatorului să acorde ponderi diferite în funcție de performanță și context.
+
 \section{Allocatorul de strategii}
 \label{cap:cap3:allocator}
 
@@ -133,6 +276,31 @@ Dimensiunea poziției este calculată pornind de la riscul dorit:
 \end{equation}
 
 Formula \eqref{eq:position_size} este limitată suplimentar de expunerea maximă și de levierul noțional maxim. Stop-loss-ul este plasat la o distanță de ATR față de prețul de intrare, iar take-profit-ul este stabilit la o distanță mai mare, pentru a permite raporturi risc-recompensă favorabile. Pe parcursul tranzacției, sistemul poate muta stop-ul la break-even și poate activa trailing stop-ul.
+
+Regulile de risc nu sunt tratate ca o extensie a strategiilor, ci ca o componentă independentă. Această decizie de proiectare reduce riscul ca o strategie să își suprascrie propriile protecții și permite verificarea uniformă a tuturor semnalelor. De exemplu, indiferent dacă semnalul provine din trend sau din breakout, intrarea poate fi respinsă pentru volatilitate insuficientă, lichiditate anormală, expunere prea mare sau circuit breaker activ.
+
+\begin{table}[H]
+    \centering
+    \caption{Motive posibile de respingere a unei intrări}
+    \label{tabel:motive_respingere_risc}
+    \begin{tabular}{|p{4cm}|p{9.2cm}|}
+        \hline
+        \textbf{Motiv} & \textbf{Semnificație} \\
+        \hline
+        \texttt{flat\_signal} & Allocatorul nu a produs un bias long sau short suficient de puternic. \\
+        \hline
+        \texttt{invalid\_atr\_or\_price} & Prețul, ATR-ul sau cursul de conversie nu permit calculul riscului. \\
+        \hline
+        \texttt{quiet\_market\_atr} & Volatilitatea curentă este prea mică față de media recentă. \\
+        \hline
+        \texttt{liquidity\_range\_spike} & Bara curentă are o amplitudine anormală față de media ultimelor bare. \\
+        \hline
+        \texttt{max\_exposure} & Deschiderea poziției ar depăși expunerea totală maximă permisă. \\
+        \hline
+        \texttt{circuit\_breaker} & Drawdown-ul a depășit pragul configurat, iar tranzacționarea este oprită temporar. \\
+        \hline
+    \end{tabular}
+\end{table}
 
 \section{Modul live paper trading}
 \label{cap:cap3:live}
