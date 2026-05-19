@@ -1,0 +1,4 @@
+timestamp,pair,equity,equity_peak,drawdown_pct,signal_bias,final_signal,risk_approved,risk_reason,risk_amount_usd,regime,trading_enabled,circuit_breaker_active,cooldown_bars_remaining
+2026-05-19 10:00:00+00:00,USDJPY,10000.0,10000.0,0.0,0,0.0,False,flat_signal,0.0,range,True,False,0
+2026-05-19 10:00:00+00:00,EURUSD,10000.0,10000.0,0.0,0,0.0,False,flat_signal,0.0,range,True,False,0
+2026-05-19 10:00:00+00:00,GBPUSD,10000.0,10000.0,0.0,0,0.0,False,flat_signal,0.0,range,True,False,0

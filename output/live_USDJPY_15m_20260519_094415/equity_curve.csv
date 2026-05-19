@@ -1,0 +1,2 @@
+timestamp,pair,equity,realized_pnl_usd,unrealized_pnl_usd,position_side,regime,close,quote_to_usd
+2026-05-19 09:30:00+00:00,USDJPY,10000.0,0.0,0.0,Flat,range,159.1225,0.006284466370249336

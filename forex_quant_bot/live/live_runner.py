@@ -11,6 +11,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import pandas as pd
+from prometheus_client import Gauge, start_http_server
 
 from forex_quant_bot.backtest.metrics import compile_backtest_report
 from forex_quant_bot.core.allocator import StrategyAllocator
@@ -24,6 +25,19 @@ from forex_quant_bot.models import OrderEvent, Position, TradeEventRecord, Trade
 from forex_quant_bot.settings import BotConfig, RiskConfig, StrategyConfig
 from forex_quant_bot.strategies import build_default_strategies
 from forex_quant_bot.utils.time_utils import TIMEFRAME_TO_MINUTES, normalize_pair, split_pair
+
+
+BOT_EQUITY = Gauge("bot_equity_usd", "Current account equity in USD")
+BOT_REALIZED_PNL = Gauge("bot_realized_pnl_usd", "Realized PnL in USD")
+BOT_LIVE_PRICE = Gauge("bot_live_price", "Current live price", ["pair"])
+BOT_OPEN_POSITIONS = Gauge("bot_open_positions", "Number of open positions")
+BOT_PAIR_EQUITY = Gauge("bot_pair_equity_usd", "Per-pair equity contribution in USD", ["pair"])
+BOT_PAIR_REALIZED_PNL = Gauge("bot_pair_realized_pnl_usd", "Per-pair realized PnL in USD", ["pair"])
+BOT_PAIR_UNREALIZED_PNL = Gauge("bot_pair_unrealized_pnl_usd", "Per-pair unrealized PnL in USD", ["pair"])
+BOT_PAIR_OPEN_POSITION = Gauge("bot_pair_open_position", "Whether this pair has an open position", ["pair"])
+BOT_PAIR_POSITION_SIZE = Gauge("bot_pair_position_size_units", "Open position size in units for this pair", ["pair"])
+BOT_PAIR_SIGNAL = Gauge("bot_pair_signal", "Latest allocator signal for this pair", ["pair"])
+_METRICS_SERVER_STARTED = False
 
 
 @dataclass(slots=True)
@@ -130,6 +144,14 @@ class LiveRunner:
             self._release_live_pair_locks()
 
     def _initialize_runtime(self) -> None:
+        global _METRICS_SERVER_STARTED
+        if not _METRICS_SERVER_STARTED:
+            try:
+                start_http_server(8000)
+                _METRICS_SERVER_STARTED = True
+                self._emit_status("Prometheus metrics server started on port 8000.")
+            except Exception as exc:
+                self._emit_status(f"[WARNING] Failed to start Prometheus metrics server on port 8000: {exc}")
         if self.broker is None:
             self.broker = IBPaperBroker(self.config.ib)
         if self.logger is None:
@@ -1179,6 +1201,8 @@ class LiveRunner:
         open_risk_ratio = self._open_risk_ratio(state.position, quote_to_usd)
         unrealized_pnl = self._unrealized_pnl(state.position, close_price, quote_to_usd)
         equity = self.config.risk.initial_capital + self.realized_pnl + unrealized_pnl
+        BOT_EQUITY.set(equity)
+        BOT_REALIZED_PNL.set(self.realized_pnl)
         self.risk_overlay.update_equity(equity)
 
         if state.position is not None:
@@ -1392,11 +1416,23 @@ class LiveRunner:
         )
 
         current_unrealized = self._unrealized_pnl(state.position, close_price, quote_to_usd)
+        current_equity = self.config.risk.initial_capital + self.realized_pnl + current_unrealized
+        pair_realized_pnl = self._realized_pnl_for_pair(pair)
+        pair_position_size = float(state.position.size_units if state.position is not None else 0)
+        pair_equity = self.config.risk.initial_capital + pair_realized_pnl + current_unrealized
+        BOT_EQUITY.set(current_equity)
+        BOT_REALIZED_PNL.set(self.realized_pnl)
+        BOT_PAIR_EQUITY.labels(pair=pair).set(pair_equity)
+        BOT_PAIR_REALIZED_PNL.labels(pair=pair).set(pair_realized_pnl)
+        BOT_PAIR_UNREALIZED_PNL.labels(pair=pair).set(current_unrealized)
+        BOT_PAIR_OPEN_POSITION.labels(pair=pair).set(1 if state.position is not None else 0)
+        BOT_PAIR_POSITION_SIZE.labels(pair=pair).set(pair_position_size)
+        BOT_PAIR_SIGNAL.labels(pair=pair).set(composite.final_signal)
         self.equity_rows.append(
             {
                 "timestamp": timestamp,
                 "pair": pair,
-                "equity": self.config.risk.initial_capital + self.realized_pnl + current_unrealized,
+                "equity": current_equity,
                 "realized_pnl_usd": self.realized_pnl,
                 "unrealized_pnl_usd": current_unrealized,
                 "position_side": state.position.side if state.position else "Flat",
@@ -1413,6 +1449,9 @@ class LiveRunner:
     def _risk_config_for_pair(self, pair: str) -> RiskConfig:
         overrides = self.config.pair_specific_config.get(pair.upper(), {}).get("risk", {})
         return replace(self.config.risk, **overrides) if overrides else self.config.risk
+
+    def _realized_pnl_for_pair(self, pair: str) -> float:
+        return float(sum(trade.pnl_usd for trade in self.trades if trade.pair == pair))
 
     @staticmethod
     def _conversion_pairs_for_quote(quote: str) -> set[str]:
@@ -1757,6 +1796,7 @@ class LiveRunner:
         snapshot = dict(self.terminal_status_by_pair.get(pair, {}))
         if price is not None and price > 0:
             snapshot["price"] = float(price)
+            BOT_LIVE_PRICE.labels(pair=pair).set(float(price))
         if market_timestamp is not None:
             snapshot["market_timestamp"] = pd.Timestamp(market_timestamp)
         if bar_timestamp is not None:
@@ -1772,6 +1812,13 @@ class LiveRunner:
         if position is not None:
             snapshot["position"] = position
         self.terminal_status_by_pair[pair] = snapshot
+        pair_state = self.states.get(pair)
+        if pair_state is not None:
+            BOT_PAIR_OPEN_POSITION.labels(pair=pair).set(1 if pair_state.position is not None else 0)
+            BOT_PAIR_POSITION_SIZE.labels(pair=pair).set(float(pair_state.position.size_units if pair_state.position is not None else 0))
+        if signal is not None:
+            BOT_PAIR_SIGNAL.labels(pair=pair).set(float(signal))
+        BOT_OPEN_POSITIONS.set(sum(1 for state in self.states.values() if state.position is not None))
         if refresh_status_line:
             self._refresh_terminal_status_line()
 

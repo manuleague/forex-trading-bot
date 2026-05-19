@@ -1,0 +1,1 @@
+trade_id,position_type,step_type,timestamp,signal_reason,price,size,net_pnl_usd,net_pnl_pct,cumulative_pnl_usd,cumulative_pnl_pct,favorite_excursion_pct,adverse_excursion_pct
