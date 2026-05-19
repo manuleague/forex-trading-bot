@@ -762,6 +762,9 @@ class LiveRunner:
         price = self.broker.market_price(ticker)
         if price <= 0:
             return
+        state = self.states.get(pair)
+        if state is not None:
+            state.live_price = price
         self._update_terminal_status_snapshot(
             pair=pair,
             price=price,
@@ -850,6 +853,10 @@ class LiveRunner:
                             price = float(state.market_data.iloc[-1]["close"])
                     if price <= 0:
                         continue
+                    if price_from_ticker:
+                        state = self.states.get(pair)
+                        if state is not None:
+                            state.live_price = price
                     self._update_terminal_status_snapshot(
                         pair=pair,
                         price=price,

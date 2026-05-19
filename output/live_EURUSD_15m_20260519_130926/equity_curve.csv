@@ -1,0 +1,6 @@
+timestamp,pair,equity,realized_pnl_usd,unrealized_pnl_usd,position_side,regime,close,quote_to_usd
+2026-05-19 13:00:00+00:00,EURUSD,10000.0,0.0,0.0,Flat,range,1.161395,1.0
+2026-05-19 13:00:00+00:00,GBPUSD,10000.0,0.0,0.0,Flat,range,1.339755,1.0
+2026-05-19 13:00:00+00:00,USDJPY,10000.0,0.0,0.0,Flat,volatility_spike,159.143,0.006283656836932821
+2026-05-19 13:15:00+00:00,GBPUSD,10000.0,0.0,0.0,Flat,range,1.339035,1.0
+2026-05-19 13:15:00+00:00,USDJPY,10000.0,0.0,0.0,Flat,volatility_spike,159.1865,0.0062819397373521

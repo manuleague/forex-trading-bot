@@ -1,0 +1,2 @@
+timestamp,pair,action,size_units,order_type,status,price,order_id,details
+2026-05-19T13:30:03.390257+00:00,USDJPY,BUY,10000,MKT,Inactive,159.1865,16,"Error 201, reqId 16: Order rejected - reason:FX trade would expose account to currency leverage."

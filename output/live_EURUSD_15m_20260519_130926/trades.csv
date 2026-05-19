@@ -1,0 +1,1 @@
+trade_id,pair,side,entry_time,exit_time,entry_price,exit_price,size_units,pnl_quote,pnl_usd,pnl_pct,cumulative_pnl_usd,cumulative_pnl_pct,entry_reason,exit_reason,entry_regime,exit_regime,bars_held,max_favorable_excursion_pct,max_adverse_excursion_pct,commission_paid_usd,signal_strength,equity_at_entry,strategy_scores

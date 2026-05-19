@@ -217,6 +217,16 @@ class IBPaperBroker:
         if ticker is None:
             return 0.0
         try:
+            tick_by_ticks = getattr(ticker, "tickByTicks", None) or []
+            if tick_by_ticks:
+                latest_tick = tick_by_ticks[-1]
+                for attr in ("midPoint", "midpoint", "price"):
+                    value = float(getattr(latest_tick, attr, 0.0) or 0.0)
+                    if value > 0:
+                        return value
+        except Exception:
+            pass
+        try:
             market_price_fn = getattr(ticker, "marketPrice", None)
             if callable(market_price_fn):
                 value = float(market_price_fn() or 0.0)
