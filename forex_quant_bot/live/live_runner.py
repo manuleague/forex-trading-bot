@@ -147,11 +147,11 @@ class LiveRunner:
         global _METRICS_SERVER_STARTED
         if not _METRICS_SERVER_STARTED:
             try:
-                start_http_server(8000)
+                start_http_server(18000)
                 _METRICS_SERVER_STARTED = True
-                self._emit_status("Prometheus metrics server started on port 8000.")
+                self._emit_status("Prometheus metrics server started on port 18000.")
             except Exception as exc:
-                self._emit_status(f"[WARNING] Failed to start Prometheus metrics server on port 8000: {exc}")
+                self._emit_status(f"[WARNING] Failed to start Prometheus metrics server on port 18000: {exc}")
         if self.broker is None:
             self.broker = IBPaperBroker(self.config.ib)
         if self.logger is None:

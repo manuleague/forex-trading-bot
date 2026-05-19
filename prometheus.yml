@@ -5,4 +5,4 @@ scrape_configs:
   - job_name: "forex_quant_bot"
     static_configs:
       - targets:
-          - "host.docker.internal:8000"
+          - "host.docker.internal:18000"
