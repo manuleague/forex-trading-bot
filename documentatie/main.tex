@@ -110,9 +110,32 @@
 %% formatari listing
 \usepackage{listings}
 % https://www.overleaf.com/learn/latex/Code_listing
-%% pachetul minted formateaza/coloreaza sintaxa codului sursa, spre deosebire de pachetul listings care doar face bold pe sintaxa
-\usepackage[newfloat]{minted}
-% https://www.overleaf.com/learn/latex/Code_Highlighting_with_minted
+%% Pentru portabilitate pe MiKTeX/Overleaf fara -shell-escape, codul este randat cu listings.
+%% Pastrez un environment compatibil cu sintaxa \begin{minted}{python} folosita in template.
+\usepackage{newfloat}
+\DeclareFloatingEnvironment[
+    fileext=lol,
+    listname={Listă de coduri},
+    name=Cod
+]{listing}
+\lstnewenvironment{minted}[2][]{
+    \lstset{
+        language=#2,
+        basicstyle=\small\ttfamily,
+        numbers=left,
+        numberstyle=\tiny,
+        stepnumber=1,
+        numbersep=8pt,
+        breaklines=true,
+        columns=fullflexible,
+        keepspaces=true,
+        showstringspaces=false,
+        tabsize=2,
+        frame=none,
+        xleftmargin=1em,
+        #1
+    }
+}{}
 
 %% ==================================================================================================== %%
 %% Pachetele demo din template au fost dezactivate pentru forma de lucru/finala.

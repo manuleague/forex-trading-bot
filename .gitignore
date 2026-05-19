@@ -6,3 +6,15 @@
 
 # Virtual environments
 myenv/
+
+# LaTeX build artifacts
+documentatie/*.aux
+documentatie/*.bbl
+documentatie/*.blg
+documentatie/*.fdb_latexmk
+documentatie/*.fls
+documentatie/*.log
+documentatie/*.out
+documentatie/*.synctex*
+documentatie/*.toc
+documentatie/*.data.minted

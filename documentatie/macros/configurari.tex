@@ -157,9 +157,8 @@
 \makeatother
 
 %% configurari listing-uri de cod
-%% - pachet minted
 %% in loc de \begin{listing} {...} \end{listing} va fi folosit noul environment code: \begin{code} {...} \end{code}
-%% ceea ce permite ca \begin{minted} {...} \end{minted} sa fie in interiorul \begin{code} {...} \end{code}
+%% codul sursa este randat cu listings, printr-un environment compatibil numit minted.
 \newenvironment{code}{
     \captionsetup{
         type=listing,
@@ -169,23 +168,19 @@
     }
 }{\vspace{1.5em}}
 
-%% - font pentru numarul liniei din cod
-\renewcommand{\theFancyVerbLine}{
-    \fontfamily{pcr}\small \arabic{FancyVerbLine}
-}
-
-%% setarea globala a optiunilor pentru minted, pentru a nu fi scrise de fiecare data dupa \begin{minted}
-\setminted{
-    frame=none,
-    framesep=1mm,
-    linenos=true,
-    xleftmargin=1em,
+%% setari globale listings
+\lstset{
+    basicstyle=\small\ttfamily,
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=8pt,
+    breaklines=true,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
     tabsize=2,
-    fontfamily=courier,
-    autogobble,
-    breaklines,
-    fontsize=\small,
-    escapeinside=|| %pentru a putea ava cod latex inside minted (referi linii de cod)
+    frame=none,
+    xleftmargin=1em
 }
 
 %% afisare DOI ca link in bibliografie
