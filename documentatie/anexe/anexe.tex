@@ -26,20 +26,36 @@ Pentru modul live paper trading, aplicația se pornește după ce TWS sau IB Gat
 
 \begin{code}
 \begin{minted}{bash}
-python main.py --mode live --pairs EURUSD,GBPUSD --timeframe 5m \
-  --ib-port 7497 --client-id 17
+python main.py --mode live --pairs EURUSD,GBPUSD,USDJPY --timeframe 15m \
+  --ib-port 7497 --client-id 14
 \end{minted}
 \caption{Comandă pentru rularea în mod live paper}
 \label{code:anexa_live_command}
 \end{code}
 
-\newpage
+Pentru monitorizarea live se pornesc serviciile Prometheus și Grafana prin Docker Compose:
+
+\begin{code}
+\begin{minted}{bash}
+docker compose up -d
+\end{minted}
+\caption{Pornirea serviciilor de observabilitate}
+\label{code:anexa_observability_start}
+\end{code}
+
+Adresele utilizate pentru verificare sunt:
+\begin{itemize}
+    \item \texttt{http://localhost:18000/metrics} pentru metricile expuse de bot;
+    \item \texttt{http://localhost:39090/targets} pentru starea țintei Prometheus;
+    \item \texttt{http://localhost:33000} pentru interfața Grafana.
+\end{itemize}
+
 \section{Structura artefactelor generate}
 \label{anexa:artefacte}
 
 Fiecare rulare creează un director separat în \texttt{output}. Numele directorului include modul de rulare, perechea valutară, timeframe-ul, perioada testată și timestamp-ul rulării.
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Fișiere generate de o rulare de backtesting}
     \label{tabel:anexa_artefacte}
@@ -68,13 +84,12 @@ Fiecare rulare creează un director separat în \texttt{output}. Numele director
     \end{tabular}
 \end{table}
 
-\newpage
 \section{Parametri relevanți de configurare}
 \label{anexa:config}
 
 Aplicația folosește clase de configurare pentru strategii, risc, date, logare și broker. Parametrii principali ai componentei de risc sunt:
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Parametri de risc utilizați în proiect}
     \label{tabel:anexa_risc}
@@ -99,44 +114,6 @@ Aplicația folosește clase de configurare pentru strategii, risc, date, logare 
     \end{tabular}
 \end{table}
 
-\newpage
-\section{Checklist de verificare a cerințelor din ghid}
-\label{anexa:checklist_ghid}
-
-Tabelul următor sintetizează modul în care documentația respectă structura recomandată pentru proiectul de diplomă.
-
-\begin{table}[H]
-    \centering
-    \caption{Acoperirea cerințelor de structură}
-    \label{tabel:anexa_checklist_ghid}
-    \begin{tabular}{|p{5.2cm}|p{3cm}|p{5cm}|}
-        \hline
-        \textbf{Cerință} & \textbf{Status} & \textbf{Unde este acoperită} \\
-        \hline
-        Rezumat 150--250 cuvinte și cuvinte-cheie & Îndeplinit & Rezumat \\
-        \hline
-        Introducere cu context, obiective și metodologie & Îndeplinit & Capitolul 1 \\
-        \hline
-        Fundamentare teoretică și soluții similare & Îndeplinit & Capitolul 2 \\
-        \hline
-        Cerințe, arhitectură și implementare & Îndeplinit & Capitolul 3 \\
-        \hline
-        Algoritmi, pseudocod și formule & Îndeplinit & Capitolul 3 și Anexe \\
-        \hline
-        Testare, configurare, metrici și rezultate & Îndeplinit & Capitolul 4 \\
-        \hline
-        Fiabilitate, securitate și scalabilitate & Îndeplinit & Capitolul 4 \\
-        \hline
-        Concluzii și direcții viitoare & Îndeplinit & Capitolul 5 \\
-        \hline
-        Bibliografie IEEE & Îndeplinit & Bibliografie \\
-        \hline
-        Anexe cu comenzi, parametri și cod relevant & Îndeplinit & Anexe \\
-        \hline
-    \end{tabular}
-\end{table}
-
-\newpage
 \section{Fragment reprezentativ de flux decizional}
 \label{anexa:flux}
 
@@ -173,7 +150,6 @@ for event in BarReplay(market_data, warmup_bars=warmup_bars):
 \label{code:anexa_flux_decizie}
 \end{code}
 
-\newpage
 \section{Fragment reprezentativ pentru dimensionarea poziției}
 \label{anexa:position_size}
 

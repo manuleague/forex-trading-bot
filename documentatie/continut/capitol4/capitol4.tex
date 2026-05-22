@@ -1,12 +1,12 @@
 \chapter{Testarea aplicației și rezultate experimentale}
 \label{cap:cap4}
 
-Testarea aplicației a urmărit verificarea funcționării fluxului complet: instalare, încărcare date, calcul indicatori, generare semnale, aplicare risc, înregistrare tranzacții și raportare. Deoarece proiectul tratează un domeniu financiar, accentul nu este pus doar pe funcționarea tehnică a codului, ci și pe interpretarea rezultatelor și pe limitele acestora.
+Testarea aplicației a urmărit verificarea fluxului complet, de la instalarea dependențelor și încărcarea datelor, până la calculul indicatorilor, generarea semnalelor, aplicarea regulilor de risc, înregistrarea tranzacțiilor și raportarea rezultatelor. Deoarece proiectul aparține unui domeniu financiar, evaluarea nu se limitează la funcționarea tehnică a codului. Rezultatele trebuie interpretate împreună cu riscurile, limitările și condițiile în care au fost obținute.
 
 \section{Mediul de testare}
 \label{cap:cap4:mediu}
 
-Aplicația este dezvoltată în Python 3 și folosește dependențe listate în fișierul \texttt{requirements.txt}: \texttt{pandas}, \texttt{numpy}, \texttt{PyYAML}, \texttt{ib\_insync} și \texttt{dukascopy-python}. Instalarea se realizează prin:
+Aplicația este dezvoltată în Python 3 și folosește dependențe listate în fișierul \texttt{requirements.txt}: \texttt{pandas}, \texttt{numpy}, \texttt{PyYAML}, \texttt{ib\_insync}, \texttt{dukascopy-python} și \texttt{prometheus-client}. Instalarea se realizează prin:
 
 \begin{code}
 \begin{minted}{bash}
@@ -16,7 +16,7 @@ pip install -r requirements.txt
 \label{code:install}
 \end{code}
 
-Pentru rulările experimentale au fost folosite date istorice Forex păstrate local în \texttt{data\_cache}. Perechile analizate sunt EURUSD, GBPUSD și USDJPY, pe timeframe zilnic, în intervalul 2018-01-01 -- 2024-12-31. Capitalul inițial implicit este 10.000 USD, iar riscul per tranzacție este 1\%.
+Pentru rulările experimentale au fost folosite date istorice Forex păstrate local în \texttt{data\_cache}. Perechile analizate sunt EURUSD, GBPUSD și USDJPY, pe timeframe zilnic, în intervalul 2018-01-01 -- 2024-12-31. Capitalul inițial implicit este 10.000 USD, iar riscul per tranzacție este 1\%. Alegerea acestor perechi este justificată de faptul că sunt instrumente valutare majore, lichide și frecvent utilizate în testarea strategiilor Forex.
 
 \section{Punerea în funcțiune și configurarea aplicației}
 \label{cap:cap4:configurare}
@@ -35,7 +35,7 @@ Parametrii importanți pentru o rulare sunt:
     \item \texttt{--ib-port}: definește portul Interactive Brokers pentru modul live paper.
 \end{itemize}
 
-Această abordare face ca experimentele să fie ușor de reprodus. O comandă completă descrie explicit perechea, intervalul, timeframe-ul, riscul și directorul de ieșire, iar rezultatele sunt salvate separat pentru fiecare rulare.
+Această abordare face ca experimentele să fie ușor de reprodus. O comandă completă descrie explicit perechea, intervalul, timeframe-ul, riscul și directorul de ieșire, iar rezultatele sunt salvate separat pentru fiecare rulare. Astfel, fiecare experiment poate fi reluat și verificat în aceleași condiții, aspect esențial pentru o evaluare tehnică riguroasă.
 
 \section{Scenarii de test}
 \label{cap:cap4:scenarii}
@@ -93,7 +93,7 @@ Testarea modului live a fost tratată separat, deoarece depinde de TWS sau IB Ga
 
 Tabelul \ref{tabel:rezultate_backtest} sintetizează rezultatele generate de rapoartele \texttt{summary.txt} din directorul \texttt{output}.
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Rezultate backtesting pe timeframe zilnic, 2018--2024}
     \label{tabel:rezultate_backtest}
@@ -108,7 +108,7 @@ Tabelul \ref{tabel:rezultate_backtest} sintetizează rezultatele generate de rap
     \end{tabular}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.95\textwidth]{continut/capitol4/figuri/comparatie_rezultate_backtest.png}
     \caption{Comparație vizuală a rezultatelor de backtesting}
@@ -163,8 +163,8 @@ O comandă tipică este:
 
 \begin{code}
 \begin{minted}{bash}
-python main.py --mode live --pairs EURUSD,GBPUSD --timeframe 5m \
-  --ib-port 7497 --client-id 17
+python main.py --mode live --pairs EURUSD,GBPUSD,USDJPY --timeframe 15m \
+  --ib-port 7497 --client-id 14
 \end{minted}
 \caption{Exemplu de rulare în mod live paper}
 \label{code:live_run}
@@ -172,12 +172,30 @@ python main.py --mode live --pairs EURUSD,GBPUSD --timeframe 5m \
 
 Testarea live trebuie realizată exclusiv pe cont paper. Sistemul include protecții software, însă acestea nu elimină riscul operațional generat de configurări greșite, întreruperi de conexiune sau comportamente neprevăzute ale brokerului.
 
+\section{Monitorizare live cu Prometheus și Grafana}
+\label{cap:cap4:monitorizare_live}
+
+Pentru validarea comportamentului live a fost configurat un stack local de observabilitate format din Prometheus și Grafana. Botul rulează nativ pe Windows și expune metricile la adresa \texttt{localhost:18000/metrics}. Prometheus rulează într-un container Docker și accesează botul prin \texttt{host.docker.internal:18000}, iar Grafana se conectează la Prometheus prin adresa internă Docker \texttt{http://prometheus:9090}.
+
+Porturile publicate pe sistemul gazdă au fost schimbate față de valorile implicite pentru a evita conflictele cu alte aplicații locale. Astfel, Prometheus este accesibil în browser la \url{http://localhost:39090}, iar Grafana la \url{http://localhost:33000}. Verificarea minimă a monitorizării constă în:
+\begin{itemize}
+    \item verificarea endpoint-ului \url{http://localhost:18000/metrics};
+    \item confirmarea metricii \texttt{bot\_live\_price};
+    \item confirmarea metricilor per pereche pentru semnal și dimensiunea poziției;
+    \item verificarea paginii \url{http://localhost:39090/targets};
+    \item confirmarea stării \texttt{UP} pentru ținta Prometheus;
+    \item importarea dashboard-urilor Grafana din directorul \texttt{grafana/dashboards};
+    \item verificarea dashboard-urilor separate pentru EURUSD, GBPUSD și USDJPY.
+\end{itemize}
+
+Dashboard-urile afișează prețul live, semnalul allocatorului, starea poziției, dimensiunea poziției și P\&L-ul perechii. În perioadele în care botul nu deschide poziții, este normal ca panourile pentru P\&L și dimensiunea poziției să rămână la zero sau fără variație. Acest comportament indică faptul că sistemul este în starea \textit{Flat}, nu că monitorizarea este defectă.
+
 \section{Capturi și artefacte vizuale relevante}
 \label{cap:cap4:capturi}
 
 Pe lângă tabelele numerice, proiectul generează artefacte vizuale care pot fi folosite pentru analiză și pentru susținerea lucrării. Fișierul \texttt{dashboard.html} oferă o vedere agregată asupra performanței, iar \texttt{performance\_dashboard.svg} conține reprezentări grafice ale evoluției sistemului. Pentru forma finală a lucrării se recomandă includerea unei capturi din dashboard-ul celei mai reprezentative rulări, de exemplu USDJPY pe timeframe zilnic, deoarece acesta ilustrează cel mai clar funcționarea sistemului pe un scenariu profitabil.
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Artefacte vizuale recomandate pentru susținere}
     \label{tabel:artefacte_vizuale}
@@ -192,6 +210,10 @@ Pe lângă tabelele numerice, proiectul generează artefacte vizuale care pot fi
         \texttt{trades.csv} & Poate fi deschis în Excel pentru a arăta tranzacțiile generate și motivele de intrare/ieșire. \\
         \hline
         \texttt{risk\_overlay\_metrics.csv} & Demonstrează trasabilitatea deciziilor de risc și motivele respingerii semnalelor. \\
+        \hline
+        Captură Grafana pentru EURUSD/GBPUSD/USDJPY & Demonstrează observabilitatea live, separarea dashboard-urilor pe paritate și funcționarea Prometheus. \\
+        \hline
+        Captură Prometheus Targets & Demonstrează că endpoint-ul \texttt{host.docker.internal:18000} este colectat cu starea \texttt{UP}. \\
         \hline
     \end{tabular}
 \end{table}

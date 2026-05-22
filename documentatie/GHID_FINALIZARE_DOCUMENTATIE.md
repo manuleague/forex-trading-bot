@@ -6,13 +6,13 @@ Documentatia este organizata conform structurii din `Structura proiectului de di
 
 Compileaza `documentatie/main.tex`.
 
-Template-ul foloseste `minted`, deci este necesara compilare cu `-shell-escape`:
+Template-ul foloseste o mapare compatibila `minted` -> `listings`, deci nu este necesar `-shell-escape`:
 
 ```bash
-pdflatex -shell-escape main.tex
+pdflatex main.tex
 bibtex main
-pdflatex -shell-escape main.tex
-pdflatex -shell-escape main.tex
+pdflatex main.tex
+pdflatex main.tex
 ```
 
 ## Continut inclus
@@ -21,7 +21,7 @@ pdflatex -shell-escape main.tex
 - Capitolul 1: introducere, context, obiective, metodologie, structura.
 - Capitolul 2: fundamentare teoretica, solutii similare, lacune si cerinte derivate.
 - Capitolul 3: cerinte utilizator, cerinte functionale/nefunctionale, tehnologii, arhitectura, module, strategii, risc, live paper, algoritm.
-- Capitolul 4: instalare, configurare, scenarii, metrici, rezultate, risc, resurse, fiabilitate, securitate, scalabilitate, capturi recomandate.
+- Capitolul 4: instalare, configurare, scenarii, metrici, rezultate, risc, resurse, fiabilitate, securitate, scalabilitate, observabilitate Prometheus/Grafana, capturi recomandate.
 - Capitolul 5: concluzii, contributii personale, comparatie, directii viitoare.
 - Anexe: comenzi, artefacte, parametri, checklist, fragmente de cod.
 
@@ -39,3 +39,4 @@ pdflatex -shell-escape main.tex
 - Inlocuieste declaratia de autenticitate cu varianta semnata.
 - Compileaza PDF-ul final in Overleaf sau local cu MiKTeX/TeX Live.
 - Optional, adauga o captura reala din `dashboard.html` pentru rularea USDJPY.
+- Optional, adauga capturi Grafana pentru dashboard-urile EURUSD/GBPUSD/USDJPY si Prometheus Targets (`localhost:39090/targets`) daca profesorul cere dovada vizuala a monitorizarii live.

@@ -1,61 +1,61 @@
 \chapter{Fundamentarea teoretică și documentarea bibliografică}
 \label{cap:cap2}
 
-Tranzacționarea algoritmică reprezintă procesul prin care deciziile de cumpărare, vânzare sau menținere a unei poziții sunt generate automat pe baza unor reguli formale. În loc ca operatorul să interpreteze manual fiecare schimbare de preț, sistemul aplică aceeași logică asupra fiecărei bare de piață și produce decizii reproductibile. Literatura de specialitate subliniază importanța testării istorice și a controlului riscului, deoarece performanța unei strategii nu poate fi evaluată doar prin câteva exemple izolate \cite{book:chan:algo_trading}.
+Tranzacționarea algoritmică poate fi definită ca procesul prin care deciziile de cumpărare, vânzare sau menținere a unei poziții sunt generate automat, pe baza unor reguli formale. Spre deosebire de tranzacționarea discreționară, în care decizia depinde în mare măsură de interpretarea subiectivă a operatorului, un sistem algoritmic aplică aceeași logică asupra fiecărei observații disponibile. Această proprietate este importantă deoarece permite reproducerea rezultatelor și analiza obiectivă a comportamentului strategiei.
+
+În literatura de specialitate se subliniază faptul că o strategie de tranzacționare nu trebuie evaluată doar prin exemple izolate de tranzacții profitabile, ci printr-un proces riguros de testare, măsurare a riscului și verificare a robusteții \cite{book:chan:algo_trading}. În acest sens, proiectul de față tratează backtesting-ul, managementul riscului și raportarea rezultatelor ca elemente centrale, nu ca funcționalități secundare.
 
 \section{Piața Forex și datele OHLCV}
 \label{cap:cap2:forex}
 
-Forex este piața de schimb valutar, în care instrumentele sunt exprimate sub forma unor perechi, de exemplu EURUSD, GBPUSD sau USDJPY. Prima monedă este moneda de bază, iar a doua este moneda cotată. Prețul unei perechi arată câte unități din moneda cotată sunt necesare pentru o unitate din moneda de bază. Această structură impune atenție specială la calculul profitului și pierderii, mai ales când moneda cotată nu este USD.
+Piața Forex reprezintă piața globală de schimb valutar, în care instrumentele sunt exprimate sub forma unor perechi valutare, precum EURUSD, GBPUSD sau USDJPY. Prima monedă din pereche poartă denumirea de monedă de bază, iar a doua monedă este moneda cotată. Prețul perechii indică numărul de unități din moneda cotată necesare pentru a cumpăra o unitate din moneda de bază. Această structură influențează modul de calcul al profitului și pierderii, mai ales atunci când moneda cotată nu este USD.
 
-Datele utilizate de sistem sunt de tip OHLCV: preț de deschidere, maxim, minim, închidere și volum pentru un interval de timp. În proiect sunt suportate mai multe intervale, precum 1 minut, 5 minute, 1 oră, 4 ore, o zi și o săptămână. Pentru backtesting, ordinea cronologică a acestor bare este esențială. Dacă un algoritm ar folosi informații din viitor, rezultatele ar deveni nerealiste. Din acest motiv, componentele proiectului calculează indicatorii folosind doar date disponibile până la momentul curent.
+Datele utilizate în proiect sunt de tip OHLCV, adică includ prețul de deschidere, maximul, minimul, prețul de închidere și volumul pentru un interval de timp. Sistemul suportă mai multe granularități, de la intervale intraday până la timeframe-uri zilnice sau săptămânale. În contextul backtesting-ului, ordinea cronologică a acestor observații este esențială. Un algoritm care ar utiliza informații din viitor ar produce rezultate nerealiste, motiv pentru care toate componentele proiectului calculează indicatorii folosind doar date disponibile până la momentul curent.
 
 \section{Indicatori tehnici utilizați}
 \label{cap:cap2:indicatori}
 
-Strategiile implementate folosesc indicatori tehnici clasici, aleși pentru interpretabilitate și pentru compatibilitate cu date OHLCV.
+Strategiile implementate se bazează pe indicatori tehnici clasici, aleși pentru interpretabilitate și pentru compatibilitatea lor cu datele OHLCV. Scopul acestor indicatori nu este de a prezice perfect evoluția prețului, ci de a descrie anumite caracteristici ale pieței, precum direcția, volatilitatea sau poziționarea prețului față de o medie.
 
-\textit{Media mobilă exponențială} (EMA) acordă o pondere mai mare observațiilor recente și este folosită pentru identificarea direcției trendului. În strategia de trend sunt comparate o EMA rapidă și o EMA lentă, iar semnalul este validat suplimentar prin MACD și ADX.
+\textit{Media mobilă exponențială} (EMA) acordă o importanță mai mare observațiilor recente și este utilizată pentru identificarea direcției trendului. În strategia de trend, o EMA rapidă este comparată cu o EMA lentă, iar semnalul este confirmat suplimentar prin MACD și ADX.
 
-\textit{Relative Strength Index} (RSI) măsoară presiunea relativă de cumpărare sau vânzare. În strategia de revenire la medie, valori foarte mici ale RSI pot indica supravânzare, iar valori foarte mari pot indica supracumpărare.
+\textit{Relative Strength Index} (RSI) măsoară raportul dintre mișcările recente ascendente și descendente. În cadrul strategiei de revenire la medie, valorile foarte mici ale RSI pot indica o zonă de supravânzare, iar valorile foarte mari pot indica supracumpărare.
 
-\textit{Benzile Bollinger} definesc un canal statistic în jurul unei medii mobile. Apropierea prețului de banda inferioară sau superioară poate indica o abatere temporară față de nivelul mediu, utilă în regimuri de piață laterale.
+\textit{Benzile Bollinger} definesc un canal statistic în jurul unei medii mobile. Apropierea prețului de banda inferioară sau de banda superioară poate semnala o abatere temporară față de nivelul mediu, aspect util în regimuri de piață laterale.
 
-\textit{Canalele Donchian} folosesc maximele și minimele ultimelor bare pentru a detecta străpungeri. Într-un regim de volatilitate sau trend, depășirea canalului poate semnala continuarea mișcării.
+\textit{Canalele Donchian} utilizează maximele și minimele ultimelor bare pentru identificarea străpungerilor. Într-un regim de trend sau de volatilitate ridicată, depășirea canalului poate indica o posibilă continuare a mișcării.
 
-\textit{Average True Range} (ATR) estimează volatilitatea și este folosit atât pentru validarea semnalelor, cât și pentru dimensionarea stop-loss-ului și a poziției. Prin raportarea riscului la ATR, sistemul adaptează mărimea tranzacției la condițiile de piață.
+\textit{Average True Range} (ATR) estimează volatilitatea și este folosit atât pentru validarea semnalelor, cât și pentru dimensionarea stop-loss-ului și a poziției. Prin raportarea riscului la ATR, sistemul adaptează dimensiunea tranzacției la condițiile curente de piață.
 
-\textit{Average Directional Index} (ADX) este utilizat pentru estimarea forței trendului, iar exponentul Hurst este folosit ca indicator suplimentar pentru caracterul persistent sau oscilant al seriilor de preț.
+\textit{Average Directional Index} (ADX) este utilizat pentru evaluarea forței trendului, iar exponentul Hurst oferă o perspectivă suplimentară asupra caracterului persistent sau oscilant al seriei de preț.
 
 \section{Regimuri de piață}
 \label{cap:cap2:regimuri}
 
-Un sistem care aplică aceeași strategie în toate condițiile de piață poate avea performanțe instabile. Proiectul clasifică fiecare bară într-un regim de piață: \textit{trend\_up}, \textit{trend\_down}, \textit{range} sau \textit{volatility\_spike}. Clasificarea se bazează pe ADX, ATR, z-score-ul volatilității, Hurst și poziția prețului față de o medie mobilă.
+Un sistem de tranzacționare care aplică aceeași logică în toate condițiile de piață poate avea performanțe instabile. Piața poate evolua direcțional, lateral sau poate traversa perioade de volatilitate ridicată. Din acest motiv, proiectul clasifică fiecare bară într-un regim de piață: \textit{trend\_up}, \textit{trend\_down}, \textit{range} sau \textit{volatility\_spike}. Clasificarea se bazează pe indicatori precum ADX, ATR, z-score-ul volatilității, exponentul Hurst și poziția prețului față de o medie mobilă.
 
-Această clasificare permite strategiilor să fie activate doar în condițiile pentru care au fost concepute. Strategia de trend este relevantă în regimuri \textit{trend\_up} și \textit{trend\_down}; revenirea la medie este relevantă mai ales în \textit{range}; iar breakout-ul are sens în trend sau în episoade de volatilitate ridicată.
+Această clasificare permite activarea strategiilor în condițiile pentru care au fost proiectate. Strategia de trend este relevantă în regimuri direcționale, strategia de revenire la medie este mai potrivită pentru piețe laterale, iar strategia de breakout devine utilă atunci când volatilitatea crește sau când prețul depășește intervale recente importante.
 
 \section{Backtesting și riscul de supraoptimizare}
 \label{cap:cap2:backtesting}
 
-Backtesting-ul simulează aplicarea unei strategii pe date istorice. Acesta este indispensabil pentru evaluarea inițială, dar nu garantează rezultate viitoare. O problemă frecventă este supraoptimizarea, situație în care parametrii sunt ajustați excesiv pentru un set istoric, iar strategia nu mai generalizează pe date noi. Bailey et al. discută acest risc și arată că evaluarea unei strategii trebuie realizată cu prudență, ținând cont de numărul de încercări și de stabilitatea rezultatelor \cite{art:bailey:backtest}.
+Backtesting-ul reprezintă simularea aplicării unei strategii pe date istorice. Acesta este un pas necesar în evaluarea inițială a unei strategii, dar nu constituie o garanție pentru performanța viitoare. O problemă frecventă este supraoptimizarea, adică ajustarea excesivă a parametrilor pentru un set istoric particular. Într-o astfel de situație, strategia poate obține rezultate bune pe perioada testată, dar poate eșua atunci când este aplicată pe date noi. Bailey et al. evidențiază necesitatea unei evaluări prudente, mai ales atunci când sunt testate multe variante ale aceleiași strategii \cite{art:bailey:backtest}.
 
-Pentru proiectul curent, backtesting-ul este construit determinist: datele sunt încărcate din cache local, fiecare bară este procesată o singură dată, iar artefactele rezultate sunt salvate într-un director timestamped. Această abordare permite reluarea experimentelor și verificarea tranzacțiilor generate.
+În cadrul proiectului, backtesting-ul este construit determinist. Datele sunt încărcate din cache local, fiecare bară este procesată o singură dată, iar rezultatele sunt salvate într-un director dedicat. Această abordare permite reluarea experimentelor și verificarea tranzacțiilor generate, aspect important pentru o lucrare tehnică în care rezultatele trebuie să poată fi justificate.
 
 \section{Managementul riscului}
 \label{cap:cap2:risc}
 
-Managementul riscului are un rol central în sistemele de tranzacționare. O strategie cu semnale corecte poate produce pierderi mari dacă mărimea pozițiilor este necontrolată. În proiect, fiecare intrare este verificată de o componentă de risc care ține cont de capital, volatilitate, expunere totală și drawdown.
+Managementul riscului are un rol central în sistemele de tranzacționare. O strategie poate genera semnale corecte din punct de vedere tehnic, dar poate produce pierderi semnificative dacă dimensiunea pozițiilor nu este controlată. În proiect, fiecare intrare este validată de o componentă de risc independentă, care ține cont de capitalul disponibil, volatilitate, expunere totală și drawdown.
 
-Regula implicită riscă 1\% din capital pentru o tranzacție, iar expunerea totală este limitată. Stop-loss-ul este calculat ca multiplu de ATR, iar take-profit-ul folosește, la rândul său, o distanță adaptată volatilității. Sistemul include și protecții de tip break-even și trailing stop. Dacă drawdown-ul depășește pragul configurat, componenta de risc dezactivează temporar tranzacționarea până când se îndeplinesc condițiile de recuperare.
+Regula implicită presupune riscul a 1\% din capital pentru o tranzacție, iar expunerea totală este limitată. Stop-loss-ul este calculat ca multiplu de ATR, iar take-profit-ul utilizează o distanță adaptată volatilității. Sistemul include, de asemenea, mecanisme de protecție precum break-even, trailing stop și circuit breaker. Dacă drawdown-ul depășește pragul configurat, tranzacționarea este dezactivată temporar, pentru a preveni acumularea rapidă a pierderilor.
 
 \section{Soluții similare și poziționarea proiectului}
 \label{cap:cap2:solutii}
 
-Există numeroase platforme comerciale și open-source pentru tranzacționare algoritmică, de la scripturi simple pentru MetaTrader până la framework-uri extinse pentru analiză multi-asset. Multe dintre acestea oferă conectare la brokeri, backtesting și optimizare, însă pot avea limitări privind transparența codului, flexibilitatea configurării sau costurile de utilizare.
+Există numeroase soluții pentru tranzacționare algoritmică, de la platforme comerciale consacrate până la framework-uri open-source pentru cercetare cantitativă. Platformele integrate, precum MetaTrader, oferă conectare directă la broker și un ecosistem matur, însă pot introduce dependențe de platformă, de limbajul specific și de calitatea infrastructurii brokerului. Framework-urile Python, precum Backtrader sau Zipline, sunt flexibile și potrivite pentru cercetare, dar necesită adesea adaptări pentru integrare live, raportare și gestionarea particularităților pieței Forex. Platformele cloud, precum QuantConnect, reduc efortul operațional, dar introduc dependențe externe și costuri suplimentare.
 
-O categorie importantă este reprezentată de platformele integrate, precum MetaTrader, care permit dezvoltarea de roboți de tranzacționare și rularea lor directă în terminalul brokerului. Aceste platforme sunt accesibile pentru utilizatorii finali, dar logica de testare, calitatea datelor și portabilitatea pot depinde puternic de ecosistemul brokerului. O altă categorie este reprezentată de framework-urile Python pentru cercetare cantitativă, precum Backtrader sau Zipline, care oferă motoare de backtesting generale. Acestea sunt utile pentru prototipare, dar adesea necesită adaptări pentru integrarea cu brokeri, pentru gestionarea perechilor valutare și pentru raportarea exactă dorită într-un proiect restrâns. Există și platforme cloud, cum ar fi QuantConnect sau servicii de tip API brokerage, care reduc efortul operațional, dar introduc dependențe de infrastructură externă și de politici comerciale.
-
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Comparație între tipuri de soluții pentru tranzacționare algoritmică}
     \label{tabel:comparatie_solutii}
@@ -63,20 +63,20 @@ O categorie importantă este reprezentată de platformele integrate, precum Meta
         \hline
         \textbf{Soluție} & \textbf{Avantaje} & \textbf{Limitări} & \textbf{Poziționarea proiectului} \\
         \hline
-        MetaTrader / roboți Expert Advisor & Integrare directă cu brokeri, interfață matură, ecosistem larg. & Dependență de platformă, limbaj specific, control mai redus asupra pipeline-ului de cercetare. & Proiectul oferă cod Python transparent și flux ușor de auditat. \\
+        MetaTrader / roboți Expert Advisor & Integrare directă cu brokeri, interfață matură, ecosistem larg. & Dependență de platformă, limbaj specific, control mai redus asupra fluxului de cercetare. & Proiectul oferă cod Python transparent și ușor de auditat. \\
         \hline
         Framework-uri Python de backtesting & Flexibilitate, biblioteci numerice mature, potrivite pentru cercetare. & Necesită integrare separată cu brokeri și raportare personalizată. & Proiectul include atât backtesting, cât și integrare paper cu Interactive Brokers. \\
         \hline
-        Platforme cloud de trading algoritmic & Infrastructură administrată, date și execuție integrate. & Costuri, dependență de furnizor, control mai redus asupra mediului local. & Proiectul rulează local, cu date cache-uite și rezultate reproductibile. \\
+        Platforme cloud de trading algoritmic & Infrastructură administrată, date și execuție integrate. & Costuri, dependență de furnizor și control mai redus asupra mediului local. & Proiectul rulează local, cu date cache-uite și rezultate reproductibile. \\
         \hline
         Scripturi simple de semnalizare & Ușor de implementat și modificat. & Lipsă de arhitectură, risc slab controlat, raportare incompletă. & Proiectul separă datele, strategiile, riscul, execuția și raportarea. \\
         \hline
     \end{tabular}
 \end{table}
 
-Soluția propusă se poziționează ca un proiect educațional și experimental, concentrat pe claritatea fluxului de decizie. Sistemul nu urmărește execuție de frecvență înaltă, ci evaluarea riguroasă a strategiilor pe perechi Forex și generarea de rapoarte ușor de interpretat. Integrarea live este limitată la paper trading, ceea ce o face potrivită pentru validare și învățare, nu pentru utilizare financiară fără supraveghere.
+Soluția propusă se poziționează ca un proiect educațional și experimental, orientat către claritatea fluxului decizional. Sistemul nu urmărește execuție de frecvență înaltă și nu promite profitabilitate, ci oferă un cadru prin care strategiile pot fi evaluate, comparate și documentate. Valoarea principală a proiectului constă în faptul că fiecare etapă a deciziei poate fi urmărită: de la datele de intrare, până la semnal, validarea riscului și rezultatul final al tranzacției.
 
-Lacuna pe care proiectul o urmărește este lipsa unei soluții compacte, ușor de inspectat, care să combine într-un singur cod sursă: descărcare și cache de date Forex, backtesting determinist, mai multe strategii complementare, allocator explicabil, management de risc independent și export de artefacte pentru analiză. Din acest motiv, accentul nu este pus pe numărul de indicatori sau pe promisiunea profitabilității, ci pe trasabilitatea deciziilor și pe posibilitatea de a justifica fiecare rezultat obținut.
+Lacuna pe care proiectul o acoperă este lipsa unei soluții compacte, ușor de inspectat, care să combine într-un singur cod sursă descărcarea și cache-ul datelor Forex, backtesting determinist, strategii complementare, allocator explicabil, management de risc independent, integrare paper trading și export de artefacte pentru analiză.
 
 \section{Cerințe derivate}
 \label{cap:cap2:cerinte}
@@ -88,5 +88,6 @@ Din analiza domeniului rezultă următoarele cerințe pentru aplicație:
     \item decizia finală trebuie să fie explicabilă prin scorurile strategiilor participante;
     \item riscul trebuie aplicat înainte de deschiderea fiecărei poziții;
     \item rezultatele trebuie salvate în formate care permit auditarea tranzacțiilor;
-    \item modul live trebuie să includă protecții împotriva rulării accidentale pe conturi reale.
+    \item modul live trebuie să includă protecții împotriva rulării accidentale pe conturi reale;
+    \item monitorizarea live trebuie să ofere vizibilitate asupra prețurilor, semnalelor, pozițiilor și performanței curente.
 \end{itemize}

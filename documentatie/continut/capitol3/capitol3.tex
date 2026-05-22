@@ -1,16 +1,18 @@
 \chapter{Soluția propusă}
 \label{cap:cap3}
 
-Soluția propusă este o aplicație Python modulară pentru tranzacționare algoritmică Forex. Proiectul are două moduri principale de funcționare: \textit{backtest}, pentru simularea strategiilor pe date istorice, și \textit{live}, pentru paper trading prin Interactive Brokers. În ambele moduri, deciziile sunt generate prin același nucleu logic: datele sunt pregătite, este detectat regimul de piață, strategiile produc semnale, allocatorul agregă semnalele, iar componenta de risc decide dacă o poziție poate fi deschisă.
+Soluția propusă este o aplicație Python modulară pentru tranzacționare algoritmică pe piața Forex. Proiectul a fost conceput astfel încât aceeași logică decizională să poată fi utilizată atât în testarea istorică, cât și în rularea live controlată. Cele două moduri principale de funcționare sunt \textit{backtest}, pentru simularea strategiilor pe date istorice, și \textit{live}, pentru paper trading prin Interactive Brokers.
+
+În ambele cazuri, deciziile sunt generate printr-un flux comun: datele sunt pregătite, este identificat regimul de piață, strategiile produc semnale, allocatorul agregă aceste semnale, iar componenta de risc stabilește dacă poziția propusă poate fi deschisă. Această organizare reduce duplicarea logicii și permite compararea mai coerentă între rezultatele obținute în backtesting și comportamentul observat în rularea live.
 
 \section{Cerințe funcționale și nefuncționale}
 \label{cap:cap3:cerinte}
 
-Aplicația trebuie să permită rularea unui backtest pentru o pereche valutară, un interval de timp, o dată de început și o dată de final. Utilizatorul poate configura capitalul inițial, riscul pe tranzacție, slippage-ul, directorul de cache și directorul de ieșire. Sistemul trebuie să descarce sau să reutilizeze date istorice, să genereze tranzacții simulate și să salveze rezultatele.
+Aplicația trebuie să permită rularea unui backtest pentru o pereche valutară, un interval de timp, o dată de început și o dată de final. Utilizatorul poate configura capitalul inițial, riscul pe tranzacție, slippage-ul, directorul de cache și directorul de ieșire. Din punct de vedere funcțional, sistemul trebuie să poată descărca sau reutiliza date istorice, să genereze tranzacții simulate și să salveze rezultatele într-o formă care poate fi verificată ulterior.
 
 Pentru modul live, aplicația trebuie să se conecteze la TWS sau IB Gateway în regim paper trading, să monitorizeze perechile selectate și să trimită ordine de piață doar dacă toate filtrele sunt îndeplinite. O cerință importantă este prevenirea utilizării accidentale a unui cont real; de aceea configurația implicită acceptă doar porturile paper 7497 și 4002.
 
-Cerințele nefuncționale urmăresc reproductibilitatea, modularitatea și trasabilitatea. Backtest-ul trebuie să poată fi reluat cu aceiași parametri, iar rezultatele trebuie să includă fișiere separate pentru tranzacții, curba capitalului, metrici de risc, metrici de strategie și sumar text.
+Cerințele nefuncționale urmăresc reproductibilitatea, modularitatea și trasabilitatea. Backtest-ul trebuie să poată fi reluat cu aceiași parametri, iar rezultatele trebuie să includă fișiere separate pentru tranzacții, curba capitalului, metrici de risc, metrici de strategie și sumar text. Aceste cerințe au fost formulate pentru ca aplicația să poată fi analizată nu doar ca prototip funcțional, ci și ca sistem tehnic documentabil.
 
 \subsection{Cerințe ale utilizatorului}
 \label{cap:cap3:cerinte_utilizator}
@@ -30,7 +32,7 @@ Utilizatorul țintă al aplicației este o persoană care dorește să testeze s
 \subsection{Cerințe funcționale detaliate}
 \label{cap:cap3:cerinte_functionale}
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Cerințe funcționale ale sistemului}
     \label{tabel:cerinte_functionale}
@@ -52,13 +54,15 @@ Utilizatorul țintă al aplicației este o persoană care dorește să testeze s
         \hline
         CF7 & Sistemul permite conectarea la Interactive Brokers doar în regim paper trading. & Ridicată \\
         \hline
+        CF8 & Sistemul expune metrici live pentru monitorizare prin Prometheus și vizualizare în Grafana. & Medie \\
+        \hline
     \end{tabular}
 \end{table}
 
 \subsection{Cerințe nefuncționale detaliate}
 \label{cap:cap3:cerinte_nefunctionale}
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Cerințe nefuncționale ale sistemului}
     \label{tabel:cerinte_nefunctionale}
@@ -76,17 +80,19 @@ Utilizatorul țintă al aplicației este o persoană care dorește să testeze s
         \hline
         CNF5 & Erorile de conexiune live trebuie tratate prin mesaje clare și reconectare controlată. & Fiabilitate \\
         \hline
+        CNF6 & Serviciile auxiliare de monitorizare trebuie să poată rula pe porturi non-default pentru evitarea conflictelor locale. & Operabilitate \\
+        \hline
     \end{tabular}
 \end{table}
 
 \section{Alegerea tehnologiilor}
 \label{cap:cap3:tehnologii}
 
-Implementarea a fost realizată în Python deoarece limbajul are un ecosistem matur pentru analiză de date, integrare cu API-uri externe și prototipare rapidă. Bibliotecile \texttt{pandas} și \texttt{NumPy} sunt utilizate pentru prelucrarea seriilor de timp, calculul indicatorilor și agregarea rezultatelor. \texttt{PyYAML} permite separarea parametrilor de configurare de codul sursă, iar \texttt{dukascopy-python} asigură accesul la date istorice Forex. Pentru modul live, \texttt{ib\_insync} oferă o interfață Python peste API-ul Interactive Brokers.
+Implementarea a fost realizată în Python deoarece limbajul are un ecosistem matur pentru analiză de date, integrare cu API-uri externe și prototipare rapidă. Bibliotecile \texttt{pandas} și \texttt{NumPy} sunt utilizate pentru prelucrarea seriilor de timp, calculul indicatorilor și agregarea rezultatelor. \texttt{PyYAML} permite separarea parametrilor de configurare de codul sursă, iar \texttt{dukascopy-python} asigură accesul la date istorice Forex. Pentru modul live, \texttt{ib\_insync} oferă o interfață Python peste API-ul Interactive Brokers. Monitorizarea live utilizează \texttt{prometheus-client}, Prometheus, Grafana și Docker Compose pentru colectarea, stocarea și vizualizarea metricilor operaționale \cite{misc:web:prometheus_docs,misc:web:grafana_docs,misc:web:docker_compose_docs}.
 
 Alegerea unei aplicații de tip CLI, în locul unei interfețe grafice, este justificată de caracterul experimental al proiectului. Parametrii pot fi salvați în comenzi reproductibile, rulările pot fi automatizate, iar rezultatele sunt persistate în fișiere. Pentru documentare s-a folosit LaTeX, deoarece permite structurarea riguroasă a capitolelor, numerotarea automată a figurilor și tabelelor, bibliografie IEEE și integrarea fragmentelor de cod.
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Tehnologii utilizate și rolul acestora}
     \label{tabel:tehnologii}
@@ -102,6 +108,10 @@ Alegerea unei aplicații de tip CLI, în locul unei interfețe grafice, este jus
         \hline
         Interactive Brokers & Broker pentru paper trading & Permite testare operațională fără expunere financiară reală. \\
         \hline
+        Prometheus / Grafana & Observabilitate live & Colectează metrici expuse de bot și le afișează în dashboard-uri per paritate. \\
+        \hline
+        Docker Compose & Orchestrare locală monitorizare & Pornește Prometheus și Grafana izolat de mediul Python al botului. \\
+        \hline
         CSV / HTML / SVG & Formate de raportare & Ușor de inspectat, arhivat și analizat ulterior. \\
         \hline
         LaTeX & Documentație tehnică & Potrivit pentru lucrări academice, bibliografie și figuri numerotate. \\
@@ -114,7 +124,7 @@ Alegerea unei aplicații de tip CLI, în locul unei interfețe grafice, este jus
 
 Figura \ref{fig:arhitectura_sistem} prezintă arhitectura generală a sistemului. Aplicația este organizată în module cu responsabilități clare: interfață CLI, configurare, date, strategii, nucleu decizional, backtesting, live trading și raportare.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.95\textwidth]{coperti/arhitectura_sistem.png}
     \caption{Arhitectura sistemului de tranzacționare algoritmică}
@@ -160,7 +170,7 @@ Datele și deciziile importante sunt reprezentate prin clase de tip \texttt{data
 
 Prin aceste structuri, sistemul păstrează o separare clară între semnal, decizie de risc, poziție și rezultat final. Această separare ajută la auditarea rulărilor: dacă o tranzacție este respinsă, motivul se regăsește în decizia de risc; dacă o tranzacție este deschisă, motivul semnalului se păstrează în înregistrarea poziției și apoi în fișierul \texttt{trades.csv}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.95\textwidth]{continut/capitol3/figuri/pipeline_strategii.png}
     \caption{Pipeline-ul decizional al strategiilor}
@@ -172,7 +182,7 @@ Prin aceste structuri, sistemul păstrează o separare clară între semnal, dec
 
 Pentru o lucrare de diplomă, este important ca cerințele formulate să poată fi urmărite până la componentele implementate. Tabelul \ref{tabel:trasabilitate_cerinte} sintetizează această legătură și arată unde se regăsesc elementele tehnice esențiale în proiect.
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Trasabilitatea cerințelor către modulele implementate}
     \label{tabel:trasabilitate_cerinte}
@@ -213,7 +223,7 @@ Motorul verifică existența datelor în directorul \texttt{data\_cache}. Dacă 
 
 Procesarea se face bară cu bară. Pentru fiecare moment, motorul actualizează poziția curentă, verifică stop-loss-ul și take-profit-ul, evaluează strategiile și transmite semnalul compus către componenta de risc. Dacă riscul este aprobat, este creată o poziție nouă. Dacă există deja o poziție, aceasta poate fi închisă prin stop, take-profit, trailing stop, break-even sau semnal opus.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.95\textwidth]{continut/capitol3/figuri/flux_backtesting.png}
     \caption{Fluxul de backtesting determinist}
@@ -231,7 +241,7 @@ Sistemul include trei strategii complementare.
 
 \textit{Strategia de breakout} folosește canale Donchian și ATR. Ea caută închideri peste maximul canalului sau sub minimul canalului anterior, dar acceptă tranzacții doar când volatilitatea este suficient de ridicată. Această strategie este potrivită pentru trenduri și pentru episoade de creștere bruscă a volatilității.
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Rezumatul strategiilor implementate}
     \label{tabel:strategii_rezumat}
@@ -279,7 +289,7 @@ Formula \eqref{eq:position_size} este limitată suplimentar de expunerea maximă
 
 Regulile de risc nu sunt tratate ca o extensie a strategiilor, ci ca o componentă independentă. Această decizie de proiectare reduce riscul ca o strategie să își suprascrie propriile protecții și permite verificarea uniformă a tuturor semnalelor. De exemplu, indiferent dacă semnalul provine din trend sau din breakout, intrarea poate fi respinsă pentru volatilitate insuficientă, lichiditate anormală, expunere prea mare sau circuit breaker activ.
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
     \caption{Motive posibile de respingere a unei intrări}
     \label{tabel:motive_respingere_risc}
@@ -309,12 +319,21 @@ Modul live folosește Interactive Brokers prin biblioteca \textit{ib\_insync}. L
 
 Sistemul include mecanisme operaționale importante: lock-uri locale pentru a preveni rularea mai multor procese pe aceeași pereche și același cont, heartbeat pentru conexiunea Interactive Brokers, detectarea lipsei de actualizări și reconectare automată. Aceste mecanisme nu garantează absența riscului operațional, dar cresc robustețea în mediu paper.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.95\textwidth]{continut/capitol3/figuri/flux_live_paper.png}
     \caption{Fluxul de rulare live paper prin Interactive Brokers}
     \label{fig:flux_live_paper}
 \end{figure}
+
+\section{Observabilitate în timp real}
+\label{cap:cap3:observabilitate}
+
+Pentru modul live, proiectul include un mecanism de observabilitate bazat pe Prometheus și Grafana. Botul pornește local un server HTTP de metrici pe portul \texttt{18000}, iar Prometheus colectează valorile la un interval de 5 secunde prin ținta \texttt{host.docker.internal:18000}. Grafana citește datele din Prometheus și prezintă dashboard-uri separate pentru EURUSD, GBPUSD și USDJPY.
+
+Au fost definite metrici globale și metrici pe pereche valutară. Metricile globale urmăresc capitalul curent, profitul/pierderea realizată și numărul total de poziții deschise. Metricile etichetate cu \texttt{pair} urmăresc prețul live, semnalul allocatorului, poziția deschisă, dimensiunea poziției și P\&L-ul realizat/nerealizat pentru fiecare paritate. Această separare permite analiza independentă a fiecărei perechi, fără amestecarea seriilor într-un singur grafic.
+
+Serviciile de monitorizare rulează prin Docker Compose pe porturi non-default, pentru a evita conflictele cu alte aplicații locale: Grafana este expusă în browser la \texttt{localhost:33000}, Prometheus la \texttt{localhost:39090}, iar exporter-ul botului la \texttt{localhost:18000/metrics}. În interiorul rețelei Docker, Grafana accesează Prometheus prin adresa \texttt{http://prometheus:9090}, deoarece acesta este portul intern al containerului, nu portul publicat pe sistemul gazdă.
 
 \section{Artefacte generate}
 \label{cap:cap3:artefacte}
@@ -334,7 +353,7 @@ Fiecare rulare generează un director în \texttt{output}. Artefactele principal
 \section{Algoritmul general}
 \label{cap:cap3:algoritm}
 
-\begin{algorithm}[H]
+\begin{algorithm}[htbp]
     \caption{Fluxul decizional al sistemului}
     \label{alg:flux_decizional}
     \begin{algorithmic}[1]

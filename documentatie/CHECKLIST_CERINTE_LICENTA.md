@@ -20,6 +20,7 @@ Verificare dupa documentul `Structura proiectului de diploma v1.0.pdf`.
 | Testare si punere in functiune | Inclus | Capitolul 4 |
 | Parametri de configurare si instalare | Inclus | Capitolul 4 + Anexe |
 | Metrici, benchmarks, rezultate experimentale | Inclus | Capitolul 4 |
+| Observabilitate live Prometheus/Grafana | Inclus | Capitolul 3, Capitolul 4, Anexe |
 | Grafice/tabele cu rezultate | Inclus | Capitolul 4 |
 | Fiabilitate, securitate, scalabilitate | Inclus | Capitolul 4 |
 | Capturi/artefacte vizuale relevante | Inclus | Capitolul 4 |
@@ -32,4 +33,5 @@ Verificare dupa documentul `Structura proiectului de diploma v1.0.pdf`.
 
 - Pentru predare trebuie compilat PDF-ul final.
 - Daca profesorul cere dovada vizuala din aplicatie, adauga o captura reala din `output/.../dashboard.html`.
+- Pentru observabilitate live, capturile recomandate sunt Grafana pe `localhost:33000` si Prometheus Targets pe `localhost:39090/targets`.
 - Inlocuieste declaratia de autenticitate cu varianta semnata, daca este ceruta.

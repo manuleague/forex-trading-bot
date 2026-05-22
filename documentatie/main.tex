@@ -93,6 +93,10 @@
 \usepackage{caption}
 %% pozitionare float-uri (figuri/tabele/etc)
 \usepackage{float}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
 %% pentru tabele pe mai multe pagini
 \usepackage{longtable}	
 %% pentru tabele cu celule cu mai multe linii
@@ -113,6 +117,10 @@
 %% Pentru portabilitate pe MiKTeX/Overleaf fara -shell-escape, codul este randat cu listings.
 %% Pastrez un environment compatibil cu sintaxa \begin{minted}{python} folosita in template.
 \usepackage{newfloat}
+\definecolor{codeKeyword}{RGB}{0,112,32}
+\definecolor{codeString}{RGB}{163,21,21}
+\definecolor{codeComment}{RGB}{92,99,112}
+\definecolor{codeIdentifier}{RGB}{30,41,59}
 \DeclareFloatingEnvironment[
     fileext=lol,
     listname={Listă de coduri},
@@ -121,7 +129,10 @@
 \lstnewenvironment{minted}[2][]{
     \lstset{
         language=#2,
-        basicstyle=\small\ttfamily,
+        basicstyle=\small\ttfamily\bfseries\color{codeIdentifier},
+        keywordstyle=\bfseries\color{codeKeyword},
+        stringstyle=\color{codeString},
+        commentstyle=\itshape\color{codeComment},
         numbers=left,
         numberstyle=\tiny,
         stepnumber=1,
@@ -155,31 +166,31 @@
 \begin{document}
 
 %% elimin header si footer pentru coperti si paginile de cuprins/rezumat
-%% \cleardoublepage se inseraza pentru a lasa pagina "verso" libera (pentru versiunile listate
+%% \clearpage este folosit pentru a evita paginile goale mari in varianta digitala a lucrarii.
     \pagestyle{empty}
     {
         %% coperta externa
         \input{coperti/extern}
-        \cleardoublepage
+        \clearpage
     
         %% coperta interna
         \input{coperti/intern}
-        \cleardoublepage
+        \clearpage
     
         %% absolventii de master vor inlocui "declaratie_autenticitate_diploma" cu "declaratie_autenticitate_disertatie"
         \includepdf[pages=1, scale=1]{pdf/declaratie_autenticitate_diploma}
-        \cleardoublepage
+        \clearpage
         
         %% cuprins
         \renewcommand{\thispagestyle}[1]{}
         \setcounter{tocdepth}{4}
         \setcounter{secnumdepth}{4}
         \tableofcontents
-        \cleardoublepage
+        \clearpage
         
         %%rezumat
         \input{continut/rezumat}
-        \cleardoublepage
+        \clearpage
     }
     
     %% reset numerotare pagini
@@ -189,30 +200,30 @@
     \input{macros/configurari}
     
     %% *************** continutul efectiv al lucrarii ***************
-    %% dupa fiecare capitol, in main.tex este introdus \cleardoublepage pentru ca fiecare capitol nou sa inceapa pe pagina impara
+    %% dupa fiecare capitol, in main.tex este introdus \clearpage pentru separare fara pagini goale.
     \input{continut/capitol1/capitol1}
-    \cleardoublepage
+    \clearpage
 
     \input{continut/capitol2/capitol2}
-    \cleardoublepage
+    \clearpage
 
     \input{continut/capitol3/capitol3}
-    \cleardoublepage
+    \clearpage
 
     \input{continut/capitol4/capitol4}
-    \cleardoublepage
+    \clearpage
 
     \input{continut/capitol5/capitol5}
-    \cleardoublepage
+    \clearpage
     % *************** referinte bibliografice ***************
     \bibliographystyle{IEEEtran}
     \bibliography{bibliografie/bibliografie}
-    \cleardoublepage
+    \clearpage
     
     % *************** anexe ***************
     %% config anexe
     \input{macros/config_anexe}
     \input{anexe/anexe}
-    \cleardoublepage
+    \clearpage
 
 \end{document}
