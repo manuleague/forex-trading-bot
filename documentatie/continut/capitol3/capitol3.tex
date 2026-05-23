@@ -32,65 +32,63 @@ Utilizatorul țintă al aplicației este o persoană care dorește să testeze s
 \subsection{Cerințe funcționale detaliate}
 \label{cap:cap3:cerinte_functionale}
 
-\begin{table}[htbp]
-    \centering
+Tabelul \ref{tabel:cerinte_functionale} detaliază funcționalitățile care trebuie asigurate de aplicație pentru ca fluxul de backtesting și rularea live paper să poată fi utilizate într-un mod coerent. Cerințele au fost formulate pornind de la operațiile principale ale utilizatorului: selectarea datelor, generarea semnalelor, aplicarea regulilor de risc, conectarea la broker și obținerea artefactelor de analiză.
+
+\begin{longtable}{|p{2cm}|p{9.2cm}|p{3cm}|}
     \caption{Cerințe funcționale ale sistemului}
-    \label{tabel:cerinte_functionale}
-    \begin{tabular}{|p{2cm}|p{9.2cm}|p{3cm}|}
+    \label{tabel:cerinte_functionale}\\
         \hline
         \textbf{Cod} & \textbf{Descriere} & \textbf{Prioritate} \\
         \hline
-        CF1 & Sistemul permite rularea unui backtest pentru o pereche Forex, un timeframe și un interval temporal definite de utilizator. & Ridicată \\
+        CF1 & Sistemul permite rularea unui backtest pentru o pereche Forex, un timeframe și un interval temporal definite de utilizator, astfel încât scenariile experimentale să poată fi reluate cu aceiași parametri. & Ridicată \\
         \hline
-        CF2 & Sistemul încarcă date istorice din cache local sau le descarcă automat atunci când lipsesc. & Ridicată \\
+        CF2 & Sistemul încarcă date istorice din cache local sau le descarcă automat atunci când lipsesc, reducând dependența de descărcări repetate și menținând continuitatea procesului de testare. & Ridicată \\
         \hline
-        CF3 & Sistemul calculează indicatorii tehnici necesari strategiilor și detectorului de regim. & Ridicată \\
+        CF3 & Sistemul calculează indicatorii tehnici necesari strategiilor și detectorului de regim, pentru ca deciziile să fie generate pe baza acelorași transformări ale seriilor OHLCV. & Ridicată \\
         \hline
-        CF4 & Sistemul combină semnalele strategiilor într-o decizie finală explicabilă. & Ridicată \\
+        CF4 & Sistemul combină semnalele strategiilor într-o decizie finală explicabilă, printr-un mecanism de alocare care păstrează contribuția fiecărei strategii. & Ridicată \\
         \hline
-        CF5 & Sistemul verifică fiecare intrare prin reguli de risc înainte de deschiderea poziției. & Ridicată \\
+        CF5 & Sistemul verifică fiecare intrare prin reguli de risc înainte de deschiderea poziției, incluzând validarea semnalului, dimensiunea poziției și limitele de expunere. & Ridicată \\
         \hline
-        CF6 & Sistemul salvează rapoarte CSV, sumar text și dashboard-uri după fiecare rulare. & Medie \\
+        CF6 & Sistemul salvează rapoarte CSV, sumar text și dashboard-uri după fiecare rulare, pentru ca rezultatele să poată fi inspectate, arhivate și comparate ulterior. & Medie \\
         \hline
-        CF7 & Sistemul permite conectarea la Interactive Brokers doar în regim paper trading. & Ridicată \\
+        CF7 & Sistemul permite conectarea la Interactive Brokers doar în regim paper trading, prevenind utilizarea accidentală a unui cont real în etapa de testare. & Ridicată \\
         \hline
-        CF8 & Sistemul expune metrici live pentru monitorizare prin Prometheus și vizualizare în Grafana. & Medie \\
+        CF8 & Sistemul expune metrici live pentru monitorizare prin Prometheus și vizualizare în Grafana, astfel încât prețurile, semnalele și starea pozițiilor să poată fi urmărite în timp real. & Medie \\
         \hline
-    \end{tabular}
-\end{table}
+\end{longtable}
 
 \subsection{Cerințe nefuncționale detaliate}
 \label{cap:cap3:cerinte_nefunctionale}
 
-\begin{table}[htbp]
-    \centering
+Cerințele nefuncționale stabilesc proprietățile de calitate urmărite în implementare. În cazul unei aplicații de tranzacționare algoritmică, aceste cerințe sunt importante deoarece sistemul trebuie să fie reproductibil, ușor de auditat și suficient de sigur pentru a evita execuții nedorite în medii reale.
+
+\begin{longtable}{|p{2cm}|p{9.2cm}|p{3cm}|}
     \caption{Cerințe nefuncționale ale sistemului}
-    \label{tabel:cerinte_nefunctionale}
-    \begin{tabular}{|p{2cm}|p{9.2cm}|p{3cm}|}
+    \label{tabel:cerinte_nefunctionale}\\
         \hline
         \textbf{Cod} & \textbf{Descriere} & \textbf{Categorie} \\
         \hline
-        CNF1 & Rulările de backtesting trebuie să fie reproductibile pentru aceleași date și aceiași parametri. & Reproductibilitate \\
+        CNF1 & Rulările de backtesting trebuie să fie reproductibile pentru aceleași date și aceiași parametri, pentru ca rezultatele să poată fi verificate independent. & Reproductibilitate \\
         \hline
-        CNF2 & Modulele trebuie să poată fi extinse fără modificarea întregului sistem. & Mentenabilitate \\
+        CNF2 & Modulele trebuie să poată fi extinse fără modificarea întregului sistem, astfel încât o strategie nouă sau o regulă de risc nouă să poată fi integrată controlat. & Mentenabilitate \\
         \hline
-        CNF3 & Deciziile trebuie să poată fi auditate prin fișierele generate. & Trasabilitate \\
+        CNF3 & Deciziile trebuie să poată fi auditate prin fișierele generate, incluzând tranzacțiile, motivele de intrare sau ieșire și evoluția capitalului. & Trasabilitate \\
         \hline
-        CNF4 & Aplicația trebuie să prevină conectarea accidentală la porturi non-paper Interactive Brokers. & Siguranță operațională \\
+        CNF4 & Aplicația trebuie să prevină conectarea accidentală la porturi non-paper Interactive Brokers, pentru a limita riscul operațional în etapa de testare. & Siguranță operațională \\
         \hline
-        CNF5 & Erorile de conexiune live trebuie tratate prin mesaje clare și reconectare controlată. & Fiabilitate \\
+        CNF5 & Erorile de conexiune live trebuie tratate prin mesaje clare și reconectare controlată, astfel încât utilizatorul să poată identifica rapid cauza întreruperii. & Fiabilitate \\
         \hline
-        CNF6 & Serviciile auxiliare de monitorizare trebuie să poată rula pe porturi non-default pentru evitarea conflictelor locale. & Operabilitate \\
+        CNF6 & Serviciile auxiliare de monitorizare trebuie să poată rula pe porturi non-default pentru evitarea conflictelor locale cu alte instanțe Prometheus sau Grafana. & Operabilitate \\
         \hline
-    \end{tabular}
-\end{table}
+\end{longtable}
 
 \section{Alegerea tehnologiilor}
 \label{cap:cap3:tehnologii}
 
 Implementarea a fost realizată în Python deoarece limbajul are un ecosistem matur pentru analiză de date, integrare cu API-uri externe și prototipare rapidă. Bibliotecile \texttt{pandas} și \texttt{NumPy} sunt utilizate pentru prelucrarea seriilor de timp, calculul indicatorilor și agregarea rezultatelor. \texttt{PyYAML} permite separarea parametrilor de configurare de codul sursă, iar \texttt{dukascopy-python} asigură accesul la date istorice Forex. Pentru modul live, \texttt{ib\_insync} oferă o interfață Python peste API-ul Interactive Brokers. Monitorizarea live utilizează \texttt{prometheus-client}, Prometheus, Grafana și Docker Compose pentru colectarea, stocarea și vizualizarea metricilor operaționale \cite{misc:web:prometheus_docs,misc:web:grafana_docs,misc:web:docker_compose_docs}.
 
-Alegerea unei aplicații de tip CLI, în locul unei interfețe grafice, este justificată de caracterul experimental al proiectului. Parametrii pot fi salvați în comenzi reproductibile, rulările pot fi automatizate, iar rezultatele sunt persistate în fișiere. Pentru documentare s-a folosit LaTeX, deoarece permite structurarea riguroasă a capitolelor, numerotarea automată a figurilor și tabelelor, bibliografie IEEE și integrarea fragmentelor de cod.
+Alegerea unei aplicații de tip CLI, în locul unei interfețe grafice, este justificată de caracterul experimental al proiectului. Parametrii pot fi salvați în comenzi reproductibile, rulările pot fi automatizate, iar rezultatele sunt persistate în fișiere.
 
 \begin{table}[htbp]
     \centering
@@ -113,8 +111,6 @@ Alegerea unei aplicații de tip CLI, în locul unei interfețe grafice, este jus
         Docker Compose & Orchestrare locală monitorizare & Pornește Prometheus și Grafana izolat de mediul Python al botului. \\
         \hline
         CSV / HTML / SVG & Formate de raportare & Ușor de inspectat, arhivat și analizat ulterior. \\
-        \hline
-        LaTeX & Documentație tehnică & Potrivit pentru lucrări academice, bibliografie și figuri numerotate. \\
         \hline
     \end{tabular}
 \end{table}
@@ -289,11 +285,14 @@ Formula \eqref{eq:position_size} este limitată suplimentar de expunerea maximă
 
 Regulile de risc nu sunt tratate ca o extensie a strategiilor, ci ca o componentă independentă. Această decizie de proiectare reduce riscul ca o strategie să își suprascrie propriile protecții și permite verificarea uniformă a tuturor semnalelor. De exemplu, indiferent dacă semnalul provine din trend sau din breakout, intrarea poate fi respinsă pentru volatilitate insuficientă, lichiditate anormală, expunere prea mare sau circuit breaker activ.
 
-\begin{table}[htbp]
+\begin{table}[H]
     \centering
+    \footnotesize
+    \setlength{\tabcolsep}{20pt}
+    \renewcommand{\arraystretch}{1.5}
     \caption{Motive posibile de respingere a unei intrări}
     \label{tabel:motive_respingere_risc}
-    \begin{tabular}{|p{4cm}|p{9.2cm}|}
+    \begin{tabular}{|p{3.2cm}|p{8.5cm}|}
         \hline
         \textbf{Motiv} & \textbf{Semnificație} \\
         \hline
@@ -310,6 +309,7 @@ Regulile de risc nu sunt tratate ca o extensie a strategiilor, ci ca o component
         \texttt{circuit\_breaker} & Drawdown-ul a depășit pragul configurat, iar tranzacționarea este oprită temporar. \\
         \hline
     \end{tabular}
+    \renewcommand{\arraystretch}{1.0}
 \end{table}
 
 \section{Modul live paper trading}
