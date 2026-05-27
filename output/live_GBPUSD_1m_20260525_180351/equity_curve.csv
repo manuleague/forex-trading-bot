@@ -1,0 +1,6 @@
+timestamp,pair,equity,realized_pnl_usd,unrealized_pnl_usd,position_side,regime,close,quote_to_usd
+2026-05-25 18:03:00+00:00,GBPUSD,10000.0,0.0,0.0,Flat,range,1.3505,1.0
+2026-05-25 18:04:00+00:00,GBPUSD,10000.0,0.0,0.0,Flat,range,1.350525,1.0
+2026-05-25 18:05:00+00:00,GBPUSD,10000.0,0.0,0.0,Flat,range,1.350515,1.0
+2026-05-25 18:06:00+00:00,GBPUSD,10000.0,0.0,0.0,Flat,range,1.35053,1.0
+2026-05-25 18:07:00+00:00,GBPUSD,10000.0,0.0,0.0,Flat,range,1.350535,1.0

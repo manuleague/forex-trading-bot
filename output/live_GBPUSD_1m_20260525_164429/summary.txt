@@ -1,0 +1,59 @@
+A. Metrics Results
+Total P&L: +0.00 USD (+0.00%)
+Max equity drawdown: 0.00 USD (0.00%)
+Total trades: 0
+Profitable trades: 0.00% (0/0)
+Profit factor: 0.000
+
+B. List of Transactions
+No trades were generated.
+
+Returns
+column                        All              Long             Short
+Initial capital     10,000.00 USD                                    
+Open P&L         0.00 USD (0.00%)                                    
+Net P&L          0.00 USD (0.00%)  0.00 USD (0.00%)  0.00 USD (0.00%)
+Gross profit     0.00 USD (0.00%)  0.00 USD (0.00%)  0.00 USD (0.00%)
+Gross loss       0.00 USD (0.00%)  0.00 USD (0.00%)  0.00 USD (0.00%)
+Profit factor               0.000             0.000             0.000
+Commission paid          0.00 USD          0.00 USD          0.00 USD
+Expected payoff          0.00 USD          0.00 USD          0.00 USD
+
+Benchmark & Risk-adjusted Performance
+Buy & hold return: +35.22 USD (+0.35%)
+Buy & hold % gain: +0.35%
+Strategy outperformance: -35.22 USD
+Sharpe ratio: 0.000
+Sortino ratio: 0.000
+
+Trades Analysis
+Average loss: 0.00%
+Average profit: 0.00%
+Total trades: 0
+Wins: 0 trades (0.00%)
+Losses: 0 trades (0.00%)
+Break even: 0 trades (0.00%)
+
+Win/Loss Ratio
+Losses: 0 trades (0.00%)
+Wins: 0 trades (0.00%)
+Total trades: 0
+
+Details
+                                               All              Long             Short
+Total trades                                     0                 0                 0
+Total open trades                                0                 0                 0
+Winning trades                                   0                 0                 0
+Losing trades                                    0                 0                 0
+Percent profitable                           0.00%             0.00%             0.00%
+Avg P&L                           0.00 USD (0.00%)  0.00 USD (0.00%)  0.00 USD (0.00%)
+Avg winning trade                 0.00 USD (0.00%)  0.00 USD (0.00%)  0.00 USD (0.00%)
+Avg losing trade                  0.00 USD (0.00%)  0.00 USD (0.00%)  0.00 USD (0.00%)
+Ratio avg win / avg loss                     0.000             0.000             0.000
+Largest winning trade             0.00 USD (0.00%)  0.00 USD (0.00%)  0.00 USD (0.00%)
+Largest losing trade              0.00 USD (0.00%)  0.00 USD (0.00%)  0.00 USD (0.00%)
+Average number of bars in trades              0.00              0.00              0.00
+
+Average Bars in Trade
+Avg # bars in winning trades: 0.00 (All), 0.00 (Long), 0.00 (Short)
+Avg # bars in losing trades: 0.00 (All), 0.00 (Long), 0.00 (Short)

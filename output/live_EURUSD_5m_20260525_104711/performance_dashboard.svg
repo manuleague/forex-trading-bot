@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1660" height="1320" viewBox="0 0 1660 1320">
+<rect width="100%" height="100%" fill="#f6f8fb"/>
+<text x="40" y="48" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700" fill="#172033">Forex Quant Bot Performance Dashboard</text>
+<text x="40" y="78" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#5b667a">EURUSD | 5m </text>
+<rect x="40" y="104" width="381" height="74" rx="14" fill="#ffffff" stroke="#d7dde8"/>
+<text x="56" y="132" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">Total P&amp;L</text>
+<text x="56" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">+0.00 USD</text>
+<rect x="439" y="104" width="381" height="74" rx="14" fill="#ffffff" stroke="#d7dde8"/>
+<text x="455" y="132" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">Return</text>
+<text x="455" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">+0.00%</text>
+<rect x="838" y="104" width="381" height="74" rx="14" fill="#ffffff" stroke="#d7dde8"/>
+<text x="854" y="132" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">Max Drawdown</text>
+<text x="854" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">0.00%</text>
+<rect x="1237" y="104" width="381" height="74" rx="14" fill="#ffffff" stroke="#d7dde8"/>
+<text x="1253" y="132" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">Profit Factor</text>
+<text x="1253" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">0.000</text>
+<rect x="40" y="196" width="381" height="74" rx="14" fill="#ffffff" stroke="#d7dde8"/>
+<text x="56" y="224" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">Sharpe</text>
+<text x="56" y="250" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">0.000</text>
+<rect x="439" y="196" width="381" height="74" rx="14" fill="#ffffff" stroke="#d7dde8"/>
+<text x="455" y="224" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">Sortino</text>
+<text x="455" y="250" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">0.000</text>
+<rect x="838" y="196" width="381" height="74" rx="14" fill="#ffffff" stroke="#d7dde8"/>
+<text x="854" y="224" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">Trades</text>
+<text x="854" y="250" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">0</text>
+<rect x="1237" y="196" width="381" height="74" rx="14" fill="#ffffff" stroke="#d7dde8"/>
+<text x="1253" y="224" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">Win Rate</text>
+<text x="1253" y="250" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">0.00%</text>
+<g>
+<rect x="40" y="298" width="778" height="300" rx="16" fill="#ffffff" stroke="#d7dde8"/>
+<text x="58" y="326" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#172033">Equity Curve</text>
+<rect x="58" y="340" width="742" height="230" rx="10" fill="#fbfcfe" stroke="#e7ecf3"/>
+<line x1="58" y1="340.00" x2="800" y2="340.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="334.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">10,500.00</text>
+<line x1="58" y1="397.50" x2="800" y2="397.50" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="391.50" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">10,250.00</text>
+<line x1="58" y1="455.00" x2="800" y2="455.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="449.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">10,000.00</text>
+<line x1="58" y1="512.50" x2="800" y2="512.50" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="506.50" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">9,750.00</text>
+<line x1="58" y1="570.00" x2="800" y2="570.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="564.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">9,500.00</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2.4" points="58.00,455.00 66.53,455.00 75.06,455.00 83.59,455.00 92.11,455.00 100.64,455.00 109.17,455.00 117.70,455.00 126.23,455.00 134.76,455.00 143.29,455.00 151.82,455.00 160.34,455.00 168.87,455.00 177.40,455.00 185.93,455.00 194.46,455.00 202.99,455.00 211.52,455.00 220.05,455.00 228.57,455.00 237.10,455.00 245.63,455.00 254.16,455.00 262.69,455.00 271.22,455.00 279.75,455.00 288.28,455.00 296.80,455.00 305.33,455.00 313.86,455.00 322.39,455.00 330.92,455.00 339.45,455.00 347.98,455.00 356.51,455.00 365.03,455.00 373.56,455.00 382.09,455.00 390.62,455.00 399.15,455.00 407.68,455.00 416.21,455.00 424.74,455.00 433.26,455.00 441.79,455.00 450.32,455.00 458.85,455.00 467.38,455.00 475.91,455.00 484.44,455.00 492.97,455.00 501.49,455.00 510.02,455.00 518.55,455.00 527.08,455.00 535.61,455.00 544.14,455.00 552.67,455.00 561.20,455.00 569.72,455.00 578.25,455.00 586.78,455.00 595.31,455.00 603.84,455.00 612.37,455.00 620.90,455.00 629.43,455.00 637.95,455.00 646.48,455.00 655.01,455.00 663.54,455.00 672.07,455.00 680.60,455.00 689.13,455.00 697.66,455.00 706.18,455.00 714.71,455.00 723.24,455.00 731.77,455.00 740.30,455.00 748.83,455.00 757.36,455.00 765.89,455.00 774.41,455.00 782.94,455.00 791.47,455.00 800.00,455.00"/>
+<line x1="60" y1="580" x2="78" y2="580" stroke="#2563eb" stroke-width="3"/>
+<text x="84" y="584" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b667a">equity</text>
+</g>
+<g>
+<rect x="842" y="298" width="778" height="300" rx="16" fill="#ffffff" stroke="#d7dde8"/>
+<text x="860" y="326" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#172033">Realized vs Unrealized P&amp;L</text>
+<rect x="860" y="340" width="742" height="230" rx="10" fill="#fbfcfe" stroke="#e7ecf3"/>
+<line x1="860" y1="340.00" x2="1602" y2="340.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="868" y="334.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">1.00</text>
+<line x1="860" y1="397.50" x2="1602" y2="397.50" stroke="#e7ecf3" stroke-width="1"/>
+<text x="868" y="391.50" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">0.50</text>
+<line x1="860" y1="455.00" x2="1602" y2="455.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="868" y="449.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">0.00</text>
+<line x1="860" y1="512.50" x2="1602" y2="512.50" stroke="#e7ecf3" stroke-width="1"/>
+<text x="868" y="506.50" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">-0.50</text>
+<line x1="860" y1="570.00" x2="1602" y2="570.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="868" y="564.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">-1.00</text>
+<polyline fill="none" stroke="#16a34a" stroke-width="2.4" points="860.00,455.00 868.53,455.00 877.06,455.00 885.59,455.00 894.11,455.00 902.64,455.00 911.17,455.00 919.70,455.00 928.23,455.00 936.76,455.00 945.29,455.00 953.82,455.00 962.34,455.00 970.87,455.00 979.40,455.00 987.93,455.00 996.46,455.00 1004.99,455.00 1013.52,455.00 1022.05,455.00 1030.57,455.00 1039.10,455.00 1047.63,455.00 1056.16,455.00 1064.69,455.00 1073.22,455.00 1081.75,455.00 1090.28,455.00 1098.80,455.00 1107.33,455.00 1115.86,455.00 1124.39,455.00 1132.92,455.00 1141.45,455.00 1149.98,455.00 1158.51,455.00 1167.03,455.00 1175.56,455.00 1184.09,455.00 1192.62,455.00 1201.15,455.00 1209.68,455.00 1218.21,455.00 1226.74,455.00 1235.26,455.00 1243.79,455.00 1252.32,455.00 1260.85,455.00 1269.38,455.00 1277.91,455.00 1286.44,455.00 1294.97,455.00 1303.49,455.00 1312.02,455.00 1320.55,455.00 1329.08,455.00 1337.61,455.00 1346.14,455.00 1354.67,455.00 1363.20,455.00 1371.72,455.00 1380.25,455.00 1388.78,455.00 1397.31,455.00 1405.84,455.00 1414.37,455.00 1422.90,455.00 1431.43,455.00 1439.95,455.00 1448.48,455.00 1457.01,455.00 1465.54,455.00 1474.07,455.00 1482.60,455.00 1491.13,455.00 1499.66,455.00 1508.18,455.00 1516.71,455.00 1525.24,455.00 1533.77,455.00 1542.30,455.00 1550.83,455.00 1559.36,455.00 1567.89,455.00 1576.41,455.00 1584.94,455.00 1593.47,455.00 1602.00,455.00"/>
+<polyline fill="none" stroke="#f59e0b" stroke-width="2.4" points="860.00,455.00 868.53,455.00 877.06,455.00 885.59,455.00 894.11,455.00 902.64,455.00 911.17,455.00 919.70,455.00 928.23,455.00 936.76,455.00 945.29,455.00 953.82,455.00 962.34,455.00 970.87,455.00 979.40,455.00 987.93,455.00 996.46,455.00 1004.99,455.00 1013.52,455.00 1022.05,455.00 1030.57,455.00 1039.10,455.00 1047.63,455.00 1056.16,455.00 1064.69,455.00 1073.22,455.00 1081.75,455.00 1090.28,455.00 1098.80,455.00 1107.33,455.00 1115.86,455.00 1124.39,455.00 1132.92,455.00 1141.45,455.00 1149.98,455.00 1158.51,455.00 1167.03,455.00 1175.56,455.00 1184.09,455.00 1192.62,455.00 1201.15,455.00 1209.68,455.00 1218.21,455.00 1226.74,455.00 1235.26,455.00 1243.79,455.00 1252.32,455.00 1260.85,455.00 1269.38,455.00 1277.91,455.00 1286.44,455.00 1294.97,455.00 1303.49,455.00 1312.02,455.00 1320.55,455.00 1329.08,455.00 1337.61,455.00 1346.14,455.00 1354.67,455.00 1363.20,455.00 1371.72,455.00 1380.25,455.00 1388.78,455.00 1397.31,455.00 1405.84,455.00 1414.37,455.00 1422.90,455.00 1431.43,455.00 1439.95,455.00 1448.48,455.00 1457.01,455.00 1465.54,455.00 1474.07,455.00 1482.60,455.00 1491.13,455.00 1499.66,455.00 1508.18,455.00 1516.71,455.00 1525.24,455.00 1533.77,455.00 1542.30,455.00 1550.83,455.00 1559.36,455.00 1567.89,455.00 1576.41,455.00 1584.94,455.00 1593.47,455.00 1602.00,455.00"/>
+<line x1="862" y1="580" x2="880" y2="580" stroke="#16a34a" stroke-width="3"/>
+<text x="886" y="584" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b667a">realized_pnl_usd</text>
+<line x1="1022" y1="580" x2="1040" y2="580" stroke="#f59e0b" stroke-width="3"/>
+<text x="1046" y="584" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b667a">unrealized_pnl_usd</text>
+</g>
+<g>
+<rect x="40" y="626" width="778" height="300" rx="16" fill="#ffffff" stroke="#d7dde8"/>
+<text x="58" y="654" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#172033">Drawdown</text>
+<rect x="58" y="668" width="742" height="230" rx="10" fill="#fbfcfe" stroke="#e7ecf3"/>
+<line x1="58" y1="668.00" x2="800" y2="668.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="662.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">100.00%</text>
+<line x1="58" y1="725.50" x2="800" y2="725.50" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="719.50" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">50.00%</text>
+<line x1="58" y1="783.00" x2="800" y2="783.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="777.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">0.00%</text>
+<line x1="58" y1="840.50" x2="800" y2="840.50" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="834.50" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">-50.00%</text>
+<line x1="58" y1="898.00" x2="800" y2="898.00" stroke="#e7ecf3" stroke-width="1"/>
+<text x="66" y="892.00" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b667a">-100.00%</text>
+<polyline fill="none" stroke="#dc2626" stroke-width="2.4" points="58.00,783.00 66.53,783.00 75.06,783.00 83.59,783.00 92.11,783.00 100.64,783.00 109.17,783.00 117.70,783.00 126.23,783.00 134.76,783.00 143.29,783.00 151.82,783.00 160.34,783.00 168.87,783.00 177.40,783.00 185.93,783.00 194.46,783.00 202.99,783.00 211.52,783.00 220.05,783.00 228.57,783.00 237.10,783.00 245.63,783.00 254.16,783.00 262.69,783.00 271.22,783.00 279.75,783.00 288.28,783.00 296.80,783.00 305.33,783.00 313.86,783.00 322.39,783.00 330.92,783.00 339.45,783.00 347.98,783.00 356.51,783.00 365.03,783.00 373.56,783.00 382.09,783.00 390.62,783.00 399.15,783.00 407.68,783.00 416.21,783.00 424.74,783.00 433.26,783.00 441.79,783.00 450.32,783.00 458.85,783.00 467.38,783.00 475.91,783.00 484.44,783.00 492.97,783.00 501.49,783.00 510.02,783.00 518.55,783.00 527.08,783.00 535.61,783.00 544.14,783.00 552.67,783.00 561.20,783.00 569.72,783.00 578.25,783.00 586.78,783.00 595.31,783.00 603.84,783.00 612.37,783.00 620.90,783.00 629.43,783.00 637.95,783.00 646.48,783.00 655.01,783.00 663.54,783.00 672.07,783.00 680.60,783.00 689.13,783.00 697.66,783.00 706.18,783.00 714.71,783.00 723.24,783.00 731.77,783.00 740.30,783.00 748.83,783.00 757.36,783.00 765.89,783.00 774.41,783.00 782.94,783.00 791.47,783.00 800.00,783.00"/>
+<line x1="60" y1="908" x2="78" y2="908" stroke="#dc2626" stroke-width="3"/>
+<text x="84" y="912" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b667a">drawdown_pct</text>
+</g>
+<g>
+<rect x="842" y="626" width="778" height="300" rx="16" fill="#ffffff" stroke="#d7dde8"/>
+<text x="860" y="654" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#172033">Strategy Metrics</text>
+<rect x="856" y="664" width="750" height="26" rx="8" fill="#f2f5fa"/>
+<text x="866.0" y="682" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" fill="#172033">strategy</text>
+<text x="1048.5" y="682" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" fill="#172033">trades</text>
+<text x="1231.0" y="682" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" fill="#172033">win_rate</text>
+<text x="1413.5" y="682" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" fill="#172033">PF</text>
+<text x="866.0" y="710" font-family="Consolas, monospace" font-size="12" fill="#172033">breakout</text>
+<text x="1048.5" y="710" font-family="Consolas, monospace" font-size="12" fill="#172033">0</text>
+<text x="1231.0" y="710" font-family="Consolas, monospace" font-size="12" fill="#172033">50.00%</text>
+<text x="1413.5" y="710" font-family="Consolas, monospace" font-size="12" fill="#172033">1.000</text>
+<text x="866.0" y="734" font-family="Consolas, monospace" font-size="12" fill="#172033">mean_reversion</text>
+<text x="1048.5" y="734" font-family="Consolas, monospace" font-size="12" fill="#172033">0</text>
+<text x="1231.0" y="734" font-family="Consolas, monospace" font-size="12" fill="#172033">50.00%</text>
+<text x="1413.5" y="734" font-family="Consolas, monospace" font-size="12" fill="#172033">1.000</text>
+<text x="866.0" y="758" font-family="Consolas, monospace" font-size="12" fill="#172033">trend</text>
+<text x="1048.5" y="758" font-family="Consolas, monospace" font-size="12" fill="#172033">0</text>
+<text x="1231.0" y="758" font-family="Consolas, monospace" font-size="12" fill="#172033">50.00%</text>
+<text x="1413.5" y="758" font-family="Consolas, monospace" font-size="12" fill="#172033">1.000</text>
+</g>
+<g>
+<rect x="40" y="954" width="778" height="300" rx="16" fill="#ffffff" stroke="#d7dde8"/>
+<text x="58" y="982" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#172033">Regime Metrics</text>
+<text x="58" y="1018" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#5b667a">No data available.</text>
+</g>
+<g>
+<rect x="842" y="954" width="778" height="300" rx="16" fill="#ffffff" stroke="#d7dde8"/>
+<text x="860" y="982" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#172033">Run Notes</text>
+<text x="860" y="1018" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#172033">Buy &amp; hold: +16.78 USD (+0.17%)</text>
+<text x="860" y="1046" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#172033">Strategy outperformance: -16.78 USD</text>
+<text x="860" y="1074" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#172033">Profitable trades: 0/0</text>
+<text x="860" y="1102" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#172033">Average win: +0.00%</text>
+<text x="860" y="1130" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#172033">Average loss: +0.00%</text>
+<text x="860" y="1158" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#172033">Break-even trades: 0</text>
+</g>
+</svg>
