@@ -6,7 +6,7 @@ Testarea aplicației a urmărit verificarea fluxului complet, de la instalarea d
 \section{Mediul de testare}
 \label{cap:cap4:mediu}
 
-Aplicația este dezvoltată în Python 3 și folosește dependențe listate în fișierul \texttt{requirements.txt}: \texttt{pandas}, \texttt{numpy}, \texttt{PyYAML}, \texttt{ib\_insync}, \texttt{dukascopy-python} și \texttt{prometheus-client}. Instalarea se realizează prin:
+Aplicația este dezvoltată în Python 3 și folosește biblioteci pentru analiză de date, integrare cu brokerul, descărcare de date istorice și observabilitate live. Instalarea dependențelor se realizează prin:
 
 \begin{code}
 \begin{minted}{bash}
@@ -21,7 +21,7 @@ Pentru rulările experimentale au fost folosite date istorice Forex păstrate lo
 \section{Punerea în funcțiune și configurarea aplicației}
 \label{cap:cap4:configurare}
 
-Punerea în funcțiune a aplicației presupune pregătirea mediului Python, instalarea dependențelor și alegerea parametrilor de rulare. Fișierul \texttt{requirements.txt} definește bibliotecile necesare, iar fișierele din directorul \texttt{config} permit setarea perechilor și a parametrilor de strategie. Pentru backtesting, aplicația nu necesită conexiune la Interactive Brokers, deoarece datele sunt citite din cache local sau sunt descărcate prin furnizorul istoric configurat.
+Punerea în funcțiune presupune pregătirea mediului Python, instalarea dependențelor și alegerea parametrilor de rulare. Fișierul \texttt{requirements.txt} definește bibliotecile necesare, iar fișierele din directorul \texttt{config} permit setarea perechilor și a parametrilor de strategie. Pentru backtesting, aplicația nu necesită conexiune la Interactive Brokers, deoarece datele sunt citite din cache local sau sunt descărcate prin furnizorul istoric configurat.
 
 Parametrii importanți pentru o rulare sunt:
 \begin{itemize}
@@ -91,7 +91,7 @@ Testarea modului live a fost tratată separat, deoarece depinde de TWS sau IB Ga
 \section{Rezultate obținute}
 \label{cap:cap4:rezultate}
 
-Tabelul \ref{tabel:rezultate_backtest} sintetizează rezultatele generate de rapoartele \texttt{summary.txt} din directorul \texttt{output}.
+Rezultatele generate de rapoartele \texttt{summary.txt} sunt sintetizate în tabelul \ref{tabel:rezultate_backtest}.
 
 \begin{table}[htbp]
     \centering
@@ -188,7 +188,7 @@ Porturile publicate pe sistemul gazdă au fost schimbate față de valorile impl
     \item verificarea dashboard-urilor separate pentru EURUSD, GBPUSD și USDJPY.
 \end{itemize}
 
-Dashboard-urile afișează prețul live, semnalul allocatorului, starea poziției, dimensiunea poziției și P\&L-ul perechii. În perioadele în care botul nu deschide poziții, este normal ca panourile pentru P\&L și dimensiunea poziției să rămână la zero sau fără variație. Acest comportament indică faptul că sistemul este în starea \textit{Flat}, nu că monitorizarea este defectă.
+Panourile Grafana afișează prețul live, semnalul allocatorului, starea poziției, dimensiunea poziției și P\&L-ul perechii. Când botul nu deschide poziții, valorile pentru P\&L și dimensiunea poziției pot rămâne la zero. Acest comportament indică starea \textit{Flat}, nu o problemă a monitorizării.
 
 \section{Capturi de ecran din testare și monitorizare}
 \label{cap:cap4:capturi}
@@ -241,4 +241,4 @@ Capturile din Interactive Brokers confirmă faptul că semnalele produse de bot 
 \section{Limitări}
 \label{cap:cap4:limitari}
 
-Rezultatele experimentale sunt dependente de intervalul istoric, timeframe și parametrii configurați. Nu au fost incluse comisioane reale, spread variabil și latență de execuție complet realistă. De asemenea, backtesting-ul pe o singură perioadă nu este suficient pentru validare finală; sunt necesare teste out-of-sample, walk-forward și verificări suplimentare pe condiții de piață diferite.
+Rezultatele experimentale depind de intervalul istoric, timeframe și parametrii configurați. Nu au fost incluse comisioane reale, spread variabil și latență de execuție complet realistă. De asemenea, backtesting-ul pe o singură perioadă nu este suficient pentru validare finală; sunt necesare teste out-of-sample, walk-forward și verificări suplimentare pe condiții de piață diferite.

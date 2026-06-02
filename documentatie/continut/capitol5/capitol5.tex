@@ -9,22 +9,22 @@ O contribuție importantă a proiectului este separarea clară dintre semnalul s
 
 Rezultatele experimentale au arătat că performanța diferă semnificativ între perechi valutare. USDJPY a produs cel mai bun rezultat în perioada analizată, în timp ce GBPUSD a avut rezultat negativ, chiar dacă rata tranzacțiilor câștigătoare a fost peste 50\%. Această observație evidențiază faptul că evaluarea unei strategii nu trebuie redusă la procentul de tranzacții profitabile. Sunt la fel de importante profit factor-ul, drawdown-ul, raportul dintre câștigul mediu și pierderea medie, precum și stabilitatea comportamentului pe mai multe instrumente.
 
-\section{Contribuții personale}
+\section{Contribuții ale lucrării}
 \label{cap:cap5:contributii}
 
-Principalele contribuții personale realizate în cadrul lucrării sunt:
+Principalele contribuții realizate în cadrul lucrării sunt:
 \begin{itemize}
     \item proiectarea unei arhitecturi modulare pentru backtesting și paper trading pe perechi Forex;
     \item implementarea unui flux determinist de procesare bară cu bară, fără acces la informații viitoare;
     \item integrarea a trei strategii complementare, adaptate pentru trend, revenire la medie și breakout;
     \item realizarea unui allocator multi-strategie care utilizează performanța recentă, încrederea semnalului, regimul de piață și diversificarea;
     \item implementarea unei componente de risc independente, cu dimensionarea pozițiilor pe baza ATR, limitarea expunerii și mecanism de tip circuit breaker;
-    \item generarea de artefacte de audit pentru tranzacții, evenimente, risc, regimuri de piață și performanță;
+    \item generarea de artefacte pentru auditarea tranzacțiilor, evenimentelor, riscului și performanței;
     \item integrarea controlată cu Interactive Brokers în regim paper trading;
     \item adăugarea unui mecanism de observabilitate live prin Prometheus și Grafana, cu dashboard-uri separate pentru perechile valutare monitorizate.
 \end{itemize}
 
-Prin aceste contribuții, lucrarea depășește nivelul unei strategii izolate și propune un cadru complet de evaluare și execuție controlată. Consider că valoarea principală a proiectului constă în transparența fluxului decizional: fiecare rezultat poate fi urmărit înapoi către datele folosite, strategia care a generat semnalul, decizia allocatorului și regulile de risc aplicate.
+Prin aceste contribuții, lucrarea depășește nivelul unei strategii izolate și propune un cadru complet de evaluare și execuție controlată. Valoarea principală a proiectului constă în transparența fluxului decizional: fiecare rezultat poate fi urmărit înapoi către datele folosite, strategia care a generat semnalul, decizia allocatorului și regulile de risc aplicate.
 
 \section{Comparație cu soluții similare}
 \label{cap:cap5:comparatie}
@@ -47,11 +47,4 @@ Direcțiile viitoare de dezvoltare includ:
     \item îmbunătățirea monitorizării live prin jurnale persistente, alerte și proceduri de oprire controlată.
 \end{itemize}
 
-\section{Lecții învățate}
-\label{cap:cap5:lectii}
-
-Pe parcursul dezvoltării proiectului, una dintre cele mai importante lecții a fost importanța arhitecturii modulare. Separarea componentelor a făcut mai ușoară testarea ideilor, înlocuirea unor părți ale sistemului și documentarea fluxului de lucru. În special, separarea strategiilor de componenta de risc a contribuit la un design mai clar și mai sigur.
-
-O altă lecție importantă este faptul că rezultatele financiare trebuie interpretate cu rezervă. Un backtest profitabil nu reprezintă o garanție pentru viitor, iar o strategie poate funcționa bine pe o pereche valutară și slab pe alta. Din acest motiv, raportarea detaliată, reproductibilitatea experimentelor și analiza riscului sunt la fel de importante ca profitul net obținut într-o rulare.
-
-În concluzie, proiectul oferă o bază funcțională pentru studierea tranzacționării algoritmice Forex și pentru dezvoltări ulterioare orientate către evaluare mai robustă, monitorizare live și control mai avansat al riscului. Lucrarea demonstrează că un sistem de tranzacționare algoritmică nu trebuie privit doar ca un generator de semnale, ci ca un ansamblu de componente care trebuie să colaboreze într-un mod verificabil, transparent și responsabil.
+În ansamblu, proiectul oferă o bază funcțională pentru studierea tranzacționării algoritmice Forex și pentru dezvoltări ulterioare orientate către evaluare mai robustă, monitorizare live și control mai avansat al riscului. Lucrarea demonstrează că un sistem de tranzacționare algoritmică nu trebuie privit doar ca un generator de semnale, ci ca un ansamblu de componente care trebuie să colaboreze într-un mod verificabil, transparent și responsabil.

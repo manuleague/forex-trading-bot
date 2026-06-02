@@ -127,14 +127,14 @@ Figura \ref{fig:arhitectura_sistem} prezintă arhitectura generală a sistemului
     \label{fig:arhitectura_sistem}
 \end{figure}
 
-Structura principală a proiectului este:
+În directorul \texttt{forex\_quant\_bot}, componentele principale sunt:
 \begin{itemize}
-    \item \texttt{forex\_quant\_bot/backtest}: motorul de simulare și calculul rapoartelor;
-    \item \texttt{forex\_quant\_bot/core}: detector de regim, allocator, componentă de risc și tracker de performanță;
-    \item \texttt{forex\_quant\_bot/data}: descărcare, cache și replay cronologic al datelor;
-    \item \texttt{forex\_quant\_bot/live}: integrarea cu Interactive Brokers și orchestrarea modului live;
-    \item \texttt{forex\_quant\_bot/logs}: persistarea artefactelor CSV, HTML, SVG și text;
-    \item \texttt{forex\_quant\_bot/strategies}: strategiile de trend, mean reversion și breakout;
+    \item \texttt{backtest}: motorul de simulare și calculul rapoartelor;
+    \item \texttt{core}: detectorul de regim, allocatorul, componenta de risc și tracker-ul de performanță;
+    \item \texttt{data}: descărcarea, cache-ul și replay-ul cronologic al datelor;
+    \item \texttt{live}: integrarea cu Interactive Brokers și orchestrarea modului live;
+    \item \texttt{logs}: persistarea artefactelor CSV, HTML, SVG și text;
+    \item \texttt{strategies}: strategiile de trend, mean reversion și breakout;
     \item \texttt{settings.py}: clasele de configurare și suprascrierile per pereche valutară;
     \item \texttt{cli.py}: parsarea parametrilor din linia de comandă și selectarea modului de rulare.
 \end{itemize}
@@ -142,11 +142,11 @@ Structura principală a proiectului este:
 \subsection{Responsabilitățile modulelor}
 \label{cap:cap3:responsabilitati}
 
-Modulul \texttt{data} este responsabil pentru obținerea și normalizarea datelor OHLCV. Clasa \texttt{DataCache} verifică existența fișierelor locale, validează acoperirea temporală și, atunci când este necesar, declanșează descărcarea datelor. Această separare este importantă deoarece motorul de backtesting nu trebuie să cunoască detaliile furnizorului de date; el primește doar un \texttt{DataFrame} ordonat cronologic.
+Datele OHLCV sunt obținute și normalizate în modulul \texttt{data}. Clasa \texttt{DataCache} verifică fișierele locale, validează acoperirea temporală și declanșează descărcarea datelor atunci când este necesar. Această separare este importantă deoarece motorul de backtesting primește doar un set de date ordonat cronologic, fără să depindă de detaliile furnizorului extern.
 
-Modulul \texttt{strategies} conține strategiile propriu-zise. Fiecare strategie are două responsabilități: pregătirea coloanelor de indicatori și evaluarea istoricului disponibil la momentul curent. Rezultatul este un obiect \texttt{StrategyDecision}, care include semnalul, încrederea și metadatele explicative. Această structură face posibilă adăugarea unei noi strategii fără modificarea motorului de simulare.
+Strategiile propriu-zise sunt grupate în modulul \texttt{strategies}. Fiecare strategie pregătește indicatorii necesari și evaluează istoricul disponibil la momentul curent. Rezultatul este un obiect \texttt{StrategyDecision}, care include semnalul, încrederea și metadatele explicative. Această structură face posibilă adăugarea unei noi strategii fără modificarea motorului de simulare.
 
-Modulul \texttt{core} conține componentele comune pentru decizie: \texttt{RegimeDetector}, \texttt{StrategyAllocator}, \texttt{PerformanceTracker} și \texttt{RiskOverlay}. Detectorul de regim adaugă contextul de piață, allocatorul decide ponderea semnalelor, tracker-ul calculează performanța recentă, iar componenta de risc verifică dacă semnalul poate fi transformat în poziție.
+Modulul \texttt{core} grupează componentele comune ale deciziei. Detectorul de regim adaugă contextul de piață, allocatorul stabilește ponderea semnalelor, tracker-ul calculează performanța recentă, iar componenta de risc verifică dacă semnalul poate fi transformat în poziție.
 
 Modulul \texttt{backtest} orchestrează simularea. El parcurge barele istorice în ordine cronologică, verifică pozițiile deschise, evaluează strategiile, aplică riscul și salvează tranzacțiile. Modulul \texttt{live} reutilizează aceeași logică decizională, dar înlocuiește sursa de date cu fluxuri Interactive Brokers și transformă intrările/ieșirile în ordine paper.
 
@@ -194,7 +194,7 @@ Pentru o lucrare de diplomă, este important ca cerințele formulate să poată 
         \hline
         Controlul riscului & \texttt{RiskOverlay}, \texttt{RiskConfig} & Stop-uri ATR, sizing, expunere maximă și circuit breaker. \\
         \hline
-        Integrare broker sigură & \texttt{IBPaperBroker}, \texttt{LiveRunner} & Validare porturi paper 7497/4002 și lock-uri pe pereche. \\
+        Integrare broker & \texttt{IBPaperBroker}, \texttt{LiveRunner} & Validare porturi paper 7497/4002 și lock-uri pe pereche. \\
         \hline
         Raportare completă & \texttt{CSVLogger}, \texttt{SummaryPrinter}, \texttt{performance\_dashboard} & Fișiere CSV, sumar text, HTML și SVG după rulare. \\
         \hline
@@ -288,11 +288,11 @@ Regulile de risc nu sunt tratate ca o extensie a strategiilor, ci ca o component
 \begin{table}[H]
     \centering
     \footnotesize
-    \setlength{\tabcolsep}{20pt}
+    \setlength{\tabcolsep}{4pt}
     \renewcommand{\arraystretch}{1.5}
     \caption{Motive posibile de respingere a unei intrări}
     \label{tabel:motive_respingere_risc}
-    \begin{tabular}{|p{3.2cm}|p{8.5cm}|}
+    \begin{tabular}{|p{4.4cm}|p{7.6cm}|}
         \hline
         \textbf{Motiv} & \textbf{Semnificație} \\
         \hline

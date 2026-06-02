@@ -3,7 +3,7 @@
 
 Tranzacționarea algoritmică poate fi definită ca procesul prin care deciziile de cumpărare, vânzare sau menținere a unei poziții sunt generate automat, pe baza unor reguli formale. Spre deosebire de tranzacționarea discreționară, în care decizia depinde în mare măsură de interpretarea subiectivă a operatorului, un sistem algoritmic aplică aceeași logică asupra fiecărei observații disponibile. Această proprietate este importantă deoarece permite reproducerea rezultatelor și analiza obiectivă a comportamentului strategiei.
 
-În literatura de specialitate se subliniază faptul că o strategie de tranzacționare nu trebuie evaluată doar prin exemple izolate de tranzacții profitabile, ci printr-un proces riguros de testare, măsurare a riscului și verificare a robusteții \cite{book:chan:algo_trading}. În acest sens, proiectul de față tratează backtesting-ul, managementul riscului și raportarea rezultatelor ca elemente centrale, nu ca funcționalități secundare.
+În literatura de specialitate se subliniază faptul că o strategie de tranzacționare nu trebuie evaluată doar prin exemple izolate de tranzacții profitabile, ci printr-un proces riguros de testare, măsurare a riscului și verificare a robusteții \cite{book:chan:algo_trading}. În acest sens, prezenta lucrare tratează backtesting-ul, managementul riscului și raportarea rezultatelor ca elemente centrale, nu ca funcționalități secundare.
 
 \section{Piața Forex și datele OHLCV}
 \label{cap:cap2:forex}
@@ -46,7 +46,7 @@ Backtesting-ul reprezintă simularea aplicării unei strategii pe date istorice.
 \section{Managementul riscului}
 \label{cap:cap2:risc}
 
-Managementul riscului are un rol central în sistemele de tranzacționare. O strategie poate genera semnale corecte din punct de vedere tehnic, dar poate produce pierderi semnificative dacă dimensiunea pozițiilor nu este controlată. În proiect, fiecare intrare este validată de o componentă de risc independentă, care ține cont de capitalul disponibil, volatilitate, expunere totală și drawdown.
+Managementul riscului are un rol central în sistemele de tranzacționare, deoarece rezultatul unei strategii depinde nu doar de calitatea semnalelor, ci și de modul în care sunt controlate expunerea, volatilitatea și pierderile succesive. O strategie poate genera semnale corecte din punct de vedere tehnic, dar poate produce pierderi semnificative dacă dimensiunea pozițiilor nu este controlată. În proiect, fiecare intrare este validată de o componentă de risc independentă, care ține cont de capitalul disponibil, volatilitate, expunere totală și drawdown.
 
 Regula implicită presupune riscul a 1\% din capital pentru o tranzacție, iar expunerea totală este limitată. Stop-loss-ul este calculat ca multiplu de ATR, iar take-profit-ul utilizează o distanță adaptată volatilității. Sistemul include, de asemenea, mecanisme de protecție precum break-even, trailing stop și circuit breaker. Dacă drawdown-ul depășește pragul configurat, tranzacționarea este dezactivată temporar, pentru a preveni acumularea rapidă a pierderilor.
 
@@ -89,5 +89,5 @@ Din analiza domeniului rezultă următoarele cerințe pentru aplicație:
     \item riscul trebuie aplicat înainte de deschiderea fiecărei poziții;
     \item rezultatele trebuie salvate în formate care permit auditarea tranzacțiilor;
     \item modul live trebuie să includă protecții împotriva rulării accidentale pe conturi reale;
-    \item monitorizarea live trebuie să ofere vizibilitate asupra prețurilor, semnalelor, pozițiilor și performanței curente.
+    \item monitorizarea live trebuie să acopere prețurile, semnalele, pozițiile și performanța curentă.
 \end{itemize}

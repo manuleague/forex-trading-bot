@@ -50,16 +50,79 @@ Adresele utilizate pentru verificare sunt:
     \item \texttt{http://localhost:33000} pentru interfața Grafana.
 \end{itemize}
 
+\section{Metrici de observabilitate live}
+\label{anexa:metrici_prometheus}
+
+Pentru monitorizarea modului live paper, aplicația expune metrici Prometheus care descriu starea curentă a botului, prețurile urmărite și pozițiile asociate perechilor valutare. Aceste metrici sunt utile atât pentru verificarea rapidă a funcționării sistemului, cât și pentru construirea dashboard-urilor Grafana.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{5.2cm}|p{8.7cm}|}
+        \hline
+        \textbf{Metrică} & \textbf{Rol} \\
+        \hline
+        \texttt{bot\_live\_price\{pair\}} & Prețul live pentru fiecare pereche valutară monitorizată. \\
+        \hline
+        \texttt{bot\_pair\_signal\{pair\}} & Semnalul numeric generat de allocator pentru perechea respectivă. \\
+        \hline
+        \begin{tabular}[t]{@{}l@{}}\texttt{bot\_pair\_}\\\texttt{open\_position\{pair\}}\end{tabular} & Indicator binar care arată dacă perechea are o poziție deschisă. \\
+        \hline
+        \begin{tabular}[t]{@{}l@{}}\texttt{bot\_pair\_}\\\texttt{position\_size\_units\{pair\}}\end{tabular} & Dimensiunea poziției, exprimată în unități ale instrumentului tranzacționat. \\
+        \hline
+        \begin{tabular}[t]{@{}l@{}}\texttt{bot\_pair\_}\\\texttt{realized\_pnl\_usd\{pair\}}\end{tabular} & Profitul sau pierderea realizată pentru perechea valutară. \\
+        \hline
+        \begin{tabular}[t]{@{}l@{}}\texttt{bot\_pair\_}\\\texttt{unrealized\_pnl\_usd\{pair\}}\end{tabular} & Profitul sau pierderea nerealizată pentru poziția curentă. \\
+        \hline
+        \texttt{bot\_equity\_usd} & Capitalul curent raportat de aplicație. \\
+        \hline
+        \texttt{bot\_open\_positions} & Numărul total al pozițiilor deschise. \\
+        \hline
+    \end{tabular}
+    \caption{Metrici Prometheus expuse de aplicația live}
+    \label{tabel:anexa_metrici_prometheus}
+\end{table}
+
+Exemple de interogări Prometheus utile pentru verificare sunt:
+
+\begin{code}
+\begin{minted}{bash}
+up{job="forex_quant_bot"}
+bot_live_price{pair="EURUSD"}
+bot_pair_signal{pair="USDJPY"}
+bot_pair_position_size_units{pair="USDJPY"}
+bot_pair_realized_pnl_usd{pair="USDJPY"}
+\end{minted}
+\caption{Interogări Prometheus pentru monitorizarea botului}
+\label{code:anexa_prometheus_queries}
+\end{code}
+
+\section{Procedură de verificare pentru rularea live paper}
+\label{anexa:procedura_live_paper}
+
+Înaintea pornirii modului live paper, este necesară verificarea mediului de execuție și a conexiunilor externe. Procedura recomandată este:
+
+\begin{enumerate}
+    \item pornirea TWS sau IB Gateway în cont paper;
+    \item verificarea portului API, de regulă \texttt{7497} pentru TWS paper sau \texttt{4002} pentru IB Gateway paper;
+    \item pornirea botului cu perechile valutare dorite și cu un \texttt{client-id} unic;
+    \item verificarea endpoint-ului \texttt{/metrics} în browser;
+    \item verificarea stării \texttt{UP} în pagina \texttt{/targets} din Prometheus;
+    \item deschiderea dashboard-ului Grafana corespunzător perechii valutare monitorizate;
+    \item verificarea în Interactive Brokers a ordinelor paper generate și a pozițiilor curente.
+\end{enumerate}
+
+Această procedură reduce riscul de configurare greșită și permite confirmarea faptului că botul, brokerul paper și sistemul de observabilitate funcționează împreună.
+
 \section{Structura artefactelor generate}
 \label{anexa:artefacte}
 
 Fiecare rulare creează un director separat în \texttt{output}. Numele directorului include modul de rulare, perechea valutară, timeframe-ul, perioada testată și timestamp-ul rulării.
 
-\begin{table}[htbp]
+\begin{table}[H]
     \centering
-    \caption{Fișiere generate de o rulare de backtesting}
-    \label{tabel:anexa_artefacte}
-    \begin{tabular}{|l|p{9cm}|}
+    \small
+    \begin{tabular}{|p{4.2cm}|p{9.4cm}|}
         \hline
         \textbf{Fișier} & \textbf{Rol} \\
         \hline
@@ -75,13 +138,15 @@ Fiecare rulare creează un director separat în \texttt{output}. Numele director
         \hline
         \texttt{regime\_metrics.csv} & Performanța grupată după regimul de piață al intrării. \\
         \hline
-        \texttt{risk\_overlay\_metrics.csv} & Deciziile componentei de risc și motivele aprobării sau respingerii semnalelor. \\
+        \begin{tabular}[t]{@{}l@{}}\texttt{risk\_overlay\_}\\\texttt{metrics.csv}\end{tabular} & Deciziile componentei de risc și motivele aprobării sau respingerii semnalelor. \\
         \hline
         \texttt{summary.txt} & Raport text cu indicatorii principali și lista tranzacțiilor. \\
         \hline
         \texttt{dashboard.html} & Dashboard HTML pentru inspectarea vizuală a performanței. \\
         \hline
     \end{tabular}
+    \caption{Fișiere generate de o rulare de backtesting}
+    \label{tabel:anexa_artefacte}
 \end{table}
 
 \section{Parametri relevanți de configurare}
@@ -89,11 +154,10 @@ Fiecare rulare creează un director separat în \texttt{output}. Numele director
 
 Aplicația folosește clase de configurare pentru strategii, risc, date, logare și broker. Parametrii principali ai componentei de risc sunt:
 
-\begin{table}[htbp]
+\begin{table}[H]
     \centering
-    \caption{Parametri de risc utilizați în proiect}
-    \label{tabel:anexa_risc}
-    \begin{tabular}{|l|l|p{6cm}|}
+    \small
+    \begin{tabular}{|p{4.8cm}|p{3cm}|p{6cm}|}
         \hline
         \textbf{Parametru} & \textbf{Valoare implicită} & \textbf{Descriere} \\
         \hline
@@ -107,20 +171,23 @@ Aplicația folosește clase de configurare pentru strategii, risc, date, logare 
         \hline
         \texttt{atr\_stop\_multiplier} & 1,5 & Multiplicatorul ATR pentru stop-loss. \\
         \hline
-        \texttt{take\_profit\_atr\_multiplier} & 5,0 & Multiplicatorul ATR pentru take-profit. \\
+        \begin{tabular}[t]{@{}l@{}}\texttt{take\_profit\_}\\\texttt{atr\_multiplier}\end{tabular} & 5,0 & Multiplicatorul ATR pentru take-profit. \\
         \hline
         \texttt{max\_notional\_leverage} & 1,0 & Levierul noțional maxim permis. \\
         \hline
     \end{tabular}
+    \caption{Parametri de risc utilizați în proiect}
+    \label{tabel:anexa_risc}
 \end{table}
 
+\clearpage
 \section{Fragment reprezentativ de flux decizional}
 \label{anexa:flux}
 
-Fragmentul următor sintetizează logica folosită de motorul de backtesting. Codul complet se află în depozitul proiectului.
+Fragmentul următor sintetizează logica folosită de motorul de backtesting. Codul complet se află în directorul sursă al aplicației.
 
 \begin{code}
-\begin{minted}{python}
+\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
 for event in BarReplay(market_data, warmup_bars=warmup_bars):
     bar = event.bar
     close_price = float(bar["close"])
@@ -156,7 +223,7 @@ for event in BarReplay(market_data, warmup_bars=warmup_bars):
 Dimensionarea poziției se realizează pornind de la riscul acceptat și de la distanța stop-loss-ului exprimată prin ATR.
 
 \begin{code}
-\begin{minted}{python}
+\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
 target_risk_amount = equity * self.config.risk_per_trade
 stop_distance = atr_value * self.config.atr_stop_multiplier
 usd_risk_per_unit = stop_distance * quote_to_usd_rate
