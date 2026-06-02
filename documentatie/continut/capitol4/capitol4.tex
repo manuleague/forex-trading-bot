@@ -95,8 +95,6 @@ Tabelul \ref{tabel:rezultate_backtest} sintetizează rezultatele generate de rap
 
 \begin{table}[htbp]
     \centering
-    \caption{Rezultate backtesting pe timeframe zilnic, 2018--2024}
-    \label{tabel:rezultate_backtest}
     \begin{tabular}{|l|r|r|r|r|r|}
         \hline
         \textbf{Pereche} & \textbf{P\&L} & \textbf{Drawdown} & \textbf{Tranzacții} & \textbf{Win rate} & \textbf{Profit factor} \\
@@ -106,6 +104,8 @@ Tabelul \ref{tabel:rezultate_backtest} sintetizează rezultatele generate de rap
         USDJPY & +3.106,55 USD & 3,19\% & 36 & 69,44\% & 3,743 \\
         \hline
     \end{tabular}
+    \caption{Rezultate backtesting pe timeframe zilnic, 2018--2024}
+    \label{tabel:rezultate_backtest}
 \end{table}
 
 \begin{figure}[htbp]
@@ -190,30 +190,53 @@ Porturile publicate pe sistemul gazdă au fost schimbate față de valorile impl
 
 Dashboard-urile afișează prețul live, semnalul allocatorului, starea poziției, dimensiunea poziției și P\&L-ul perechii. În perioadele în care botul nu deschide poziții, este normal ca panourile pentru P\&L și dimensiunea poziției să rămână la zero sau fără variație. Acest comportament indică faptul că sistemul este în starea \textit{Flat}, nu că monitorizarea este defectă.
 
-\section{Capturi și artefacte vizuale relevante}
+\section{Capturi de ecran din testare și monitorizare}
 \label{cap:cap4:capturi}
 
-Pe lângă tabelele numerice, proiectul generează artefacte vizuale care pot fi folosite pentru analiză și pentru susținerea lucrării. Fișierul \texttt{dashboard.html} oferă o vedere agregată asupra performanței, iar \texttt{performance\_dashboard.svg} conține reprezentări grafice ale evoluției sistemului. Pentru forma finală a lucrării se recomandă includerea unei capturi din dashboard-ul celei mai reprezentative rulări, de exemplu USDJPY pe timeframe zilnic, deoarece acesta ilustrează cel mai clar funcționarea sistemului pe un scenariu profitabil.
+Capturile de ecran din această secțiune completează rezultatele numerice prezentate anterior și documentează modul în care aplicația a fost verificată practic. Primele două figuri surprind dashboard-ul HTML generat după rularea de backtesting, iar următoarele ilustrează monitorizarea live și confirmarea execuțiilor în mediul paper trading al Interactive Brokers.
 
-\begin{longtable}{|p{4.3cm}|p{9.6cm}|}
-    \caption{Artefacte vizuale recomandate pentru susținere}
-    \label{tabel:artefacte_vizuale}\\
-        \hline
-        \textbf{Artefact} & \textbf{Utilitate} \\
-        \hline
-        \texttt{dashboard.html} & Prezintă într-o formă vizuală rezultatele unei rulări de backtesting și permite inspectarea rapidă a performanței. \\
-        \hline
-        \begin{tabular}[t]{@{}l@{}}\texttt{performance\_}\\\texttt{dashboard.svg}\end{tabular} & Poate fi inclus ca figură pentru evoluția capitalului și pentru indicatorii principali de performanță. \\
-        \hline
-        \texttt{trades.csv} & Evidențiază tranzacțiile generate, direcția acestora și motivele de intrare sau ieșire. \\
-        \hline
-        \begin{tabular}[t]{@{}l@{}}\texttt{risk\_overlay\_}\\\texttt{metrics.csv}\end{tabular} & Susține analiza mecanismului de risc, prin metrici asociate pozițiilor și semnalelor respinse. \\
-        \hline
-        Capturi Grafana pentru EURUSD, GBPUSD și USDJPY & Demonstrează observabilitatea live și separarea dashboard-urilor pe perechi valutare. \\
-        \hline
-        Captură Prometheus Targets & Confirmă faptul că endpoint-ul botului este colectat de Prometheus, cu starea operațională \texttt{UP}. \\
-        \hline
-\end{longtable}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{continut/capitol4/figuri/dashboard1.html.png}
+    \caption{Dashboard-ul HTML generat după rularea de backtesting}
+    \label{fig:dashboard_html_principal}
+\end{figure}
+
+Dashboard-ul de backtesting oferă o imagine sintetică asupra performanței: profitul total, randamentul, drawdown-ul maxim, factorul de profit, numărul tranzacțiilor și rata de câștig. În aceeași interfață sunt reprezentate evoluția capitalului și comparația dintre profitul realizat și profitul nerealizat, ceea ce permite verificarea rapidă a comportamentului strategiei pe intervalul analizat.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{continut/capitol4/figuri/dashboard2.html.png}
+    \caption{Metrici detaliate pentru drawdown, strategii și regimuri de piață}
+    \label{fig:dashboard_html_metrici}
+\end{figure}
+
+A doua captură evidențiază zonele de analiză detaliată ale dashboard-ului: evoluția drawdown-ului, performanța pe strategii, performanța pe regimuri de piață și notele generate pentru rularea respectivă. Aceste informații sunt utile pentru interpretarea rezultatelor, deoarece nu se limitează la profitul final, ci arată și contextul în care tranzacțiile au fost produse.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{continut/capitol4/figuri/grafana_dasboard_usdjpy_live.png}
+    \caption{Dashboard Grafana pentru monitorizarea perechii USDJPY în regim live paper}
+    \label{fig:grafana_usdjpy_live}
+\end{figure}
+
+Pentru rularea live paper, dashboard-ul Grafana afișează prețul curent, profitul realizat, profitul nerealizat, starea poziției, semnalul allocatorului și dimensiunea poziției. În exemplul din figura \ref{fig:grafana_usdjpy_live}, perechea USDJPY este monitorizată separat, ceea ce confirmă că observabilitatea poate fi urmărită individual pentru fiecare instrument tranzacționat.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{continut/capitol4/figuri/ib_live_trades_notification.png}
+    \caption{Notificare de ordin executat în Interactive Brokers paper trading}
+    \label{fig:ib_notificare_ordin}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{continut/capitol4/figuri/ib_live_trades_dasboard_ui.png}
+    \caption{Înregistrarea tranzacțiilor în interfața Interactive Brokers}
+    \label{fig:ib_trades_dashboard}
+\end{figure}
+
+Capturile din Interactive Brokers confirmă faptul că semnalele produse de bot pot fi transformate în ordine paper și că execuțiile apar în interfața platformei. Notificarea de ordin executat și lista tranzacțiilor oferă o verificare vizuală a integrării dintre aplicația Python și mediul de tranzacționare.
 
 \section{Limitări}
 \label{cap:cap4:limitari}
