@@ -195,28 +195,25 @@ Dashboard-urile afișează prețul live, semnalul allocatorului, starea poziție
 
 Pe lângă tabelele numerice, proiectul generează artefacte vizuale care pot fi folosite pentru analiză și pentru susținerea lucrării. Fișierul \texttt{dashboard.html} oferă o vedere agregată asupra performanței, iar \texttt{performance\_dashboard.svg} conține reprezentări grafice ale evoluției sistemului. Pentru forma finală a lucrării se recomandă includerea unei capturi din dashboard-ul celei mai reprezentative rulări, de exemplu USDJPY pe timeframe zilnic, deoarece acesta ilustrează cel mai clar funcționarea sistemului pe un scenariu profitabil.
 
-\begin{table}[htbp]
-    \centering
+\begin{longtable}{|p{4.3cm}|p{9.6cm}|}
     \caption{Artefacte vizuale recomandate pentru susținere}
-    \label{tabel:artefacte_vizuale}
-    \begin{tabular}{|p{5.2cm}|p{8.4cm}|}
+    \label{tabel:artefacte_vizuale}\\
         \hline
         \textbf{Artefact} & \textbf{Utilitate} \\
         \hline
-        \texttt{dashboard.html} & Demonstrează modul în care rezultatele pot fi inspectate vizual după rulare. \\
+        \texttt{dashboard.html} & Prezintă într-o formă vizuală rezultatele unei rulări de backtesting și permite inspectarea rapidă a performanței. \\
         \hline
-        \texttt{performance\_dashboard.svg} & Poate fi inclus ca imagine pentru evoluția performanței și a capitalului. \\
+        \begin{tabular}[t]{@{}l@{}}\texttt{performance\_}\\\texttt{dashboard.svg}\end{tabular} & Poate fi inclus ca figură pentru evoluția capitalului și pentru indicatorii principali de performanță. \\
         \hline
-        \texttt{trades.csv} & Poate fi deschis în Excel pentru a arăta tranzacțiile generate și motivele de intrare/ieșire. \\
+        \texttt{trades.csv} & Evidențiază tranzacțiile generate, direcția acestora și motivele de intrare sau ieșire. \\
         \hline
-        \texttt{risk\_overlay\_metrics.csv} & Demonstrează trasabilitatea deciziilor de risc și motivele respingerii semnalelor. \\
+        \begin{tabular}[t]{@{}l@{}}\texttt{risk\_overlay\_}\\\texttt{metrics.csv}\end{tabular} & Susține analiza mecanismului de risc, prin metrici asociate pozițiilor și semnalelor respinse. \\
         \hline
-        Captură Grafana pentru EURUSD/GBPUSD/USDJPY & Demonstrează observabilitatea live, separarea dashboard-urilor pe paritate și funcționarea Prometheus. \\
+        Capturi Grafana pentru EURUSD, GBPUSD și USDJPY & Demonstrează observabilitatea live și separarea dashboard-urilor pe perechi valutare. \\
         \hline
-        Captură Prometheus Targets & Demonstrează că endpoint-ul \texttt{host.docker.internal:18000} este colectat cu starea \texttt{UP}. \\
+        Captură Prometheus Targets & Confirmă faptul că endpoint-ul botului este colectat de Prometheus, cu starea operațională \texttt{UP}. \\
         \hline
-    \end{tabular}
-\end{table}
+\end{longtable}
 
 \section{Limitări}
 \label{cap:cap4:limitari}
