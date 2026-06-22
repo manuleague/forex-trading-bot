@@ -153,6 +153,9 @@ Totuși, aceste mecanisme nu transformă aplicația într-un sistem de producți
 
 Modul live a fost proiectat pentru paper trading prin Interactive Brokers. Pentru utilizare, sunt necesari următorii pași:
 \begin{itemize}
+    \setlength{\itemsep}{0pt}
+    \setlength{\parsep}{0pt}
+    \setlength{\topsep}{3pt}
     \item pornirea TWS sau IB Gateway în cont paper;
     \item activarea accesului API;
     \item folosirea portului 7497 pentru TWS paper sau 4002 pentru Gateway paper;
@@ -179,6 +182,9 @@ Pentru validarea comportamentului live a fost configurat un stack local de obser
 
 Porturile publicate pe sistemul gazdă au fost schimbate față de valorile implicite pentru a evita conflictele cu alte aplicații locale. Astfel, Prometheus este accesibil în browser la \url{http://localhost:39090}, iar Grafana la \url{http://localhost:33000}. Verificarea minimă a monitorizării constă în:
 \begin{itemize}
+    \setlength{\itemsep}{0pt}
+    \setlength{\parsep}{0pt}
+    \setlength{\topsep}{3pt}
     \item verificarea endpoint-ului \url{http://localhost:18000/metrics};
     \item confirmarea metricii \texttt{bot\_live\_price};
     \item confirmarea metricilor per pereche pentru semnal și dimensiunea poziției;
@@ -193,23 +199,25 @@ Panourile Grafana afișează prețul live, semnalul allocatorului, starea poziț
 \section{Capturi de ecran din testare și monitorizare}
 \label{cap:cap4:capturi}
 
-Capturile de ecran din această secțiune completează rezultatele numerice prezentate anterior și documentează modul în care aplicația a fost verificată practic. Primele două figuri surprind dashboard-ul HTML generat după rularea de backtesting, iar următoarele ilustrează monitorizarea live și confirmarea execuțiilor în mediul paper trading al Interactive Brokers.
+Capturile de ecran din această secțiune completează rezultatele numerice prezentate anterior și documentează modul în care aplicația a fost verificată practic. Primele două figuri surprind dashboard-ul HTML generat după rularea de backtesting, iar următoarele ilustrează monitorizarea live și confirmarea execuțiilor în mediul paper trading al Interactive Brokers. În capturile finale se urmărește folosirea unei teme deschise și decuparea strictă pe zona relevantă, astfel încât textul și graficele să rămână lizibile în format tipărit.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.98\textwidth]{continut/capitol4/figuri/dashboard1.html.png}
+    \includegraphics[width=0.9\textwidth]{continut/capitol4/figuri/dashboard1.html.png}
     \caption{Dashboard-ul HTML generat după rularea de backtesting}
     \label{fig:dashboard_html_principal}
 \end{figure}
+\vspace{-0.35cm}
 
 Dashboard-ul de backtesting oferă o imagine sintetică asupra performanței: profitul total, randamentul, drawdown-ul maxim, factorul de profit, numărul tranzacțiilor și rata de câștig. În aceeași interfață sunt reprezentate evoluția capitalului și comparația dintre profitul realizat și profitul nerealizat, ceea ce permite verificarea rapidă a comportamentului strategiei pe intervalul analizat.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.98\textwidth]{continut/capitol4/figuri/dashboard2.html.png}
+    \includegraphics[width=0.9\textwidth]{continut/capitol4/figuri/dashboard2.html.png}
     \caption{Metrici detaliate pentru drawdown, strategii și regimuri de piață}
     \label{fig:dashboard_html_metrici}
 \end{figure}
+\vspace{-0.35cm}
 
 A doua captură evidențiază zonele de analiză detaliată ale dashboard-ului: evoluția drawdown-ului, performanța pe strategii, performanța pe regimuri de piață și notele generate pentru rularea respectivă. Aceste informații sunt utile pentru interpretarea rezultatelor, deoarece nu se limitează la profitul final, ci arată și contextul în care tranzacțiile au fost produse.
 

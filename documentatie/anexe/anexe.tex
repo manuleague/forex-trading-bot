@@ -181,59 +181,210 @@ Aplicația folosește clase de configurare pentru strategii, risc, date, logare 
 \end{table}
 
 \clearpage
-\section{Fragment reprezentativ de flux decizional}
-\label{anexa:flux}
+\section{Fragmente relevante din codul sursă}
+\label{anexa:fragmente_cod}
 
-Fragmentul următor sintetizează logica folosită de motorul de backtesting. Codul complet se află în directorul sursă al aplicației.
+Această anexă include fragmente reprezentative din implementare. Au fost selectate componente care susțin direct arhitectura descrisă în Capitolul \ref{cap:cap3}: modelele interne de date, alocarea semnalelor, controlul riscului, protecțiile pentru rularea live și persistarea artefactelor.
 
-\begin{code}
-\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
-for event in BarReplay(market_data, warmup_bars=warmup_bars):
-    bar = event.bar
-    close_price = float(bar["close"])
+\subsection{Modele interne pentru decizie, risc și tranzacții}
+\label{anexa:cod_modele_date}
 
-    decisions = {
-        strategy.name: strategy.evaluate(event.history)
-        for strategy in strategies
-    }
-    composite = allocator.allocate(
-        decisions,
-        current_regime=str(bar["regime"]),
-        performance_tracker=tracker,
-    )
-
-    risk_decision = risk_overlay.evaluate_entry(
-        pair=pair,
-        open_positions=[],
-        bias=composite.bias,
-        equity=equity,
-        current_open_risk_ratio=open_risk_ratio,
-        close_price=close_price,
-        atr_value=float(bar["atr"]),
-        quote_to_usd_rate=quote_to_usd,
-    )
-\end{minted}
-\caption{Sinteză a fluxului de decizie din backtesting}
-\label{code:anexa_flux_decizie}
-\end{code}
-
-\section{Fragment reprezentativ pentru dimensionarea poziției}
-\label{anexa:position_size}
-
-Dimensionarea poziției se realizează pornind de la riscul acceptat și de la distanța stop-loss-ului exprimată prin ATR.
+Modelele de tip \texttt{dataclass} definesc obiectele transmise între strategii, allocator, componenta de risc și modulele de raportare. Separarea acestor structuri ajută la auditarea deciziilor și la exportul coerent al rezultatelor.
 
 \begin{code}
 \begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
-target_risk_amount = equity * self.config.risk_per_trade
-stop_distance = atr_value * self.config.atr_stop_multiplier
-usd_risk_per_unit = stop_distance * quote_to_usd_rate
+@dataclass(slots=True)
+class StrategyDecision:
+    name: str
+    signal: int
+    confidence: float
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-size_by_risk = int(max(target_risk_amount / usd_risk_per_unit, 1))
-max_notional_usd = equity * self.config.max_notional_leverage
-size_by_notional = int(max(max_notional_usd / usd_notional_per_unit, 0))
 
-size_units = min(size_by_risk, size_by_notional)
+@dataclass(slots=True)
+class CompositeDecision:
+    final_signal: float
+    bias: int
+    strategy_scores: dict[str, float]
+    strategy_decisions: dict[str, StrategyDecision]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
+class RiskDecision:
+    approved: bool
+    size_units: int
+    stop_distance: float
+    stop_price: float
+    risk_amount_usd: float
+    exposure_after_trade: float
+    reason: str
 \end{minted}
-\caption{Dimensionarea poziției în funcție de risc și volatilitate}
-\label{code:anexa_position_size}
+\caption{Modele interne pentru semnale compuse și decizii de risc}
+\label{code:anexa_modele_decizie}
 \end{code}
+
+\subsection{Calculul scorului în allocatorul de strategii}
+\label{anexa:cod_allocator}
+
+Fragmentul următor arată modul în care allocatorul combină performanța recentă, încrederea semnalului, potrivirea cu regimul de piață și diversificarea. Rezultatul este un semnal numeric final și un bias operațional: long, short sau flat.
+
+\begin{code}
+\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
+for name, decision in decisions.items():
+    snapshot = performance_tracker.snapshot(name, current_regime)
+    performance_score = self._performance_score(snapshot)
+    raw_confidence = (
+        decision.confidence
+        if decision.confidence >= self.min_strategy_confidence
+        else 0.0
+    )
+    regime_fit = snapshot.regime_fit
+    diversification = self._diversification_bonus(name)
+    composite = (
+        0.4 * performance_score
+        + 0.3 * raw_confidence
+        + 0.2 * regime_fit
+        + 0.1 * diversification
+    )
+    if decision.signal == 0:
+        composite *= 0.25
+    raw_scores[name] = composite
+
+scores = normalize_scores(raw_scores)
+final_signal = float(
+    sum(decisions[name].signal * scores[name] for name in decisions)
+)
+if final_signal > self.score_threshold:
+    bias = 1
+elif final_signal < -self.score_threshold:
+    bias = -1
+else:
+    bias = 0
+\end{minted}
+\caption{Agregarea scorurilor în allocatorul multi-strategie}
+\label{code:anexa_allocator_scor}
+\end{code}
+
+\subsection{Circuit breaker pentru controlul drawdown-ului}
+\label{anexa:cod_circuit_breaker}
+
+Componenta de risc urmărește capitalul maxim atins și dezactivează temporar tranzacționarea atunci când drawdown-ul depășește pragul configurat. Reluarea tranzacționării este permisă doar după terminarea perioadei de cooldown și după revenirea capitalului peste pragul de recuperare.
+
+\begin{code}
+\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
+def update_equity(self, equity: float) -> None:
+    self.equity_peak = max(self.equity_peak, equity)
+    if self.equity_peak <= 0:
+        return
+
+    drawdown_pct = max(0.0, 1.0 - (equity / self.equity_peak))
+    recovery_ratio = equity / self.equity_peak if self.equity_peak else 0.0
+    breached_now = (
+        self.last_drawdown_pct
+        < self.config.drawdown_circuit_breaker
+        <= drawdown_pct
+    )
+
+    if not self.circuit_breaker_active and breached_now:
+        self.trading_enabled = False
+        self.circuit_breaker_active = True
+        self.cooldown_bars_remaining = max(
+            self.config.circuit_breaker_cooldown_bars, 0
+        )
+    elif self.circuit_breaker_active:
+        if self.cooldown_bars_remaining > 0:
+            self.cooldown_bars_remaining -= 1
+        recovery_ready = (
+            recovery_ratio >= self.config.circuit_breaker_recovery_threshold
+        )
+        cooldown_complete = self.cooldown_bars_remaining <= 0
+        if cooldown_complete and recovery_ready:
+            self.trading_enabled = True
+            self.circuit_breaker_active = False
+            self.cooldown_bars_remaining = 0
+
+    self.last_drawdown_pct = drawdown_pct
+\end{minted}
+\caption{Mecanism de tip circuit breaker pe baza drawdown-ului}
+\label{code:anexa_circuit_breaker}
+\end{code}
+
+\subsection{Protecție împotriva rulărilor live duplicate}
+\label{anexa:cod_live_lock}
+
+În modul live, aplicația creează fișiere lock pentru perechile administrate. Acest mecanism reduce riscul ca două procese să gestioneze simultan aceeași pereche valutară și același cont paper.
+
+\begin{code}
+\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
+def _acquire_live_pair_locks(self) -> bool:
+    if self.config.allow_duplicate_live_pair:
+        return True
+    lock_dir = self.config.logging.output_dir / ".live_locks"
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    acquired: list[Path] = []
+
+    for pair in self.config.pairs:
+        lock_path = lock_dir / f"{self._live_lock_key(pair)}.lock"
+        payload = {
+            "pid": os.getpid(),
+            "pair": pair,
+            "timeframe": self.config.timeframe,
+            "host": self.config.ib.host,
+            "port": self.config.ib.port,
+            "account": self.config.ib.account or "default",
+            "client_id": self.config.ib.client_id,
+        }
+        if self._try_create_live_lock(lock_path, payload):
+            acquired.append(lock_path)
+            continue
+
+        existing = self._read_live_lock(lock_path)
+        existing_pid = int(existing.get("pid", 0) or 0) if existing else 0
+        if existing_pid and self._pid_exists(existing_pid):
+            self._release_live_pair_locks(acquired)
+            return False
+
+    self.live_pair_lock_paths.extend(acquired)
+    return True
+\end{minted}
+\caption{Mecanism de lock pentru evitarea rulărilor live duplicate}
+\label{code:anexa_live_lock}
+\end{code}
+
+\subsection{Persistarea artefactelor de analiză}
+\label{anexa:cod_persistare_artefacte}
+
+După fiecare rulare, rezultatele sunt salvate în fișiere separate. Această abordare permite verificarea tranzacțiilor, a deciziilor de risc, a curbei capitalului și a rapoartelor vizuale fără a depinde de o interfață grafică.
+
+\begin{code}
+\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
+def persist_report(self, report: dict[str, Any], summary_text: str) -> dict[str, Path]:
+    paths: dict[str, Path] = {}
+    for key, filename, include_index in [
+        ("trade_records", "trades.csv", False),
+        ("transactions", "transactions.csv", False),
+        ("strategy_metrics", "strategy_metrics.csv", False),
+        ("regime_metrics", "regime_metrics.csv", False),
+        ("risk_metrics", "risk_overlay_metrics.csv", False),
+        ("equity_curve", "equity_curve.csv", False),
+        ("returns_table", "returns.csv", True),
+        ("details_table", "details.csv", True),
+        ("order_events", "order_events.csv", False),
+        ("open_positions", "open_positions.csv", False),
+    ]:
+        value = report.get(key)
+        if isinstance(value, pd.DataFrame):
+            path = self.run_dir / filename
+            value.to_csv(path, index=include_index)
+            paths[key] = path
+
+    paths["summary"] = self.write_text("summary.txt", summary_text)
+    dashboard_paths = PerformanceDashboardWriter(self.run_dir).persist(report)
+    paths.update(dashboard_paths)
+    return paths
+\end{minted}
+\caption{Persistarea rapoartelor CSV, text și dashboard}
+\label{code:anexa_persistare_artefacte}
+\end{code}
+

@@ -14,14 +14,14 @@ Rezultatele experimentale au arătat că performanța diferă semnificativ într
 
 Principalele contribuții realizate în cadrul lucrării sunt:
 \begin{itemize}
-    \item proiectarea unei arhitecturi modulare pentru backtesting și paper trading pe perechi Forex;
-    \item implementarea unui flux determinist de procesare bară cu bară, fără acces la informații viitoare;
-    \item integrarea a trei strategii complementare, adaptate pentru trend, revenire la medie și breakout;
-    \item realizarea unui allocator multi-strategie care utilizează performanța recentă, încrederea semnalului, regimul de piață și diversificarea;
-    \item implementarea unei componente de risc independente, cu dimensionarea pozițiilor pe baza ATR, limitarea expunerii și mecanism de tip circuit breaker;
-    \item generarea de artefacte pentru auditarea tranzacțiilor, evenimentelor, riscului și performanței;
-    \item integrarea controlată cu Interactive Brokers în regim paper trading;
-    \item adăugarea unui mecanism de observabilitate live prin Prometheus și Grafana, cu dashboard-uri separate pentru perechile valutare monitorizate.
+    \item proiectarea unei arhitecturi modulare pentru backtesting și paper trading pe perechi Forex (detaliată în Secțiunea \ref{cap:cap3:arhitectura});
+    \item implementarea unui flux determinist de procesare bară cu bară, fără acces la informații viitoare (prezentat în Secțiunea \ref{cap:cap3:backtest});
+    \item integrarea a trei strategii complementare, adaptate pentru trend, revenire la medie și breakout (descrise în Secțiunea \ref{cap:cap3:strategii});
+    \item realizarea unui allocator multi-strategie care utilizează performanța recentă, încrederea semnalului, regimul de piață și diversificarea (detaliat în Secțiunea \ref{sec:allocator});
+    \item implementarea unei componente de risc independente, cu dimensionarea pozițiilor pe baza ATR, limitarea expunerii și mecanism de tip circuit breaker (detaliată în Secțiunea \ref{cap:cap3:risk_overlay});
+    \item generarea de artefacte pentru auditarea tranzacțiilor, evenimentelor, riscului și performanței (prezentată în Secțiunea \ref{cap:cap3:artefacte});
+    \item integrarea controlată cu Interactive Brokers în regim paper trading (descrisă în Secțiunea \ref{cap:cap3:live});
+    \item adăugarea unui mecanism de observabilitate live prin Prometheus și Grafana, cu dashboard-uri separate pentru perechile valutare monitorizate (demonstrat în Secțiunea \ref{sec:monitorizare}).
 \end{itemize}
 
 Prin aceste contribuții, lucrarea depășește nivelul unei strategii izolate și propune un cadru complet de evaluare și execuție controlată. Valoarea principală a proiectului constă în transparența fluxului decizional: fiecare rezultat poate fi urmărit înapoi către datele folosite, strategia care a generat semnalul, decizia allocatorului și regulile de risc aplicate.

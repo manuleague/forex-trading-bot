@@ -86,7 +86,7 @@ Cerințele nefuncționale stabilesc proprietățile de calitate urmărite în im
 \section{Alegerea tehnologiilor}
 \label{cap:cap3:tehnologii}
 
-Implementarea a fost realizată în Python deoarece limbajul are un ecosistem matur pentru analiză de date, integrare cu API-uri externe și prototipare rapidă. Bibliotecile \texttt{pandas} și \texttt{NumPy} sunt utilizate pentru prelucrarea seriilor de timp, calculul indicatorilor și agregarea rezultatelor. \texttt{PyYAML} permite separarea parametrilor de configurare de codul sursă, iar \texttt{dukascopy-python} asigură accesul la date istorice Forex. Pentru modul live, \texttt{ib\_insync} oferă o interfață Python peste API-ul Interactive Brokers. Monitorizarea live utilizează \texttt{prometheus-client}, Prometheus, Grafana și Docker Compose pentru colectarea, stocarea și vizualizarea metricilor operaționale \cite{misc:web:prometheus_docs,misc:web:grafana_docs,misc:web:docker_compose_docs}.
+Implementarea a fost realizată în Python deoarece limbajul are un ecosistem matur pentru analiză de date, integrare cu API-uri externe și prototipare rapidă. Bibliotecile \texttt{pandas} \cite{misc:web:pandas_docs} și \texttt{NumPy} \cite{misc:web:numpy_docs} sunt utilizate pentru prelucrarea seriilor de timp, calculul indicatorilor și agregarea rezultatelor. \texttt{PyYAML} permite separarea parametrilor de configurare de codul sursă, iar \texttt{dukascopy-python} asigură accesul la date istorice Forex \cite{misc:web:dukascopy_python}. Pentru modul live, \texttt{ib\_insync} oferă o interfață Python peste API-ul Interactive Brokers \cite{misc:web:ib_insync,misc:web:ibkr_api}. Monitorizarea live utilizează \texttt{prometheus-client}, Prometheus, Grafana și Docker Compose pentru colectarea, stocarea și vizualizarea metricilor operaționale \cite{misc:web:prometheus_docs,misc:web:grafana_docs,misc:web:docker_compose_docs}.
 
 Alegerea unei aplicații de tip CLI, în locul unei interfețe grafice, este justificată de caracterul experimental al proiectului. Parametrii pot fi salvați în comenzi reproductibile, rulările pot fi automatizate, iar rezultatele sunt persistate în fișiere.
 
@@ -176,9 +176,9 @@ Prin aceste structuri, sistemul păstrează o separare clară între semnal, dec
 \section{Trasabilitatea cerințelor}
 \label{cap:cap3:trasabilitate}
 
-Pentru o lucrare de diplomă, este important ca cerințele formulate să poată fi urmărite până la componentele implementate. Tabelul \ref{tabel:trasabilitate_cerinte} sintetizează această legătură și arată unde se regăsesc elementele tehnice esențiale în proiect.
+Tabelul \ref{tabel:trasabilitate_cerinte} leagă cerințele principale de modulele responsabile și de artefactele prin care implementarea poate fi verificată.
 
-\begin{table}[htbp]
+\begin{table}[H]
     \centering
     \caption{Trasabilitatea cerințelor către modulele implementate}
     \label{tabel:trasabilitate_cerinte}
@@ -219,6 +219,39 @@ Motorul verifică existența datelor în directorul \texttt{data\_cache}. Dacă 
 
 Procesarea se face bară cu bară. Pentru fiecare moment, motorul actualizează poziția curentă, verifică stop-loss-ul și take-profit-ul, evaluează strategiile și transmite semnalul compus către componenta de risc. Dacă riscul este aprobat, este creată o poziție nouă. Dacă există deja o poziție, aceasta poate fi închisă prin stop, take-profit, trailing stop, break-even sau semnal opus.
 
+Fragmentul următor sintetizează fluxul de decizie folosit în backtesting. El evidențiază faptul că strategiile sunt evaluate pe istoricul disponibil la momentul curent, iar decizia compusă este transmisă separat către componenta de risc.
+
+\begin{code}
+\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
+for event in BarReplay(market_data, warmup_bars=warmup_bars):
+    bar = event.bar
+    close_price = float(bar["close"])
+
+    decisions = {
+        strategy.name: strategy.evaluate(event.history)
+        for strategy in strategies
+    }
+    composite = allocator.allocate(
+        decisions,
+        current_regime=str(bar["regime"]),
+        performance_tracker=tracker,
+    )
+
+    risk_decision = risk_overlay.evaluate_entry(
+        pair=pair,
+        open_positions=[],
+        bias=composite.bias,
+        equity=equity,
+        current_open_risk_ratio=open_risk_ratio,
+        close_price=close_price,
+        atr_value=float(bar["atr"]),
+        quote_to_usd_rate=quote_to_usd,
+    )
+\end{minted}
+\caption{Sinteză a fluxului de decizie din backtesting}
+\label{code:flux_decizie_backtest}
+\end{code}
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.95\textwidth]{continut/capitol3/figuri/flux_backtesting.png}
@@ -237,11 +270,16 @@ Sistemul include trei strategii complementare.
 
 \textit{Strategia de breakout} folosește canale Donchian și ATR. Ea caută închideri peste maximul canalului sau sub minimul canalului anterior, dar acceptă tranzacții doar când volatilitatea este suficient de ridicată. Această strategie este potrivită pentru trenduri și pentru episoade de creștere bruscă a volatilității.
 
-\begin{table}[htbp]
+Complementaritatea strategiilor este importantă deoarece piața Forex nu rămâne permanent într-un singur comportament. O strategie de trend poate avea rezultate slabe într-o piață laterală, în timp ce o strategie de revenire la medie poate produce semnale greșite în timpul unui breakout puternic. Prin urmare, sistemul nu alege manual o singură strategie pentru toate perioadele, ci permite allocatorului să acorde ponderi diferite în funcție de performanță și context.
+
+\begin{table}[H]
     \centering
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.15}
     \caption{Rezumatul strategiilor implementate}
     \label{tabel:strategii_rezumat}
-    \begin{tabular}{|p{3cm}|p{4.2cm}|p{3.5cm}|p{3.7cm}|}
+    \begin{tabular}{|p{2.8cm}|p{4.1cm}|p{3.2cm}|p{3.7cm}|}
         \hline
         \textbf{Strategie} & \textbf{Indicatori utilizați} & \textbf{Regim țintă} & \textbf{Rol în sistem} \\
         \hline
@@ -249,15 +287,15 @@ Sistemul include trei strategii complementare.
         \hline
         Mean reversion & Bollinger Bands, RSI, ADX, filtre de lumânare & \texttt{range} & Caută revenirea prețului de la extreme statistice. \\
         \hline
-        Breakout & Donchian Channels, ATR, z-score volatilitate & trend sau \texttt{volatility\_spike} & Caută străpungeri ale canalelor de preț. \\
+        Breakout & Donchian Channels, ATR, z-score volatilitate & trend sau {volatility\_spike} & Caută străpungeri ale canalelor de preț. \\
         \hline
     \end{tabular}
+    \renewcommand{\arraystretch}{1.0}
 \end{table}
-
-Complementaritatea strategiilor este importantă deoarece piața Forex nu rămâne permanent într-un singur comportament. O strategie de trend poate avea rezultate slabe într-o piață laterală, în timp ce o strategie de revenire la medie poate produce semnale greșite în timpul unui breakout puternic. Prin urmare, sistemul nu alege manual o singură strategie pentru toate perioadele, ci permite allocatorului să acorde ponderi diferite în funcție de performanță și context.
 
 \section{Allocatorul de strategii}
 \label{cap:cap3:allocator}
+\label{sec:allocator}
 
 Fiecare strategie returnează un semnal, o încredere și metadate explicative. Allocatorul combină semnalele printr-un scor compus. Pentru fiecare strategie sunt evaluate patru componente:
 \begin{itemize}
@@ -282,6 +320,24 @@ Dimensiunea poziției este calculată pornind de la riscul dorit:
 \end{equation}
 
 Formula \eqref{eq:position_size} este limitată suplimentar de expunerea maximă și de levierul noțional maxim. Stop-loss-ul este plasat la o distanță de ATR față de prețul de intrare, iar take-profit-ul este stabilit la o distanță mai mare, pentru a permite raporturi risc-recompensă favorabile. Pe parcursul tranzacției, sistemul poate muta stop-ul la break-even și poate activa trailing stop-ul.
+
+Implementarea practică păstrează aceeași logică: se calculează suma maximă riscată, riscul pe unitate și dimensiunea permisă atât de risc, cât și de levierul noțional. Dimensiunea finală este minimul dintre cele două limite.
+
+\begin{code}
+\begin{minted}[basicstyle=\footnotesize\ttfamily\bfseries\color{codeIdentifier}]{python}
+target_risk_amount = equity * self.config.risk_per_trade
+stop_distance = atr_value * self.config.atr_stop_multiplier
+usd_risk_per_unit = stop_distance * quote_to_usd_rate
+
+size_by_risk = int(max(target_risk_amount / usd_risk_per_unit, 1))
+max_notional_usd = equity * self.config.max_notional_leverage
+size_by_notional = int(max(max_notional_usd / usd_notional_per_unit, 0))
+
+size_units = min(size_by_risk, size_by_notional)
+\end{minted}
+\caption{Dimensionarea poziției în funcție de risc și volatilitate}
+\label{code:position_size_risc}
+\end{code}
 
 Regulile de risc nu sunt tratate ca o extensie a strategiilor, ci ca o componentă independentă. Această decizie de proiectare reduce riscul ca o strategie să își suprascrie propriile protecții și permite verificarea uniformă a tuturor semnalelor. De exemplu, indiferent dacă semnalul provine din trend sau din breakout, intrarea poate fi respinsă pentru volatilitate insuficientă, lichiditate anormală, expunere prea mare sau circuit breaker activ.
 
@@ -328,6 +384,7 @@ Sistemul include mecanisme operaționale importante: lock-uri locale pentru a pr
 
 \section{Observabilitate în timp real}
 \label{cap:cap3:observabilitate}
+\label{sec:monitorizare}
 
 Pentru modul live, proiectul include un mecanism de observabilitate bazat pe Prometheus și Grafana. Botul pornește local un server HTTP de metrici pe portul \texttt{18000}, iar Prometheus colectează valorile la un interval de 5 secunde prin ținta \texttt{host.docker.internal:18000}. Grafana citește datele din Prometheus și prezintă dashboard-uri separate pentru EURUSD, GBPUSD și USDJPY.
 
@@ -353,7 +410,7 @@ Fiecare rulare generează un director în \texttt{output}. Artefactele principal
 \section{Algoritmul general}
 \label{cap:cap3:algoritm}
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
     \caption{Fluxul decizional al sistemului}
     \label{alg:flux_decizional}
     \begin{algorithmic}[1]
