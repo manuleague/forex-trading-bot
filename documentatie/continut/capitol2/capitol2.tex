@@ -12,6 +12,24 @@ Piața Forex reprezintă piața globală de schimb valutar, în care instrumente
 
 Datele utilizate în proiect sunt de tip OHLCV, adică includ prețul de deschidere, maximul, minimul, prețul de închidere și volumul pentru un interval de timp. Sistemul suportă mai multe granularități, de la intervale intraday până la timeframe-uri zilnice sau săptămânale. În contextul backtesting-ului, ordinea cronologică a acestor observații este esențială. Un algoritm care ar utiliza informații din viitor ar produce rezultate nerealiste, motiv pentru care toate componentele proiectului calculează indicatorii folosind doar date disponibile până la momentul curent.
 
+\section{Particularități operaționale ale pieței Forex}
+\label{cap:cap2:particularitati_forex}
+
+Piața Forex are particularități care influențează proiectarea unui sistem automatizat. Spre deosebire de acțiuni, unde fiecare instrument este exprimat într-o singură monedă de referință, perechile valutare implică simultan o monedă de bază și o monedă cotată. Din acest motiv, calculul profitului, al pierderii și al expunerii trebuie să țină cont de conversia către moneda contului. În lucrare, raportarea este realizată în USD, iar pentru perechile unde USD nu este moneda cotată este necesară o rată de conversie suplimentară.
+
+Un alt aspect important este faptul că piața funcționează aproape continuu în timpul săptămânii, dar lichiditatea nu este uniformă pe toate intervalele orare. Sesiunile asiatice, europene și americane pot avea comportamente diferite, atât prin volatilitate, cât și prin frecvența mișcărilor direcționale. O strategie care produce semnale bune într-un interval cu lichiditate ridicată poate deveni instabilă în perioade cu volum redus sau spread mai mare. Din acest motiv, sistemul include filtre de sesiune și verificări legate de volatilitate.
+
+În practică, rezultatul unei tranzacții nu depinde doar de direcția prețului, ci și de costurile implicite ale execuției: spread, slippage și eventuale comisioane. Chiar dacă proiectul are caracter educațional și folosește ipoteze simplificate în backtesting, arhitectura păstrează posibilitatea configurării slippage-ului și a costurilor. Această separare este importantă deoarece permite extinderea ulterioară către simulări mai apropiate de condițiile reale de piață.
+
+\section{Calitatea datelor și evitarea erorilor de simulare}
+\label{cap:cap2:calitatea_datelor}
+
+Calitatea datelor istorice influențează direct validitatea rezultatelor obținute prin backtesting. Datele lipsă, barele duplicate, ordonarea incorectă sau valorile extreme pot modifica indicatorii tehnici și pot genera semnale care nu ar fi apărut într-un flux real de piață. De aceea, un sistem de testare nu trebuie să trateze datele doar ca intrare brută, ci ca resursă care trebuie verificată înainte de utilizare.
+
+În cazul seriilor OHLCV, validarea minimă presupune verificarea ordinii cronologice, a consistenței dintre valorile open, high, low și close, precum și eliminarea observațiilor imposibile. De exemplu, maximul unei bare trebuie să fie mai mare sau egal cu prețul de deschidere și închidere, iar minimul trebuie să fie mai mic sau egal cu acestea. Abaterile de la aceste reguli pot indica date corupte sau probleme de descărcare.
+
+O altă sursă de eroare este folosirea accidentală a informației viitoare. Aceasta poate apărea atunci când indicatorii sunt calculați pe întreaga serie și apoi utilizați fără decalare, sau când deciziile curente includ valori care în realitate ar fi fost disponibile doar după închiderea barei. În proiect, procesarea bară cu bară și folosirea unui mecanism de replay cronologic reduc acest risc, deoarece fiecare decizie este generată pe baza istoricului disponibil până la momentul curent.
+
 \section{Indicatori tehnici utilizați}
 \label{cap:cap2:indicatori}
 
@@ -42,6 +60,19 @@ Această clasificare permite activarea strategiilor în condițiile pentru care 
 Backtesting-ul reprezintă simularea aplicării unei strategii pe date istorice. Acesta este un pas necesar în evaluarea inițială a unei strategii, dar nu constituie o garanție pentru performanța viitoare. O problemă frecventă este supraoptimizarea, adică ajustarea excesivă a parametrilor pentru un set istoric particular. Într-o astfel de situație, strategia poate obține rezultate bune pe perioada testată, dar poate eșua atunci când este aplicată pe date noi. Bailey et al. evidențiază necesitatea unei evaluări prudente, mai ales atunci când sunt testate multe variante ale aceleiași strategii \cite{art:bailey:backtest}.
 
 În cadrul proiectului, backtesting-ul este construit determinist. Datele sunt încărcate din cache local, fiecare bară este procesată o singură dată, iar rezultatele sunt salvate într-un director dedicat. Această abordare permite reluarea experimentelor și verificarea tranzacțiilor generate, aspect important pentru o lucrare tehnică în care rezultatele trebuie să poată fi justificate.
+
+\section{Metrici de evaluare a performanței}
+\label{cap:cap2:metrici_performanta}
+
+Evaluarea unei strategii de tranzacționare nu poate fi realizată doar prin profitul final. O strategie poate obține un profit ridicat, dar cu un drawdown foarte mare, ceea ce o face dificil de utilizat în practică. În mod similar, o rată mare a tranzacțiilor câștigătoare nu garantează profitabilitatea dacă pierderile medii sunt mai mari decât câștigurile medii. De aceea, analiza trebuie să combine indicatori de randament, risc și stabilitate.
+
+\textit{Profit factor} este raportul dintre profitul brut și pierderea brută. O valoare mai mare decât 1 indică faptul că profiturile totale depășesc pierderile totale, însă interpretarea trebuie făcută împreună cu numărul de tranzacții. Un profit factor ridicat obținut din foarte puține tranzacții poate fi mai puțin convingător decât o valoare moderată obținută pe un eșantion mai mare.
+
+\textit{Drawdown-ul maxim} arată scăderea maximă a capitalului față de un vârf anterior. Această metrică este importantă deoarece descrie presiunea pe care strategia o pune asupra capitalului și asupra disciplinei operaționale. Într-un sistem automatizat, drawdown-ul este folosit nu doar pentru evaluare, ci și pentru mecanisme de protecție, precum circuit breaker-ul.
+
+\textit{Sharpe ratio} și \textit{Sortino ratio} sunt indicatori de performanță ajustată la risc. Sharpe raportează randamentul la volatilitatea totală, în timp ce Sortino penalizează mai ales volatilitatea negativă. În contextul tranzacționării, Sortino poate fi mai relevant deoarece fluctuațiile pozitive nu reprezintă un risc în același sens ca pierderile.
+
+Comparația cu un reper simplu, precum buy-and-hold, este utilă pentru interpretarea rezultatelor. Dacă o strategie activă produce un profit asemănător cu menținerea pasivă a poziției, dar cu un risc mai mare sau cu o complexitate operațională mai ridicată, valoarea sa practică este discutabilă. Din acest motiv, lucrarea raportează rezultatele sistemului împreună cu o comparație față de comportamentul pasiv al perechii valutare.
 
 \section{Managementul riscului}
 \label{cap:cap2:risc}

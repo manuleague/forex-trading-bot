@@ -26,12 +26,16 @@ Principalele contribuții realizate în cadrul lucrării sunt:
 
 Prin aceste contribuții, lucrarea depășește nivelul unei strategii izolate și propune un cadru complet de evaluare și execuție controlată. Valoarea principală a proiectului constă în transparența fluxului decizional: fiecare rezultat poate fi urmărit înapoi către datele folosite, strategia care a generat semnalul, decizia allocatorului și regulile de risc aplicate.
 
+Un alt element relevant este faptul că proiectul tratează tranzacționarea algoritmică drept un sistem compus din mai multe responsabilități, nu doar drept o funcție care produce semnale. Datele, strategiile, alocarea, riscul, execuția paper, monitorizarea și raportarea sunt separate, dar conectate printr-un flux comun. Această structură face proiectul mai ușor de explicat, de testat și de extins.
+
 \section{Comparație cu soluții similare}
 \label{cap:cap5:comparatie}
 
 Comparativ cu platformele comerciale de tranzacționare algoritmică, soluția propusă este mai restrânsă ca funcționalitate, dar oferă un grad mai mare de transparență asupra implementării. Codul sursă este organizat astfel încât fiecare componentă să aibă un rol clar, iar rezultatele sunt exportate în formate simple, ușor de verificat. Această abordare este potrivită pentru un proiect de licență, deoarece pune accent pe înțelegerea mecanismelor și pe justificarea deciziilor tehnice.
 
 În același timp, proiectul are limitări. Sistemul nu include încă o metodologie completă de validare walk-forward, nu modelează în detaliu spread-ul variabil și slippage-ul, iar rezultatele obținute prin backtesting trebuie interpretate cu prudență. De asemenea, integrarea live este destinată exclusiv mediului paper trading și nu trebuie considerată pregătită pentru utilizare pe cont real fără audit, monitorizare suplimentară și mecanisme operaționale mai robuste.
+
+Comparativ cu o soluție comercială matură, proiectul nu urmărește acoperirea tuturor funcționalităților posibile, ci controlul asupra mecanismelor principale. Acest lucru reprezintă un avantaj în context academic: fiecare decizie tehnică poate fi urmărită în cod, fiecare rezultat poate fi verificat în fișierele generate, iar fiecare limitare poate fi discutată explicit.
 
 \section{Direcții viitoare de dezvoltare}
 \label{cap:cap5:directii-viitoare}
@@ -46,5 +50,9 @@ Direcțiile viitoare de dezvoltare includ:
     \item adăugarea unor strategii suplimentare sau a unor modele statistice mai avansate;
     \item îmbunătățirea monitorizării live prin jurnale persistente, alerte și proceduri de oprire controlată.
 \end{itemize}
+
+O direcție importantă ar fi și introducerea unui mecanism de analiză comparativă între mai multe rulări. În prezent, fiecare experiment produce propriul director de rezultate, însă comparația între rulări este realizată manual. Un modul dedicat ar putea centraliza metricile principale, ar putea evidenția diferențele dintre parametri și ar putea genera rapoarte comparative pentru mai multe perechi valutare sau timeframe-uri.
+
+De asemenea, sistemul ar putea fi extins cu reguli de validare automată a datelor înainte de fiecare backtest. O astfel de etapă ar verifica lipsa valorilor invalide, continuitatea temporală a barelor și consistența valorilor OHLC. Prin includerea acestor verificări, rezultatele experimentale ar deveni mai ușor de justificat, iar erorile provenite din date ar fi identificate înainte de rularea strategiilor.
 
 În ansamblu, proiectul oferă o bază funcțională pentru studierea tranzacționării algoritmice Forex și pentru dezvoltări ulterioare orientate către evaluare mai robustă, monitorizare live și control mai avansat al riscului. Lucrarea demonstrează că un sistem de tranzacționare algoritmică nu trebuie privit doar ca un generator de semnale, ci ca un ansamblu de componente care trebuie să colaboreze într-un mod verificabil, transparent și responsabil.

@@ -88,6 +88,17 @@ Pentru fiecare rulare au fost verificate următoarele aspecte:
 
 Testarea modului live a fost tratată separat, deoarece depinde de TWS sau IB Gateway și de disponibilitatea conexiunii Interactive Brokers. Pentru această componentă, accentul a fost pus pe protecțiile operaționale: porturi paper, lock-uri locale, heartbeat și reconectare.
 
+\section{Criterii de interpretare a rezultatelor}
+\label{cap:cap4:criterii_interpretare}
+
+Interpretarea rezultatelor a fost realizată pe baza mai multor criterii, nu doar pe baza profitului final. Primul criteriu este direcția rezultatului net: o strategie trebuie să producă un P\&L pozitiv pentru a fi considerată promițătoare pe intervalul analizat. Totuși, acest criteriu nu este suficient, deoarece un profit pozitiv poate fi obținut cu risc foarte mare sau printr-un număr redus de tranzacții.
+
+Al doilea criteriu este stabilitatea curbei capitalului. O evoluție cu drawdown redus și reveniri rapide este preferabilă unei evoluții cu variații mari, chiar dacă profitul final este asemănător. Din această perspectivă, drawdown-ul maxim și distribuția profiturilor pe tranzacții oferă informații importante despre robustețea strategiei.
+
+Al treilea criteriu este raportul dintre profitabilitate și frecvența tranzacțiilor. Un sistem care tranzacționează foarte rar poate produce rezultate greu de generalizat, deoarece fiecare tranzacție influențează puternic statisticile finale. Pe de altă parte, un număr mare de tranzacții cu profit factor subunitar indică o logică de semnalizare insuficient de selectivă sau o problemă de raport risc-recompensă.
+
+În final, rezultatele au fost analizate și prin comparație între perechi valutare. Dacă un sistem funcționează doar pe un singur instrument, este posibil ca performanța să fie legată de particularitățile perioadei testate. Testarea pe EURUSD, GBPUSD și USDJPY oferă o perspectivă mai echilibrată, deoarece perechile au comportamente diferite de volatilitate, trend și sensibilitate macroeconomică.
+
 \section{Rezultate obținute}
 \label{cap:cap4:rezultate}
 
@@ -121,12 +132,34 @@ Pentru GBPUSD, deși rata tranzacțiilor profitabile a fost de 58,82\%, profit f
 
 Pentru USDJPY, sistemul a obținut cel mai bun rezultat: +31,07\%, profit factor 3,743 și drawdown maxim de 3,19\%. Strategia a depășit ușor buy-and-hold, ceea ce sugerează că mecanismele de intrare și ieșire au adăugat valoare într-un context direcțional favorabil.
 
+\section{Discuție asupra robusteții rezultatelor}
+\label{cap:cap4:robustete}
+
+Rezultatele obținute trebuie interpretate ca o validare experimentală inițială, nu ca o demonstrație definitivă a profitabilității. Intervalul 2018--2024 include perioade de volatilitate diferită, dar nu acoperă toate condițiile posibile de piață. De exemplu, perioadele cu șocuri macroeconomice, schimbări bruște de politică monetară sau lichiditate redusă pot modifica semnificativ comportamentul strategiilor.
+
+Diferența dintre rezultatele USDJPY și GBPUSD arată că sistemul nu se comportă identic pe toate instrumentele. Această observație este importantă deoarece confirmă necesitatea analizei pe perechi multiple. O strategie poate fi potrivită pentru un instrument cu tendințe direcționale clare, dar poate deveni mai puțin eficientă pe o pereche cu mișcări mai neregulate sau cu episoade frecvente de revenire rapidă.
+
+Un alt element care influențează robustețea este sensibilitatea la parametri. Pragurile pentru ADX, ATR, scorul allocatorului, stop-loss și take-profit pot schimba numărul de tranzacții și distribuția rezultatelor. În această lucrare, accentul a fost pus pe construirea unei arhitecturi funcționale și auditabile, nu pe optimizarea agresivă a parametrilor. Această decizie reduce riscul de supraoptimizare, dar lasă loc pentru experimente viitoare mai ample.
+
+Pentru validare suplimentară, ar fi utilă împărțirea datelor în intervale distincte de antrenare și testare, precum și aplicarea unei metodologii walk-forward. Într-un astfel de proces, parametrii ar fi ajustați pe o perioadă istorică și apoi verificați pe o perioadă ulterioară, nefolosită la configurare. Această abordare ar oferi o imagine mai realistă asupra capacității sistemului de a se adapta la date noi.
+
 \section{Analiza riscului}
 \label{cap:cap4:analiza_risc}
 
 Componenta de risc a limitat pierderile individuale în jurul pragului de 1\% din capitalul disponibil, așa cum se observă în tranzacțiile închise prin \textit{ATR Exit}. În același timp, mecanismele de break-even și trailing stop au permis protejarea profiturilor atunci când prețul s-a deplasat favorabil. Această combinație este vizibilă mai ales în rezultatele USDJPY, unde mai multe tranzacții au fost închise prin trailing stop sau take-profit ATR.
 
 Drawdown-ul maxim a rămas sub 6\% în toate cele trei scenarii analizate. Acest rezultat indică faptul că dimensionarea pozițiilor și limitarea expunerii au funcționat conform obiectivelor. Totuși, rezultatul negativ pe GBPUSD arată că protecția riscului nu transformă automat o strategie nepotrivită într-una profitabilă; ea controlează pierderea, dar selecția semnalelor rămâne decisivă.
+
+\section{Auditarea artefactelor generate}
+\label{cap:cap4:audit_artefacte}
+
+Un avantaj al proiectului este faptul că rezultatele nu sunt prezentate doar sub forma unui sumar final, ci sunt împărțite în mai multe artefacte verificabile. Fișierul \texttt{trades.csv} permite analiza tranzacțiilor închise, incluzând prețurile de intrare și ieșire, motivul semnalului, regimul de piață și profitul rezultat. Fișierul \texttt{transactions.csv} oferă o perspectivă mai granulară, deoarece păstrează evenimentele de intrare și ieșire asociate fiecărei poziții.
+
+Curba capitalului, salvată în \texttt{equity\_curve.csv}, este importantă pentru verificarea drawdown-ului și a evoluției performanței în timp. Prin compararea acestei curbe cu lista tranzacțiilor, se poate observa dacă rezultatul final provine dintr-o singură tranzacție dominantă sau dintr-o succesiune mai stabilă de decizii. Această distincție este relevantă deoarece robustețea unei strategii nu depinde doar de profitul final, ci și de distribuția câștigurilor și pierderilor.
+
+Fișierul \texttt{risk\_overlay\_metrics.csv} este util pentru verificarea deciziilor respinse. Într-un sistem de tranzacționare, absența unei tranzacții poate fi la fel de importantă ca deschiderea unei poziții. Dacă un semnal este respins din cauza volatilității insuficiente, a expunerii maxime sau a circuit breaker-ului, această informație trebuie păstrată pentru analiză. Astfel, componenta de risc devine transparentă și poate fi evaluată separat de strategiile de semnalizare.
+
+Dashboard-ul HTML completează fișierele CSV printr-o reprezentare vizuală a performanței. El nu înlocuiește datele brute, dar permite identificarea rapidă a zonelor problematice: scăderi bruște ale capitalului, perioade fără tranzacții, drawdown persistent sau diferențe mari între profitul realizat și cel nerealizat. Împreună, aceste artefacte formează o bază coerentă pentru auditarea rulărilor.
 
 \section{Resurse, fiabilitate și scalabilitate}
 \label{cap:cap4:resurse}
@@ -175,6 +208,10 @@ python main.py --mode live --pairs EURUSD,GBPUSD,USDJPY --timeframe 15m \
 
 Testarea live trebuie realizată exclusiv pe cont paper. Sistemul include protecții software, însă acestea nu elimină riscul operațional generat de configurări greșite, întreruperi de conexiune sau comportamente neprevăzute ale brokerului.
 
+În timpul testării live au fost urmărite două aspecte distincte: comportamentul intern al aplicației și reacția platformei brokerului. Din perspectiva aplicației, au fost verificate pornirea fluxului de date, actualizarea prețurilor, generarea semnalelor și expunerea metricilor. Din perspectiva brokerului, au fost verificate sesiunea paper, disponibilitatea instrumentului urmărit, afișarea cotațiilor și apariția ordinelor în interfața TWS. Această verificare dublă este importantă deoarece o aplicație poate funcționa corect intern, dar integrarea cu mediul extern poate eșua din cauza conexiunii, a portului folosit sau a unei setări din platforma brokerului.
+
+Modul live paper nu a fost folosit pentru evaluarea profitabilității, ci pentru validarea operațională. Profitabilitatea este analizată în principal prin backtesting, unde există un interval istoric clar și rezultate reproductibile. În schimb, rularea live paper confirmă faptul că arhitectura poate funcționa într-un mediu asincron, cu date primite de la broker și cu ordine transmise către o platformă externă.
+
 \section{Monitorizare live cu Prometheus și Grafana}
 \label{cap:cap4:monitorizare_live}
 
@@ -195,6 +232,8 @@ Porturile publicate pe sistemul gazdă au fost schimbate față de valorile impl
 \end{itemize}
 
 Panourile Grafana afișează prețul live, semnalul allocatorului, starea poziției, dimensiunea poziției și P\&L-ul perechii. Când botul nu deschide poziții, valorile pentru P\&L și dimensiunea poziției pot rămâne la zero. Acest comportament indică starea \textit{Flat}, nu o problemă a monitorizării.
+
+În cadrul testării, dashboard-urile au fost folosite ca instrument de verificare rapidă, nu ca mecanism de decizie manuală. Scopul lor este să arate dacă botul transmite metrici coerente și dacă valorile evoluează în timp. De exemplu, modificarea prețului live confirmă că fluxul de date este activ, iar schimbarea semnalului allocatorului confirmă că logica de evaluare este executată pe barele noi. În același timp, valorile pentru poziție și P\&L permit observarea efectului ordinelor paper fără a consulta permanent fișierele CSV.
 
 \section{Capturi de ecran din testare și monitorizare}
 \label{cap:cap4:capturi}
@@ -232,6 +271,24 @@ Pentru rularea live paper, dashboard-ul Grafana afișează prețul curent, profi
 
 \begin{figure}[H]
     \centering
+    \includegraphics[width=0.82\textwidth]{continut/capitol4/figuri/ib_login.png}
+    \caption{Autentificarea în Trader Workstation în modul Paper Trading}
+    \label{fig:ib_login_paper}
+\end{figure}
+
+Figura \ref{fig:ib_login_paper} evidențiază selectarea explicită a modului \textit{Paper Trading} în interfața Trader Workstation. Această etapă este importantă pentru siguranța testării, deoarece confirmă faptul că verificările live sunt realizate într-un mediu simulat, fără expunere financiară reală. În plus, interfața marchează vizibil faptul că sesiunea este destinată tranzacționării simulate, ceea ce reduce riscul de confuzie între un cont paper și un cont real.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{continut/capitol4/figuri/ib_dashboard.png}
+    \caption{Interfața Trader Workstation folosită pentru verificarea modului live paper}
+    \label{fig:ib_dashboard_paper}
+\end{figure}
+
+Figura \ref{fig:ib_dashboard_paper} prezintă mediul Trader Workstation în timpul monitorizării perechii EURUSD. În aceeași interfață pot fi urmărite prețurile bid/ask, graficul de preț pe intervale scurte, zona de introducere a ordinelor și panoul de activitate. Pentru proiect, această captură confirmă mediul operațional în care botul se conectează prin API și în care ordinele paper pot fi verificate vizual după transmitere.
+
+\begin{figure}[H]
+    \centering
     \includegraphics[width=0.55\textwidth]{continut/capitol4/figuri/ib_live_trades_notification.png}
     \caption{Notificare de ordin executat în Interactive Brokers paper trading}
     \label{fig:ib_notificare_ordin}
@@ -244,9 +301,15 @@ Pentru rularea live paper, dashboard-ul Grafana afișează prețul curent, profi
     \label{fig:ib_trades_dashboard}
 \end{figure}
 
-Capturile din Interactive Brokers confirmă faptul că semnalele produse de bot pot fi transformate în ordine paper și că execuțiile apar în interfața platformei. Notificarea de ordin executat și lista tranzacțiilor oferă o verificare vizuală a integrării dintre aplicația Python și mediul de tranzacționare.
+Capturile din Interactive Brokers confirmă faptul că semnalele produse de bot pot fi transformate în ordine paper și că execuțiile apar în interfața platformei. Ecranul de autentificare, dashboard-ul TWS, notificarea de ordin executat și lista tranzacțiilor oferă împreună o verificare vizuală a integrării dintre aplicația Python și mediul de tranzacționare.
+
+Prin includerea acestor capturi, documentarea nu se limitează la descrierea codului, ci arată și modul concret în care sistemul a fost verificat. Capturile au rol complementar față de fișierele generate automat: CSV-urile oferă trasabilitate numerică, iar imaginile confirmă starea mediului extern în timpul testării. Această combinație este utilă deoarece integrarea live depinde atât de aplicație, cât și de configurarea corectă a platformei Interactive Brokers.
 
 \section{Limitări}
 \label{cap:cap4:limitari}
 
 Rezultatele experimentale depind de intervalul istoric, timeframe și parametrii configurați. Nu au fost incluse comisioane reale, spread variabil și latență de execuție complet realistă. De asemenea, backtesting-ul pe o singură perioadă nu este suficient pentru validare finală; sunt necesare teste out-of-sample, walk-forward și verificări suplimentare pe condiții de piață diferite.
+
+O altă limitare este faptul că strategiile sunt bazate pe indicatori tehnici clasici și pe reguli deterministe. Această alegere este potrivită pentru transparență și pentru o lucrare de licență, dar nu surprinde toate formele de comportament ale pieței. Evenimentele fundamentale, schimbările bruște de lichiditate și știrile macroeconomice pot modifica rapid dinamica perechilor valutare, iar un sistem bazat exclusiv pe prețuri istorice poate reacționa cu întârziere.
+
+În plus, rezultatele din paper trading nu sunt echivalente cu rularea pe cont real. Chiar dacă platforma simulează execuția ordinelor, condițiile reale pot include slippage diferit, respingeri de ordine, latență și diferențe de lichiditate. Din acest motiv, proiectul trebuie privit ca o bază de cercetare și validare tehnică, nu ca un sistem gata de utilizare financiară reală.
