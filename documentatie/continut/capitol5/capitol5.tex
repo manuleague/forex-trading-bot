@@ -33,7 +33,7 @@ Un alt element relevant este faptul că proiectul tratează tranzacționarea alg
 
 Comparativ cu platformele comerciale de tranzacționare algoritmică, soluția propusă este mai restrânsă ca funcționalitate, dar oferă un grad mai mare de transparență asupra implementării. Codul sursă este organizat astfel încât fiecare componentă să aibă un rol clar, iar rezultatele sunt exportate în formate simple, ușor de verificat. Această abordare este potrivită pentru un proiect de licență, deoarece pune accent pe înțelegerea mecanismelor și pe justificarea deciziilor tehnice.
 
-În același timp, proiectul are limitări. Sistemul nu include încă o metodologie completă de validare walk-forward, nu modelează în detaliu spread-ul variabil și slippage-ul, iar rezultatele obținute prin backtesting trebuie interpretate cu prudență. De asemenea, integrarea live este destinată exclusiv mediului paper trading și nu trebuie considerată pregătită pentru utilizare pe cont real fără audit, monitorizare suplimentară și mecanisme operaționale mai robuste.
+În același timp, proiectul are limitări. Sistemul nu include încă o metodologie completă de validare walk-forward, nu modelează în detaliu spread-ul variabil și slippage-ul, iar rezultatele obținute prin backtesting trebuie interpretate cu prudență. Numărul redus de tranzacții pe timeframe zilnic limitează relevanța statistică a indicatorilor Sharpe și Sortino, motiv pentru care rezultatele pe granularități mai mici și verificările temporale trebuie folosite ca analize complementare. De asemenea, integrarea live este destinată exclusiv mediului paper trading și nu trebuie considerată pregătită pentru utilizare pe cont real fără audit, monitorizare suplimentară și mecanisme operaționale mai robuste.
 
 Comparativ cu o soluție comercială matură, proiectul nu urmărește acoperirea tuturor funcționalităților posibile, ci controlul asupra mecanismelor principale. Acest lucru reprezintă un avantaj în context academic: fiecare decizie tehnică poate fi urmărită în cod, fiecare rezultat poate fi verificat în fișierele generate, iar fiecare limitare poate fi discutată explicit.
 
@@ -45,6 +45,7 @@ Direcțiile viitoare de dezvoltare includ:
     \item adăugarea unor teste automate unitare și de integrare pentru componentele critice;
     \item implementarea unei metodologii walk-forward, pentru reducerea riscului de supraoptimizare;
     \item includerea spread-ului variabil, a comisioanelor și a slippage-ului estimat din date reale;
+    \item testarea unor ponderi adaptive pentru allocator, ajustate în funcție de regimul de piață și de performanța out-of-sample;
     \item extinderea dashboard-urilor cu alerte, comparații între rulări și rapoarte periodice;
     \item optimizarea parametrilor per pereche valutară, cu separare clară între datele de antrenare și cele de validare;
     \item adăugarea unor strategii suplimentare sau a unor modele statistice mai avansate;

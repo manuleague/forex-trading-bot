@@ -69,6 +69,14 @@ class BacktestEngine:
         allocator = StrategyAllocator(
             score_threshold=strategy_config.score_threshold,
             min_strategy_confidence=strategy_config.min_strategy_confidence,
+            w_performance=strategy_config.allocator_w_performance,
+            w_confidence=strategy_config.allocator_w_confidence,
+            w_regime_fit=strategy_config.allocator_w_regime_fit,
+            w_diversification=strategy_config.allocator_w_diversification,
+            w_win_rate=strategy_config.allocator_w_win_rate,
+            w_profit_factor=strategy_config.allocator_w_profit_factor,
+            w_avg_pnl=strategy_config.allocator_w_avg_pnl,
+            w_drawdown=strategy_config.allocator_w_drawdown,
         )
         tracker = PerformanceTracker(window=strategy_config.recent_trade_window)
         risk_overlay = RiskOverlay(risk_config)

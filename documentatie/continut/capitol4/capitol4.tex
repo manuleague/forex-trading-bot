@@ -119,6 +119,50 @@ Rezultatele generate de rapoartele \texttt{summary.txt} sunt sintetizate în tab
     \label{tabel:rezultate_backtest}
 \end{table}
 
+Rezultatele pe timeframe zilnic trebuie interpretate cu prudență din cauza numărului redus de tranzacții. Pentru EURUSD au fost generate doar 21 de tranzacții în șapte ani, iar pentru GBPUSD doar 17. În aceste condiții, indicatori precum Sharpe și Sortino au intervale de încredere largi și pot varia semnificativ dacă se modifică una sau două tranzacții. Din acest motiv, valorile respective sunt utile ca orientare, dar nu trebuie considerate o validare statistică puternică.
+
+Pentru a verifica efectul granularității asupra eșantionului, au fost analizate și rulări pe timeframe 4h. Rezultatele sunt prezentate în tabelul \ref{tabel:rezultate_backtest_4h}. Acest timeframe generează mai multe observații și, implicit, mai multe oportunități de tranzacționare, ceea ce face analiza statistică mai stabilă decât în cazul datelor zilnice.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{|l|r|r|r|r|r|}
+        \hline
+        \textbf{Pereche} & \textbf{P\&L} & \textbf{Drawdown} & \textbf{Tranzacții} & \textbf{Win rate} & \textbf{Profit factor} \\
+        \hline
+        EURUSD & +1.096,26 USD & 5,23\% & 150 & 56,00\% & 1,396 \\
+        GBPUSD & +1.165,98 USD & 4,25\% & 124 & 65,32\% & 1,396 \\
+        USDJPY & -436,56 USD & 4,57\% & 26 & 38,46\% & 0,288 \\
+        \hline
+    \end{tabular}
+    \caption{Rezultate backtesting pe timeframe 4h, 2018--2024}
+    \label{tabel:rezultate_backtest_4h}
+\end{table}
+
+Tabelul \ref{tabel:rezultate_backtest_4h} arată că trecerea de la Daily la 4h crește semnificativ numărul de tranzacții pentru EURUSD și GBPUSD. În același timp, rezultatul USDJPY se deteriorează pe 4h, ceea ce indică faptul că performanța bună de pe Daily nu se transferă automat la granularități mai mici. Această observație este importantă deoarece demonstrează că sistemul trebuie evaluat separat pe fiecare timeframe, iar alegerea granularității nu poate fi tratată ca detaliu minor.
+
+Pentru o verificare temporală mai strictă, au fost analizate și rezultatele pe anul 2024, folosind același timeframe 4h. Această analiză nu reprezintă un walk-forward complet, deoarece parametrii nu sunt reoptimizați în ferestre succesive, dar oferă o perspectivă apropiată de o evaluare out-of-sample: se observă cum se comportă sistemul pe o perioadă ulterioară, separată de restul intervalului istoric.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{|l|r|r|r|r|r|}
+        \hline
+        \textbf{Pereche} & \textbf{P\&L} & \textbf{Drawdown} & \textbf{Tranzacții} & \textbf{Win rate} & \textbf{Profit factor} \\
+        \hline
+        EURUSD & -209,15 USD & 3,24\% & 18 & 33,33\% & 0,416 \\
+        GBPUSD & -262,86 USD & 3,49\% & 16 & 56,25\% & 0,331 \\
+        USDJPY & -100,59 USD & 4,00\% & 19 & 52,63\% & 0,818 \\
+        \hline
+    \end{tabular}
+    \caption{Verificare temporală pe timeframe 4h pentru anul 2024}
+    \label{tabel:rezultate_backtest_4h_2024}
+\end{table}
+
+Rezultatele din tabelul \ref{tabel:rezultate_backtest_4h_2024} sunt mai slabe decât cele obținute pe întregul interval 2018--2024, ceea ce confirmă necesitatea unei metodologii riguroase de validare. Această diferență nu invalidează arhitectura proiectului, dar arată că performanța strategiilor nu trebuie extrapolată automat. Pentru o versiune destinată utilizării reale, ar fi necesare separare clară train/test, validare walk-forward și analiză de sensibilitate asupra parametrilor.
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.95\textwidth]{continut/capitol4/figuri/comparatie_rezultate_backtest.png}
@@ -141,7 +185,9 @@ Diferența dintre rezultatele USDJPY și GBPUSD arată că sistemul nu se compor
 
 Un alt element care influențează robustețea este sensibilitatea la parametri. Pragurile pentru ADX, ATR, scorul allocatorului, stop-loss și take-profit pot schimba numărul de tranzacții și distribuția rezultatelor. În această lucrare, accentul a fost pus pe construirea unei arhitecturi funcționale și auditabile, nu pe optimizarea agresivă a parametrilor. Această decizie reduce riscul de supraoptimizare, dar lasă loc pentru experimente viitoare mai ample.
 
-Pentru validare suplimentară, ar fi utilă împărțirea datelor în intervale distincte de antrenare și testare, precum și aplicarea unei metodologii walk-forward. Într-un astfel de proces, parametrii ar fi ajustați pe o perioadă istorică și apoi verificați pe o perioadă ulterioară, nefolosită la configurare. Această abordare ar oferi o imagine mai realistă asupra capacității sistemului de a se adapta la date noi.
+Pentru validare suplimentară, este necesară împărțirea datelor în intervale distincte de antrenare și testare, precum și aplicarea unei metodologii walk-forward. O separare simplă ar putea folosi perioada 2018--2022 pentru analiză și ajustarea parametrilor, iar perioada 2023--2024 pentru verificare out-of-sample. În această abordare, parametrii aleși pe perioada de antrenare ar trebui înghețați înainte de rularea pe perioada de testare, pentru a evita adaptarea accidentală la datele viitoare.
+
+Metodologia walk-forward reprezintă o variantă mai riguroasă. În locul unei singure împărțiri train/test, se folosește o fereastră glisantă: sistemul este calibrat pe un interval istoric, apoi verificat pe intervalul imediat următor, după care fereastra se deplasează. Rezultatele fiecărei ferestre sunt agregate pentru a estima comportamentul sistemului în condiții schimbătoare de piață. Această metodă reduce riscul de curve-fitting și ar trebui aplicată înainte ca un sistem de tranzacționare să fie considerat matur.
 
 \section{Analiza riscului}
 \label{cap:cap4:analiza_risc}

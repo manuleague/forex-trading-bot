@@ -161,10 +161,7 @@ class LiveRunner:
         if self.performance_tracker is None:
             self.performance_tracker = PerformanceTracker(window=self.config.strategy.recent_trade_window)
         if self.allocator is None:
-            self.allocator = StrategyAllocator(
-                score_threshold=self.config.strategy.score_threshold,
-                min_strategy_confidence=self.config.strategy.min_strategy_confidence,
-            )
+            self.allocator = self._build_allocator(self.config.strategy)
         if self.risk_overlay is None:
             self.risk_overlay = RiskOverlay(self.config.risk)
 
@@ -1105,10 +1102,7 @@ class LiveRunner:
             return
 
         decisions = {strategy.name: strategy.evaluate(analysis_data) for strategy in strategies}
-        allocator = StrategyAllocator(
-            score_threshold=strategy_config.score_threshold,
-            min_strategy_confidence=strategy_config.min_strategy_confidence,
-        )
+        allocator = self._build_allocator(strategy_config)
         composite = allocator.allocate(decisions, str(bar["regime"]), self.performance_tracker)
         self._update_terminal_status_snapshot(
             pair=pair,
@@ -1168,10 +1162,7 @@ class LiveRunner:
         strategy_config = self._strategy_config_for_pair(pair)
         risk_config = self._risk_config_for_pair(pair)
         strategies = build_default_strategies(strategy_config)
-        allocator = StrategyAllocator(
-            score_threshold=strategy_config.score_threshold,
-            min_strategy_confidence=strategy_config.min_strategy_confidence,
-        )
+        allocator = self._build_allocator(strategy_config)
         required_bars = max(strategy.required_bars(analysis_data) for strategy in strategies)
 
         bar = analysis_data.iloc[-1]
@@ -1452,6 +1443,21 @@ class LiveRunner:
     def _strategy_config_for_pair(self, pair: str) -> StrategyConfig:
         overrides = self.config.pair_specific_config.get(pair.upper(), {}).get("strategy", {})
         return replace(self.config.strategy, **overrides) if overrides else self.config.strategy
+
+    @staticmethod
+    def _build_allocator(strategy_config: StrategyConfig) -> StrategyAllocator:
+        return StrategyAllocator(
+            score_threshold=strategy_config.score_threshold,
+            min_strategy_confidence=strategy_config.min_strategy_confidence,
+            w_performance=strategy_config.allocator_w_performance,
+            w_confidence=strategy_config.allocator_w_confidence,
+            w_regime_fit=strategy_config.allocator_w_regime_fit,
+            w_diversification=strategy_config.allocator_w_diversification,
+            w_win_rate=strategy_config.allocator_w_win_rate,
+            w_profit_factor=strategy_config.allocator_w_profit_factor,
+            w_avg_pnl=strategy_config.allocator_w_avg_pnl,
+            w_drawdown=strategy_config.allocator_w_drawdown,
+        )
 
     def _risk_config_for_pair(self, pair: str) -> RiskConfig:
         overrides = self.config.pair_specific_config.get(pair.upper(), {}).get("risk", {})

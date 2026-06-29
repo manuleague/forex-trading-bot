@@ -242,10 +242,10 @@ for name, decision in decisions.items():
     regime_fit = snapshot.regime_fit
     diversification = self._diversification_bonus(name)
     composite = (
-        0.4 * performance_score
-        + 0.3 * raw_confidence
-        + 0.2 * regime_fit
-        + 0.1 * diversification
+        self.w_performance * performance_score
+        + self.w_confidence * raw_confidence
+        + self.w_regime_fit * regime_fit
+        + self.w_diversification * diversification
     )
     if decision.signal == 0:
         composite *= 0.25

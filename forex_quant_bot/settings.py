@@ -48,6 +48,14 @@ class StrategyConfig:
     score_threshold: float = 0.50
     min_strategy_confidence: float = 0.20
     recent_trade_window: int = 100
+    allocator_w_performance: float = 0.4
+    allocator_w_confidence: float = 0.3
+    allocator_w_regime_fit: float = 0.2
+    allocator_w_diversification: float = 0.1
+    allocator_w_win_rate: float = 0.45
+    allocator_w_profit_factor: float = 0.25
+    allocator_w_avg_pnl: float = 0.20
+    allocator_w_drawdown: float = 0.10
     adaptive_warmup_floor: int = 15
     daily_warmup_scale: float = 0.35
     weekly_warmup_scale: float = 0.25
