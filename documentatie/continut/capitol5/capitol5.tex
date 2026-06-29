@@ -46,6 +46,8 @@ Direcțiile viitoare de dezvoltare includ:
     \item implementarea unei metodologii walk-forward, pentru reducerea riscului de supraoptimizare;
     \item includerea spread-ului variabil, a comisioanelor și a slippage-ului estimat din date reale;
     \item testarea unor ponderi adaptive pentru allocator, ajustate în funcție de regimul de piață și de performanța out-of-sample;
+    \item integrarea unor componente de inteligență artificială pentru analiza regimurilor de piață, optimizarea parametrilor și asistarea interpretării rezultatelor;
+    \item migrarea parțială a sistemului către o infrastructură cloud, pentru rulări programate, stocare centralizată a experimentelor și monitorizare disponibilă de la distanță;
     \item extinderea dashboard-urilor cu alerte, comparații între rulări și rapoarte periodice;
     \item optimizarea parametrilor per pereche valutară, cu separare clară între datele de antrenare și cele de validare;
     \item adăugarea unor strategii suplimentare sau a unor modele statistice mai avansate;
@@ -55,5 +57,9 @@ Direcțiile viitoare de dezvoltare includ:
 O direcție importantă ar fi și introducerea unui mecanism de analiză comparativă între mai multe rulări. În prezent, fiecare experiment produce propriul director de rezultate, însă comparația între rulări este realizată manual. Un modul dedicat ar putea centraliza metricile principale, ar putea evidenția diferențele dintre parametri și ar putea genera rapoarte comparative pentru mai multe perechi valutare sau timeframe-uri.
 
 De asemenea, sistemul ar putea fi extins cu reguli de validare automată a datelor înainte de fiecare backtest. O astfel de etapă ar verifica lipsa valorilor invalide, continuitatea temporală a barelor și consistența valorilor OHLC. Prin includerea acestor verificări, rezultatele experimentale ar deveni mai ușor de justificat, iar erorile provenite din date ar fi identificate înainte de rularea strategiilor.
+
+Integrarea cu tehnici de inteligență artificială reprezintă o direcție relevantă, dar trebuie tratată cu prudență. Un model AI ar putea fi folosit pentru clasificarea regimurilor de piață, pentru detectarea schimbărilor de volatilitate sau pentru selectarea parametrilor care se comportă mai stabil pe date out-of-sample. De asemenea, un modul de analiză asistată ar putea rezuma automat rezultatele rulărilor, evidențiind situațiile în care performanța este susținută de un eșantion suficient sau, dimpotrivă, de un număr prea mic de tranzacții. Într-o astfel de abordare, AI-ul nu ar înlocui regulile de risc și validarea statistică, ci ar funcționa ca instrument de suport pentru analiză și calibrare.
+
+O altă direcție importantă este integrarea cu servicii cloud. Rularea sistemului într-un mediu cloud ar permite planificarea automată a backtest-urilor, păstrarea rezultatelor într-un spațiu centralizat și accesarea dashboard-urilor fără dependență de calculatorul local. În plus, containerele Docker ar putea fi orchestrate pe o infrastructură administrată, iar artefactele generate de fiecare experiment ar putea fi versionate împreună cu fișierele de configurare. Această extindere ar îmbunătăți reproductibilitatea experimentelor și ar apropia proiectul de un mod de lucru utilizat în sisteme software reale.
 
 În ansamblu, proiectul oferă o bază funcțională pentru studierea tranzacționării algoritmice Forex și pentru dezvoltări ulterioare orientate către evaluare mai robustă, monitorizare live și control mai avansat al riscului. Lucrarea demonstrează că un sistem de tranzacționare algoritmică nu trebuie privit doar ca un generator de semnale, ci ca un ansamblu de componente care trebuie să colaboreze într-un mod verificabil, transparent și responsabil.
